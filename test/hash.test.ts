@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { sha256Hex } from '../src/lib/hash';
 
 test('hashes known ascii input', async () => {
