@@ -35,7 +35,7 @@ export interface Container { id: string; workOrderId: string; containerNo: strin
 export interface Photo {
   id: string; containerId: string; slotKey: string | null;
   originalPath: string | null; displayPath: string | null; thumbPath: string | null;
-  fileHash: string; capturedAt: string | null; gpsLat: number | null; gpsLng: number | null;
+  fileHash: string; byteSize: number | null; capturedAt: string | null; gpsLat: number | null; gpsLng: number | null;
   status: 'uploaded' | 'soft_deleted';
 }
 export interface ShareLink { id: string; workOrderId: string; token: string; kind: 'worker' | 'viewer'; revoked: boolean; }
