@@ -24,6 +24,7 @@ export default function App() {
   const [pending, setPending] = useState(0);
   const [uploaded, setUploaded] = useState(0);
   const [online, setOnline] = useState(navigator.onLine);
+  const [captureErrors, setCaptureErrors] = useState(0);
 
   async function refresh() {
     const all = await allItems();
@@ -35,11 +36,16 @@ export default function App() {
     await refresh();
   }
   async function onCapture(photo: Blob) {
-    const { display } = await makeVariants(photo);
-    const hash = await sha256Hex(display);
-    await enqueue({ id: hash, hash, slotKey: null, blob: display, capturedAt: Date.now(), gps: await getGps(), status: 'pending' });
-    await refresh();
-    if (navigator.onLine) await sync();
+    try {
+      const { display } = await makeVariants(photo);
+      const hash = await sha256Hex(display);
+      await enqueue({ id: hash, hash, slotKey: null, blob: display, capturedAt: Date.now(), gps: await getGps(), status: 'pending' });
+      await refresh();
+      if (navigator.onLine) await sync();
+    } catch (e) {
+      console.error('capture failed', e);
+      setCaptureErrors((n) => n + 1);
+    }
   }
 
   useEffect(() => {
@@ -60,7 +66,7 @@ export default function App() {
       </div>
       <CameraCapture mode={mode} onCapture={onCapture} />
       <button onClick={sync} style={{ marginLeft: 8 }}>지금 업로드</button>
-      <QueueStatus pending={pending} uploaded={uploaded} online={online} />
+      <QueueStatus pending={pending} uploaded={uploaded} online={online} errors={captureErrors} />
     </main>
   );
 }
