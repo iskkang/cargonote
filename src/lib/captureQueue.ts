@@ -12,11 +12,6 @@ function db(): Promise<IDBPDatabase> {
         s.createIndex('status', 'status');
       }
     },
-    blocked() {},
-    blocking() {
-      // Close this connection when another connection needs the DB (e.g. deleteDB)
-    },
-    terminated() {},
   });
 }
 
