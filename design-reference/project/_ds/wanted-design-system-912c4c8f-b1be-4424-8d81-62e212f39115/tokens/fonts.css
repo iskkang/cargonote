@@ -1,0 +1,51 @@
+/* ============================================================
+   Wanted Design System — Fonts
+   Primary UI typeface: Pretendard (substituted for "Pretendard JP")
+   Brand / display typeface: Wanted Sans
+   Both are open-source. Declared as explicit @font-face webfonts
+   (variable, full weight axis) served from jsDelivr. The Wanted Sans
+   Korean/extended glyph ranges are additionally pulled in via the
+   official split stylesheet so CJK coverage stays complete.
+   ============================================================ */
+
+/* ---- Pretendard Variable (UI / body) ---- */
+@font-face {
+  font-family: "Pretendard Variable";
+  font-weight: 45 920;
+  font-style: normal;
+  font-display: swap;
+  src: url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/packages/pretendard/dist/web/variable/woff2/PretendardVariable.woff2") format("woff2-variations");
+}
+
+/* ---- Wanted Sans Variable (brand / display) ---- */
+/* Latin axis declared locally; CJK + extended ranges via the split sheet below. */
+@font-face {
+  font-family: "Wanted Sans Variable";
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  src: url("https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.3/packages/wanted-sans/fonts/webfonts/variable/split/woff2/WantedSansVariable.split.0.woff2") format("woff2-variations");
+}
+/* Full Hangul + extended Latin coverage for Wanted Sans (40 subset faces). */
+@import url("https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.3/packages/wanted-sans/fonts/webfonts/variable/split/WantedSansVariable.min.css");
+
+:root {
+  /* Body / UI — used for ~95% of all product text */
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
+    "Apple SD Gothic Neo", "Segoe UI", Roboto, "Helvetica Neue", "Malgun Gothic",
+    "맑은 고딕", sans-serif;
+
+  /* Brand / marketing display — logotype-adjacent headlines */
+  --font-brand: "Wanted Sans Variable", "Wanted Sans", "Pretendard Variable",
+    var(--font-sans);
+
+  /* Monospace — code, numeric inspectors */
+  --font-mono: "SF Mono", ui-monospace, SFMono-Regular, "Menlo", Consolas, monospace;
+
+  /* Weight ramp (Pretendard / Wanted Sans share these) */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+}

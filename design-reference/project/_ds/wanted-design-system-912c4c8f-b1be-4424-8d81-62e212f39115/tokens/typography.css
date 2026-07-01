@@ -1,0 +1,60 @@
+/* ============================================================
+   Wanted Design System — Typography scale
+   19-step ramp lifted verbatim from the Figma type spec.
+   Each step: font-size / line-height / letter-spacing.
+   Weights are applied per usage (Display/Title → Bold,
+   Heading/Headline → SemiBold, Body/Label → Medium or Regular).
+   ============================================================ */
+
+:root {
+  /* ---- Display (Wanted Sans / Bold) — hero & marketing ---- */
+  --display1-size: 56px;  --display1-line: 72px;  --display1-tracking: -0.0319em;
+  --display2-size: 40px;  --display2-line: 52px;  --display2-tracking: -0.0282em;
+  --display3-size: 36px;  --display3-line: 48px;  --display3-tracking: -0.027em;
+
+  /* ---- Title (Bold) ---- */
+  --title1-size: 32px;    --title1-line: 44px;    --title1-tracking: -0.0253em;
+  --title2-size: 28px;    --title2-line: 38px;    --title2-tracking: -0.0236em;
+  --title3-size: 24px;    --title3-line: 32px;    --title3-tracking: -0.023em;
+
+  /* ---- Heading (SemiBold) ---- */
+  --heading1-size: 22px;  --heading1-line: 30px;  --heading1-tracking: -0.0194em;
+  --heading2-size: 20px;  --heading2-line: 28px;  --heading2-tracking: -0.012em;
+
+  /* ---- Headline (SemiBold) ---- */
+  --headline1-size: 18px; --headline1-line: 26px; --headline1-tracking: -0.002em;
+  --headline2-size: 17px; --headline2-line: 24px; --headline2-tracking: 0em;
+
+  /* ---- Body (Medium / Regular) ---- */
+  --body1-size: 16px;     --body1-line: 24px;     --body1-tracking: 0.0057em;
+  --body1-reading-line: 26px;
+  --body2-size: 15px;     --body2-line: 22px;     --body2-tracking: 0.0096em;
+  --body2-reading-line: 24px;
+
+  /* ---- Label (Medium / SemiBold) ---- */
+  --label1-size: 14px;    --label1-line: 20px;    --label1-tracking: 0.0145em;
+  --label1-reading-line: 22px;
+  --label2-size: 13px;    --label2-line: 18px;    --label2-tracking: 0.0194em;
+
+  /* ---- Caption (Medium) ---- */
+  --caption1-size: 12px;  --caption1-line: 16px;  --caption1-tracking: 0.0252em;
+  --caption2-size: 11px;  --caption2-line: 14px;  --caption2-tracking: 0.0311em;
+}
+
+/* ---- Specimen / utility classes (opt-in) ---- */
+.wds-display1 { font: var(--font-weight-bold) var(--display1-size)/var(--display1-line) var(--font-brand); letter-spacing: var(--display1-tracking); }
+.wds-display2 { font: var(--font-weight-bold) var(--display2-size)/var(--display2-line) var(--font-brand); letter-spacing: var(--display2-tracking); }
+.wds-display3 { font: var(--font-weight-bold) var(--display3-size)/var(--display3-line) var(--font-brand); letter-spacing: var(--display3-tracking); }
+.wds-title1 { font: var(--font-weight-bold) var(--title1-size)/var(--title1-line) var(--font-sans); letter-spacing: var(--title1-tracking); }
+.wds-title2 { font: var(--font-weight-bold) var(--title2-size)/var(--title2-line) var(--font-sans); letter-spacing: var(--title2-tracking); }
+.wds-title3 { font: var(--font-weight-bold) var(--title3-size)/var(--title3-line) var(--font-sans); letter-spacing: var(--title3-tracking); }
+.wds-heading1 { font: var(--font-weight-semibold) var(--heading1-size)/var(--heading1-line) var(--font-sans); letter-spacing: var(--heading1-tracking); }
+.wds-heading2 { font: var(--font-weight-semibold) var(--heading2-size)/var(--heading2-line) var(--font-sans); letter-spacing: var(--heading2-tracking); }
+.wds-headline1 { font: var(--font-weight-semibold) var(--headline1-size)/var(--headline1-line) var(--font-sans); letter-spacing: var(--headline1-tracking); }
+.wds-headline2 { font: var(--font-weight-semibold) var(--headline2-size)/var(--headline2-line) var(--font-sans); letter-spacing: var(--headline2-tracking); }
+.wds-body1 { font: var(--font-weight-medium) var(--body1-size)/var(--body1-line) var(--font-sans); letter-spacing: var(--body1-tracking); }
+.wds-body2 { font: var(--font-weight-medium) var(--body2-size)/var(--body2-line) var(--font-sans); letter-spacing: var(--body2-tracking); }
+.wds-label1 { font: var(--font-weight-medium) var(--label1-size)/var(--label1-line) var(--font-sans); letter-spacing: var(--label1-tracking); }
+.wds-label2 { font: var(--font-weight-medium) var(--label2-size)/var(--label2-line) var(--font-sans); letter-spacing: var(--label2-tracking); }
+.wds-caption1 { font: var(--font-weight-medium) var(--caption1-size)/var(--caption1-line) var(--font-sans); letter-spacing: var(--caption1-tracking); }
+.wds-caption2 { font: var(--font-weight-medium) var(--caption2-size)/var(--caption2-line) var(--font-sans); letter-spacing: var(--caption2-tracking); }

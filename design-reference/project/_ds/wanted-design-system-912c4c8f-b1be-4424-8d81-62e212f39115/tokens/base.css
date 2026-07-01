@@ -1,0 +1,27 @@
+/* ============================================================
+   Wanted Design System — Base
+   Minimal reset + sensible document defaults. Opt-in: only
+   affects bare elements, never overrides component styling.
+   ============================================================ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--body1-size);
+  line-height: var(--body1-line);
+  letter-spacing: var(--body1-tracking);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-normal);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "tnum" 0;
+}
+
+a { color: var(--color-primary); text-decoration: none; }
+
+::selection { background: rgba(0, 102, 255, 0.16); }

@@ -1,0 +1,12 @@
+/* ============================================================
+   Wanted Design System — global entry point
+   Consumers link THIS file only. Import order matters:
+   raw tokens → fonts → primitives → typography → semantic → base.
+   ============================================================ */
+
+@import "./tokens/fig-tokens.css";       /* 494 Figma Variables (light + dark + modes) */
+@import "./tokens/fonts.css";            /* Pretendard + Wanted Sans, font-family vars   */
+@import "./tokens/primitives.css";       /* spacing · radius · elevation · motion        */
+@import "./tokens/typography.css";       /* 19-step type scale + .wds-* specimen classes */
+@import "./tokens/semantic.css";         /* intention-revealing aliases over raw tokens  */
+@import "./tokens/base.css";             /* minimal reset + document defaults            */

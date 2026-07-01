@@ -1,0 +1,58 @@
+/* ============================================================
+   Wanted Design System — Semantic aliases
+   Ergonomic, intention-revealing names mapped onto the raw
+   Figma variable tokens (see fig-tokens.css). Prefer THESE in
+   components; they resolve correctly across light / dark.
+   ============================================================ */
+
+:root {
+  /* ---- Brand / primary ---- */
+  --color-primary: var(--primary-normal);          /* #3366FF — interactive blue */
+  --color-primary-strong: var(--primary-strong);   /* hover */
+  --color-primary-heavy: var(--primary-heavy);      /* press */
+  --color-on-primary: var(--static-white);
+  --brand-blue: var(--blue-50);                     /* #0066FF — iconic Wanted blue */
+  --brand-violet: var(--violet-50);                 /* #6541F2 — AI / premium accent */
+
+  /* ---- Text / labels ---- */
+  --text-strong: var(--label-strong);        /* pure black headings */
+  --text-normal: var(--label-normal);        /* #171717 primary body */
+  --text-neutral: var(--label-neutral);      /* 88% — secondary */
+  --text-alternative: var(--label-alternative); /* 61% — captions */
+  --text-assistive: var(--label-assistive);  /* 28% — placeholder */
+  --text-disable: var(--label-disable);
+  --text-on-dark: var(--inverse-label);
+
+  /* ---- Surfaces / backgrounds ---- */
+  --bg: var(--background-normal-normal);             /* page white */
+  --bg-alt: var(--background-normal-alternative);    /* #F7F7F8 grouped */
+  --surface: var(--background-elevated-normal);      /* elevated card */
+  --surface-alt: var(--background-elevated-alternative);
+  --bg-inverse: var(--inverse-background);           /* near-black */
+
+  /* ---- Fills (translucent neutral) ---- */
+  --fill-subtle: var(--fill-alternative);    /* 5%  */
+  --fill: var(--fill-normal);                /* 8%  */
+  --fill-bold: var(--fill-strong);           /* 16% */
+
+  /* ---- Lines / borders ---- */
+  --line-subtle: var(--line-normal-alternative); /* 8%  */
+  --line: var(--line-normal-neutral);            /* 16% */
+  --line-bold: var(--line-normal-normal);        /* 22% */
+  --line-strong: var(--line-normal-strong);      /* 52% */
+
+  /* ---- Status ---- */
+  --color-positive: var(--status-positive);     /* #00BF40 green */
+  --color-negative: var(--status-negative);     /* #FF4242 red */
+  --color-cautionary: var(--status-cautionary); /* #FF9200 orange */
+  --color-info: var(--blue-50);
+
+  /* ---- Accent foregrounds (badges, tags) ---- */
+  --accent-blue: var(--accent-foreground-blue);
+  --accent-green: var(--accent-foreground-green);
+  --accent-red: var(--accent-foreground-red);
+  --accent-violet-fg: var(--accent-foreground-violet);
+  --accent-cyan-fg: var(--accent-foreground-cyan);
+  --accent-pink: var(--accent-foreground-pink);
+  --accent-orange: var(--accent-foreground-orange);
+}
