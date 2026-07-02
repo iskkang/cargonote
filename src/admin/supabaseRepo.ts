@@ -85,5 +85,14 @@ export function createSupabaseAdminRepo(db: DbPort): AdminRepo {
       await db.update('work_orders', { col: 'id', val: id }, { status: 'published' });
       return { viewerToken };
     },
+    async getViewerManifest(token: string) {
+      const links = await db.select('share_links', { col: 'token', val: token });
+      const link = links.find((l) => l.kind === 'viewer' && l.revoked !== true);
+      if (!link) return null;
+      const pubs = await db.select('publications', { col: 'work_order_id', val: String(link.work_order_id) });
+      if (!pubs.length) return null;
+      const latest = pubs.slice().sort((a, b) => String(b.published_at).localeCompare(String(a.published_at)))[0];
+      return (latest.photo_manifest ?? null) as ViewerManifest | null;
+    },
   };
 }

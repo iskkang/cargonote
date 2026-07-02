@@ -22,6 +22,7 @@ export interface AdminRepo {
   listPhotos(containerId: string): Promise<Photo[]>;
   getWorkOrderReview(id: string): Promise<WorkOrderReview | null>;
   publish(id: string, manifest: ViewerManifest): Promise<{ viewerToken: string }>;
+  getViewerManifest(token: string): Promise<ViewerManifest | null>;
 }
 
 function tpl(id: string, route: string, carrier: string, minCount: number): WorkTypeTemplate {
@@ -112,6 +113,10 @@ export function createInMemoryAdminRepo(): AdminRepo {
       viewerTokens.set(id, viewerToken);
       publications.push({ workOrderId: id, viewerToken, manifest });
       return { viewerToken };
+    },
+    async getViewerManifest(token) {
+      const pub = [...publications].reverse().find((p) => p.viewerToken === token);
+      return pub ? pub.manifest : null;
     },
   };
 }
