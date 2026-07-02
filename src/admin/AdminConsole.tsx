@@ -5,37 +5,35 @@ import { WorkOrderBoard } from './WorkOrderBoard';
 import { CreateWorkOrder } from './CreateWorkOrder';
 import { ReviewPanel } from './ReviewPanel';
 import { defaultAuthDeps } from '../auth/session';
+import { PageShell, Brand, Card, Button } from '../ui/kit';
+import { C } from '../ui/tokens';
 
 export function AdminConsole({ repo = getAdminRepo() }: { repo?: AdminRepo } = {}) {
   const [creating, setCreating] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   return (
-    <main style={{ minHeight: '100vh', background: '#D7DEE5', fontFamily: 'Pretendard, sans-serif', color: '#0F1B26' }}>
-      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', background: '#fff', borderBottom: '0.5px solid rgba(90,107,125,0.25)' }}>
-        <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 800, fontSize: 18 }}>CARGO<span style={{ color: '#FF6A00' }}>LINK</span></span>
+    <PageShell>
+      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 22px', background: C.white, borderBottom: `1px solid ${C.line}` }}>
+        <Brand />
         <span style={{ display: 'flex', gap: 8 }}>
-          <button onClick={() => setCreating((v) => !v)} style={{ background: '#FF6A00', color: '#fff', border: 0, borderRadius: 10, padding: '8px 14px', fontWeight: 600 }}>새 작업</button>
-          <button onClick={() => defaultAuthDeps.signOut()} style={{ background: 'transparent', color: '#5A6B7D', border: '1px solid rgba(90,107,125,0.3)', borderRadius: 10, padding: '8px 14px' }}>로그아웃</button>
+          <Button onClick={() => setCreating((v) => !v)}>새 작업</Button>
+          <Button variant="ghost" onClick={() => defaultAuthDeps.signOut()}>로그아웃</Button>
         </span>
       </header>
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: 20 }}>
-        <h1 style={{ fontSize: 20, color: '#0F1B26' }}>관리자 콘솔</h1>
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: 22 }}>
+        <h1 style={{ fontSize: 20, color: C.navy }}>관리자 콘솔</h1>
         {selectedId ? (
           <ReviewPanel workOrderId={selectedId} repo={repo} onBack={() => { setSelectedId(null); setCreating(false); setRefreshKey((k) => k + 1); }} />
         ) : (
           <>
-            {creating && (
-              <section style={{ background: '#fff', borderRadius: 14, padding: 20, margin: '12px 0' }}>
-                <CreateWorkOrder repo={repo} onCreated={() => setRefreshKey((k) => k + 1)} />
-              </section>
-            )}
-            <section style={{ background: '#fff', borderRadius: 14, padding: '8px 6px', marginTop: 12 }}>
+            {creating && <Card style={{ margin: '14px 0' }}><CreateWorkOrder repo={repo} onCreated={() => setRefreshKey((k) => k + 1)} /></Card>}
+            <div style={{ marginTop: 14 }}>
               <WorkOrderBoard key={refreshKey} repo={repo} onSelect={setSelectedId} />
-            </section>
+            </div>
           </>
         )}
       </div>
-    </main>
+    </PageShell>
   );
 }

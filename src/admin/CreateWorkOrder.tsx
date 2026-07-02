@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import type { AdminRepo } from './repo';
 import type { Customer, WorkTypeTemplate } from '../domain/types';
+import { Field, Button, inputStyle } from '../ui/kit';
+import { C, FONT } from '../ui/tokens';
 
 export function CreateWorkOrder({ repo, onCreated }: { repo: AdminRepo; onCreated?: () => void }) {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -28,22 +30,21 @@ export function CreateWorkOrder({ repo, onCreated }: { repo: AdminRepo; onCreate
     onCreated?.();
   }
 
-  const field = { display: 'block', width: '100%', marginTop: 4, marginBottom: 12 } as const;
   return (
-    <form onSubmit={submit} style={{ maxWidth: 420, fontFamily: 'Pretendard, sans-serif' }}>
-      <label>거래처<select style={field} value={customerId} onChange={(e) => setCustomerId(e.target.value)}>{customers.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
-      <label>템플릿<select style={field} value={templateId} onChange={(e) => setTemplateId(e.target.value)}>{templates.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</select></label>
-      <label>컨테이너 번호<input style={field} value={containerNo} onChange={(e) => setContainerNo(e.target.value)} placeholder="TCLU1234567 (쉼표로 여러 개)" /></label>
-      <label>작업일<input type="date" style={field} value={workDate} onChange={(e) => setWorkDate(e.target.value)} /></label>
-      <label>담당자 이름<input style={field} value={assigneeName} onChange={(e) => setAssigneeName(e.target.value)} /></label>
-      <label>담당자 연락처<input style={field} value={assigneeContact} onChange={(e) => setAssigneeContact(e.target.value)} /></label>
-      <button type="submit" style={{ background: '#FF6A00', color: '#fff', border: 0, borderRadius: 10, padding: '10px 16px', fontWeight: 600 }}>작업 생성</button>
+    <form onSubmit={submit} style={{ maxWidth: 440 }}>
+      <Field label="거래처"><select style={inputStyle} value={customerId} onChange={(e) => setCustomerId(e.target.value)}>{customers.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></Field>
+      <Field label="템플릿"><select style={inputStyle} value={templateId} onChange={(e) => setTemplateId(e.target.value)}>{templates.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</select></Field>
+      <Field label="컨테이너 번호"><input style={inputStyle} value={containerNo} onChange={(e) => setContainerNo(e.target.value)} placeholder="TCLU1234567 (쉼표로 여러 개)" /></Field>
+      <Field label="작업일"><input type="date" style={inputStyle} value={workDate} onChange={(e) => setWorkDate(e.target.value)} /></Field>
+      <Field label="담당자 이름"><input style={inputStyle} value={assigneeName} onChange={(e) => setAssigneeName(e.target.value)} /></Field>
+      <Field label="담당자 연락처"><input style={inputStyle} value={assigneeContact} onChange={(e) => setAssigneeContact(e.target.value)} /></Field>
+      <Button type="submit">작업 생성</Button>
       {link && (
         <div style={{ marginTop: 16 }}>
-          <div style={{ fontSize: 12, color: '#5A6B7D' }}>작업자 링크</div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <code data-testid="worker-link" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, wordBreak: 'break-all' }}>{link}</code>
-            <button type="button" onClick={() => navigator.clipboard?.writeText(link)}>복사</button>
+          <div style={{ fontSize: 12, color: C.text }}>작업자 링크</div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 4 }}>
+            <code data-testid="worker-link" style={{ fontFamily: FONT.sans, fontSize: 12, wordBreak: 'break-all', color: C.navy }}>{link}</code>
+            <Button variant="ghost" onClick={() => navigator.clipboard?.writeText(link)} style={{ padding: '5px 10px' }}>복사</Button>
           </div>
         </div>
       )}
