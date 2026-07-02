@@ -55,3 +55,19 @@ test('deleteCustomer throws when the customer has work orders', async () => {
   const [order] = await repo.listWorkOrders();
   await expect(repo.deleteCustomer(order.customerId)).rejects.toThrow();
 });
+
+test('deleteWorkOrder removes the order (and its containers)', async () => {
+  const repo = createInMemoryAdminRepo();
+  const before = (await repo.listWorkOrders()).length;
+  await repo.deleteWorkOrder('wo-2');
+  const after = await repo.listWorkOrders();
+  expect(after.length).toBe(before - 1);
+  expect(after.find((o) => o.id === 'wo-2')).toBeUndefined();
+});
+
+test('updateWorkOrder changes assignee and work date', async () => {
+  const repo = createInMemoryAdminRepo();
+  const u = await repo.updateWorkOrder('wo-2', { assigneeName: '새담당', assigneeContact: '010-9', workDate: '2026-08-01' });
+  expect(u.assigneeName).toBe('새담당');
+  expect((await repo.listWorkOrders()).find((o) => o.id === 'wo-2')!.workDate).toBe('2026-08-01');
+});
