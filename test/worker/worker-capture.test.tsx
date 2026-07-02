@@ -8,7 +8,7 @@ test('resolves the demo token and shows the container + template checklist', asy
       <Routes><Route path="/c/:token" element={<WorkerCapture />} /></Routes>
     </MemoryRouter>,
   );
-  expect(await screen.findByText(/FBLU4204812/)).toBeInTheDocument();     // container plate
+  expect(await screen.findByText(/FBLU 420481/)).toBeInTheDocument();     // container plate (ISO check digit split out)
   expect(await screen.findByText(/빈 컨테이너/)).toBeInTheDocument();       // a required slot label
   expect(await screen.findByText(/반송/)).toBeInTheDocument();             // TCR warning
 });
