@@ -1,5 +1,7 @@
 import type { Container, Customer, Photo, WorkOrder, WorkTypeTemplate } from '../domain/types';
 import { randomToken } from './token';
+import type { WorkOrderReview } from '../domain/review';
+import { latestPerSlot } from '../domain/review';
 
 export interface NewWorkOrder {
   customerId: string; templateId: string; containerNos: string[];
@@ -17,6 +19,8 @@ export interface AdminRepo {
   getByWorkerToken(token: string): Promise<{ order: WorkOrder; template: WorkTypeTemplate; containers: Container[] } | null>;
   insertPhoto(p: NewPhoto): Promise<void>;
   listPhotos(containerId: string): Promise<Photo[]>;
+  getWorkOrderReview(id: string): Promise<WorkOrderReview | null>;
+  publish(id: string): Promise<{ viewerToken: string }>;
 }
 
 function tpl(id: string, route: string, carrier: string, minCount: number): WorkTypeTemplate {
@@ -51,6 +55,8 @@ export function createInMemoryAdminRepo(): AdminRepo {
   let seq = orders.length;
   const photos: Photo[] = [];
   let pseq = 0;
+  const viewerTokens = new Map<string, string>();
+  const publications: { workOrderId: string; viewerToken: string; photoManifest: string[] }[] = [];
   return {
     async listCustomers() { return [...customers]; },
     async listTemplates() { return [...templates]; },
@@ -85,6 +91,29 @@ export function createInMemoryAdminRepo(): AdminRepo {
     },
     async listPhotos(containerId) {
       return photos.filter((p) => p.containerId === containerId);
+    },
+    async getWorkOrderReview(id) {
+      const order = orders.find((o) => o.id === id);
+      if (!order) return null;
+      const template = templates.find((t) => t.id === order.templateId)!;
+      const customer = customers.find((c) => c.id === order.customerId) ?? null;
+      const cs = containers.filter((c) => c.workOrderId === id).map((container) => ({
+        container,
+        photos: latestPerSlot(photos.filter((p) => p.containerId === container.id)),
+      }));
+      return { order, template, customer, containers: cs };
+    },
+    async publish(id) {
+      const order = orders.find((o) => o.id === id);
+      if (!order) throw new Error('work order not found');
+      order.status = 'published';
+      const viewerToken = viewerTokens.get(id) ?? randomToken();
+      viewerTokens.set(id, viewerToken);
+      const manifest = containers
+        .filter((c) => c.workOrderId === id)
+        .flatMap((c) => latestPerSlot(photos.filter((p) => p.containerId === c.id)).map((p) => p.id));
+      publications.push({ workOrderId: id, viewerToken, photoManifest: manifest });
+      return { viewerToken };
     },
   };
 }
