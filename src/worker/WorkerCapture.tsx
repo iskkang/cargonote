@@ -23,6 +23,7 @@ export function WorkerCapture({ client = getWorkerClient() }: { client?: WorkerC
   const [notFound, setNotFound] = useState(false);
   const [captured, setCaptured] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
+  const [closeHint, setCloseHint] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -136,9 +137,26 @@ export function WorkerCapture({ client = getWorkerClient() }: { client?: WorkerC
       {/* Submit */}
       <Button onClick={() => setSubmitted(true)} disabled={submitted}
         style={{ width: '100%', marginTop: 18, padding: 12, fontSize: 15 }}>
-        {submitted ? '제출됨' : status.complete ? '제출' : '누락 있음 — 그래도 제출'}
+        {submitted ? '전송됨' : status.complete ? '전송' : '누락 있음 — 그래도 전송'}
       </Button>
       <div style={sx.footNote}>필요할 때 한 장씩 · 순서는 자유입니다</div>
+
+      {/* Completion dialog */}
+      {submitted && (
+        <div style={sx.overlay} role="dialog" aria-modal="true">
+          <div style={sx.modal}>
+            <div style={sx.modalCheck}>✓</div>
+            <div style={sx.modalTitle}>전송되었습니다!</div>
+            <div style={sx.modalText}>
+              {closeHint
+                ? '이 탭을 직접 닫아 주세요.'
+                : '촬영이 사무실로 전송됐습니다. 확인을 누르면 창이 닫힙니다.'}
+            </div>
+            <Button onClick={() => { window.close(); setCloseHint(true); }}
+              style={{ width: '100%', marginTop: 16, padding: 11 }}>확인</Button>
+          </div>
+        </div>
+      )}
     </PageShell>
   );
 }
@@ -179,4 +197,9 @@ const sx = {
     cursor: 'pointer', fontFamily: FONT.sans, boxShadow: '0 4px 12px -4px rgba(1,136,143,.45)', flexShrink: 0,
   } as const,
   footNote: { textAlign: 'center' as const, fontFamily: FONT.sans, fontSize: 12, color: C.onDarkDim, marginTop: 12 } as const,
+  overlay: { position: 'fixed' as const, inset: 0, background: 'rgba(15,27,38,.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 50 } as const,
+  modal: { background: C.white, borderRadius: 16, padding: '28px 24px', maxWidth: 340, width: '100%', textAlign: 'center' as const, fontFamily: FONT.sans } as const,
+  modalCheck: { width: 52, height: 52, margin: '0 auto 14px', borderRadius: 999, background: C.tealTint, color: C.teal, fontSize: 28, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' } as const,
+  modalTitle: { fontSize: 19, fontWeight: 800, color: C.navy } as const,
+  modalText: { fontSize: 13, color: C.text, marginTop: 8, lineHeight: 1.6 } as const,
 };

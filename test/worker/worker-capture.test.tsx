@@ -13,6 +13,17 @@ test('resolves the demo token and shows the container + template checklist', asy
   expect(await screen.findByText(/반송/)).toBeInTheDocument();             // TCR warning
 });
 
+test('전송 shows a completion dialog', async () => {
+  render(
+    <MemoryRouter initialEntries={['/c/demotoken123']}>
+      <Routes><Route path="/c/:token" element={<WorkerCapture />} /></Routes>
+    </MemoryRouter>,
+  );
+  const submit = await screen.findByRole('button', { name: /전송/ });
+  submit.click();
+  expect(await screen.findByText(/전송되었습니다/)).toBeInTheDocument();
+});
+
 test('shows an error for an unknown token', async () => {
   render(
     <MemoryRouter initialEntries={['/c/bad']}>
