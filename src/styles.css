@@ -13,3 +13,7 @@ body {
 }
 h1 { font-size: 20px; margin: 0; }   /* color inherited from the screen container */
 :focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(1,136,143,.30); border-radius: 6px; }
+
+/* Viewer gallery: details sidebar stacks under the photo grid on mobile, sits right on desktop */
+.cn-viewer { display: grid; grid-template-columns: 1fr; gap: 18px; }
+@media (min-width: 860px) { .cn-viewer { grid-template-columns: minmax(0,1fr) 288px; align-items: start; } }

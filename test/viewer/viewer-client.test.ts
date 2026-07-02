@@ -3,7 +3,7 @@ import { createInMemoryAdminRepo } from '../../src/admin/repo';
 
 test('in-memory viewer client returns the published manifest for its token', async () => {
   const repo = createInMemoryAdminRepo();
-  const { viewerToken } = await repo.publish('wo-2', { route: 'TCR', customer: '칭다오 파트너', containers: [] });
+  const { viewerToken } = await repo.publish('wo-2', { route: 'TCR', customer: '칭다오 파트너', date: '2026-07-02', containers: [] });
   const client = createInMemoryViewerClient(repo);
   expect((await client.bootstrap(viewerToken))?.route).toBe('TCR');
   expect(await client.bootstrap('nope')).toBeNull();

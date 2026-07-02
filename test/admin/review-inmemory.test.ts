@@ -28,7 +28,7 @@ test('getWorkOrderReview returns null for an unknown id', async () => {
 
 test('publish sets status=published and returns a viewer token, reused on re-publish', async () => {
   const repo = await seeded();
-  const manifest = { route: 'TCR', customer: '칭다오 파트너', containers: [] };
+  const manifest = { route: 'TCR', customer: '칭다오 파트너', date: '2026-07-02', containers: [] };
   const { viewerToken } = await repo.publish('wo-2', manifest);
   expect(viewerToken).toMatch(/^[A-Za-z0-9]+$/);
   const order = (await repo.listWorkOrders()).find((o) => o.id === 'wo-2');
