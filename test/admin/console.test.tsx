@@ -1,22 +1,25 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { AdminConsole } from '../../src/admin/AdminConsole';
 
-test('console shows the board and reveals the create form', async () => {
+test('defaults to the new-work view with the create form + link preview', async () => {
   render(<AdminConsole />);
-  expect(screen.getByRole('heading', { name: /관리자 콘솔/ })).toBeInTheDocument();
-  expect(await screen.findByText(/MTL 지사/)).toBeInTheDocument();           // board loaded
-  fireEvent.click(screen.getByRole('button', { name: /새 작업/ }));
-  expect(await screen.findByRole('button', { name: /작업 생성/ })).toBeInTheDocument(); // form revealed
+  expect(await screen.findByRole('button', { name: /작업 생성/ })).toBeInTheDocument();
+  expect(screen.getByText(/작업자에게 전달될 링크 미리보기/)).toBeInTheDocument();
 });
 
-test('거래처 button switches to the customer manager view', async () => {
+test('작업 현황 nav shows the board', async () => {
   render(<AdminConsole />);
-  await screen.findByText(/MTL 지사/);
+  fireEvent.click(screen.getByRole('button', { name: /작업 현황/ }));
+  expect(await screen.findByText(/MTL 지사/)).toBeInTheDocument();
+});
+
+test('거래처 nav switches to the customer manager view', async () => {
+  render(<AdminConsole />);
   fireEvent.click(screen.getByRole('button', { name: /^거래처$/ }));
-  expect(await screen.findByRole('heading', { name: /거래처 관리/ })).toBeInTheDocument();
+  expect(await screen.findByText(/칭다오 파트너/)).toBeInTheDocument();
 });
 
-test('shows the usage guide strip', async () => {
+test('리포트 nav is disabled (준비중)', async () => {
   render(<AdminConsole />);
-  expect(await screen.findByText(/사용 방법/)).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /리포트/ })).toBeDisabled();
 });
