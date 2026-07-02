@@ -25,7 +25,8 @@
 
 ## 수동 설정 (사용자 — 플랜 실행/병합 후)
 
-- 마이그레이션 0003/0004/0005 적용(SQL Editor 또는 `supabase db push`).
+- 마이그레이션 0003/0004/0005/0006 적용(SQL Editor 또는 `supabase db push`).
+- **Storage:** `captures` 버킷 + anon INSERT 정책이 있어야 워커/스파이크 업로드가 됨. 기존 라이브엔 Plan A 때 대시보드로 만든 `spike anon insert` 정책이 이미 있음. 0006이 이를 코드화(다른 이름, 추가 적용해도 무해). 새 프로젝트/`db reset` 후엔 0006이 필수.
 - Supabase 대시보드 → Authentication → **이메일 공개 가입(Sign-ups) 끄기**, **직원 계정 생성**.
 - (권장) DB가 열려 있던 동안의 더미데이터 정리.
 
