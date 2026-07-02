@@ -78,6 +78,21 @@ test('insertPhoto then listPhotos round-trips through the port', async () => {
   expect(list[0].displayPath).toBe('d.webp');
 });
 
+test('updateWorkOrder maps camel to snake and returns domain', async () => {
+  const db = memPort({ work_orders: [{ id: 'wo1', customer_id: 'c1', template_id: 't', work_date: null, status: 'sent', assignee_name: 'A', assignee_contact: 'B', shipper_label: null }] });
+  const repo = createSupabaseAdminRepo(db);
+  const u = await repo.updateWorkOrder('wo1', { assigneeName: '새담당', assigneeContact: '010', workDate: '2026-08-01' });
+  expect(u.assigneeName).toBe('새담당');
+  expect(u.workDate).toBe('2026-08-01');
+});
+
+test('deleteWorkOrder deletes the row via the port', async () => {
+  const db = memPort({ work_orders: [{ id: 'wo1', customer_id: 'c1', template_id: 't', work_date: null, status: 'sent', assignee_name: 'A', assignee_contact: 'B', shipper_label: null }] });
+  const repo = createSupabaseAdminRepo(db);
+  await repo.deleteWorkOrder('wo1');
+  expect((await repo.listWorkOrders()).length).toBe(0);
+});
+
 test('createCustomer inserts and maps contact fields', async () => {
   const db = memPort();
   const repo = createSupabaseAdminRepo(db);

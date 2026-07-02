@@ -6,6 +6,7 @@ import { checklistStatus } from '../domain/checklist';
 import { createThumbUrls, createSignedViewerUrls } from './thumbs';
 import { buildViewerManifest } from '../domain/viewer';
 import { Card, Button, Badge } from '../ui/kit';
+import { ShareLinkBar } from '../ui/ShareLinkBar';
 import { C, FONT } from '../ui/tokens';
 
 export function ReviewPanel({
@@ -110,18 +111,8 @@ export function ReviewPanel({
 
         {viewerLink && (
           <Card style={{ marginTop: 12 }}>
-            <div style={{ fontSize: 12, color: C.text, marginBottom: 6 }}>수신자 링크</div>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <code
-                data-testid="viewer-link"
-                style={{ fontFamily: FONT.sans, fontSize: 12, wordBreak: 'break-all', color: C.textStrong }}
-              >
-                {viewerLink}
-              </code>
-              <Button variant="ghost" type="button" onClick={() => navigator.clipboard?.writeText(viewerLink)}>
-                복사
-              </Button>
-            </div>
+            <div style={{ fontSize: 12, color: C.text, marginBottom: 6 }}>수신자에게 링크 보내기</div>
+            <ShareLinkBar url={viewerLink} title="적입 검수 완료 · 증빙 리포트" testId="viewer-link" />
           </Card>
         )}
       </div>

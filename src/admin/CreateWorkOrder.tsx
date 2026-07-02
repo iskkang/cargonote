@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import type { AdminRepo } from './repo';
 import type { Customer, WorkTypeTemplate } from '../domain/types';
 import { Field, Button, inputStyle } from '../ui/kit';
-import { C, FONT } from '../ui/tokens';
+import { C } from '../ui/tokens';
+import { ShareLinkBar } from '../ui/ShareLinkBar';
 import type { WorkOrderPreviewData } from './WorkOrderPreview';
 
 export function CreateWorkOrder({ repo, onCreated, onManageCustomers, onPreviewChange }: {
@@ -73,11 +74,8 @@ export function CreateWorkOrder({ repo, onCreated, onManageCustomers, onPreviewC
       <Button type="submit" disabled={ready && !canSubmit}>작업 생성</Button>
       {link && (
         <div style={{ marginTop: 16 }}>
-          <div style={{ fontSize: 12, color: C.text }}>작업자 링크</div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 4 }}>
-            <code data-testid="worker-link" style={{ fontFamily: FONT.sans, fontSize: 12, wordBreak: 'break-all', color: C.navy }}>{link}</code>
-            <Button variant="ghost" onClick={() => navigator.clipboard?.writeText(link)} style={{ padding: '5px 10px' }}>복사</Button>
-          </div>
+          <div style={{ fontSize: 12, color: C.text, marginBottom: 2 }}>작업자에게 링크 보내기</div>
+          <ShareLinkBar url={link} title="적입 검수 촬영 링크" testId="worker-link" />
         </div>
       )}
     </form>

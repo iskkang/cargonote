@@ -15,6 +15,9 @@ export interface NewPhoto {
 export interface NewCustomer {
   name: string; contactName: string | null; phone: string | null; email: string | null;
 }
+export interface WorkOrderEdit {
+  assigneeName: string; assigneeContact: string; workDate: string | null;
+}
 export interface AdminRepo {
   listCustomers(): Promise<Customer[]>;
   createCustomer(input: NewCustomer): Promise<Customer>;
@@ -23,6 +26,8 @@ export interface AdminRepo {
   listTemplates(): Promise<WorkTypeTemplate[]>;
   listWorkOrders(): Promise<WorkOrder[]>;
   createWorkOrder(input: NewWorkOrder): Promise<{ order: WorkOrder; workerToken: string }>;
+  updateWorkOrder(id: string, input: WorkOrderEdit): Promise<WorkOrder>;
+  deleteWorkOrder(id: string): Promise<void>;
   getByWorkerToken(token: string): Promise<{ order: WorkOrder; template: WorkTypeTemplate; containers: Container[] } | null>;
   insertPhoto(p: NewPhoto): Promise<void>;
   listPhotos(containerId: string): Promise<Photo[]>;
@@ -105,6 +110,22 @@ export function createInMemoryAdminRepo(): AdminRepo {
       const workerToken = randomToken();
       tokens.set(workerToken, order.id);
       return { order, workerToken };
+    },
+    async updateWorkOrder(id, input) {
+      const order = orders.find((o) => o.id === id);
+      if (!order) throw new Error('work order not found');
+      order.assigneeName = input.assigneeName;
+      order.assigneeContact = input.assigneeContact;
+      order.workDate = input.workDate;
+      return order;
+    },
+    async deleteWorkOrder(id) {
+      const oi = orders.findIndex((o) => o.id === id);
+      if (oi >= 0) orders.splice(oi, 1);
+      const containerIds = containers.filter((c) => c.workOrderId === id).map((c) => c.id);
+      for (let i = containers.length - 1; i >= 0; i--) if (containers[i].workOrderId === id) containers.splice(i, 1);
+      for (let i = photos.length - 1; i >= 0; i--) if (containerIds.includes(photos[i].containerId)) photos.splice(i, 1);
+      for (const [tok, woId] of [...tokens]) if (woId === id) tokens.delete(tok);
     },
     async insertPhoto(p) {
       photos.push({

@@ -49,6 +49,16 @@ export function createSupabaseAdminRepo(db: DbPort): AdminRepo {
       await db.insert('share_links', { work_order_id: order.id, token: workerToken, kind: 'worker' });
       return { order, workerToken };
     },
+    async updateWorkOrder(id: string, input) {
+      const [row] = await db.update('work_orders', { col: 'id', val: id }, {
+        assignee_name: input.assigneeName, assignee_contact: input.assigneeContact, work_date: input.workDate,
+      });
+      if (!row) throw new Error('work_order update returned no row');
+      return rowToWorkOrder(row);
+    },
+    async deleteWorkOrder(id: string) {
+      await db.delete('work_orders', { col: 'id', val: id });
+    },
     async getByWorkerToken(token: string) {
       const links = await db.select('share_links', { col: 'token', val: token });
       const link = links.find((l) => l.kind === 'worker' && l.revoked !== true);
