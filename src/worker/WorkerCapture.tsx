@@ -134,7 +134,7 @@ const sx = {
     letterSpacing: 2,
     background: '#16242F',
     border: `1px solid ${C.blue55}`,
-    borderLeft: `4px solid ${C.orange}`,
+    borderLeft: `4px solid ${C.teal}`,
     borderRadius: 10,
     padding: '10px 14px',
     color: C.onDark,
@@ -143,7 +143,7 @@ const sx = {
   errorCard: { marginTop: 10, padding: '10px 14px', borderLeft: `4px solid ${C.negative}`, borderRadius: 8 } as const,
   row: { display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', borderTop: `0.5px solid rgba(159,178,194,0.2)` } as const,
   shoot: {
-    background: C.orange,
+    background: C.teal,
     color: C.white,
     borderRadius: 8,
     padding: '7px 14px',
@@ -151,7 +151,7 @@ const sx = {
     fontWeight: 600,
     cursor: 'pointer',
     fontFamily: FONT.sans,
-    boxShadow: '0 4px 12px -4px rgba(255,106,0,.45)',
+    boxShadow: '0 4px 12px -4px rgba(1,136,143,.45)',
     flexShrink: 0,
   } as const,
 };

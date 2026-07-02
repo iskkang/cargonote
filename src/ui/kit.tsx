@@ -52,7 +52,7 @@ export function Button({ children, variant = 'primary', type = 'button', disable
   { children: ReactNode; variant?: 'primary' | 'ghost'; type?: 'button' | 'submit'; disabled?: boolean; onClick?: () => void; style?: CSSProperties }) {
   const base: CSSProperties = { fontFamily: FONT.sans, fontWeight: 600, borderRadius: R.md, padding: '9px 16px', cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.6 : 1, border: 0 };
   const skin: CSSProperties = variant === 'primary'
-    ? { background: C.orange, color: C.white, boxShadow: SH.primary }
+    ? { background: C.teal, color: C.white, boxShadow: SH.primary }
     : { background: 'transparent', color: C.text, border: `1px solid ${C.line}` };
   return <button type={type} disabled={disabled} onClick={onClick} style={{ ...base, ...skin, ...style }}>{children}</button>;
 }

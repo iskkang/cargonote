@@ -37,7 +37,7 @@ export function Login({ deps }: { deps: AuthDeps }) {
               {PILLARS.map((p) => (
                 <Card key={p.h} style={{ padding: '15px 17px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 7 }}>
-                    <span style={{ fontFamily: FONT.sans, fontWeight: 800, fontSize: 13, color: C.orange }}>{p.h}</span>
+                    <span style={{ fontFamily: FONT.sans, fontWeight: 800, fontSize: 13, color: C.teal }}>{p.h}</span>
                     <span style={{ fontSize: 11, fontWeight: 700, color: C.text, letterSpacing: '.04em' }}>{p.tag}</span>
                   </div>
                   <div style={{ fontSize: 15, fontWeight: 700, color: C.navy, lineHeight: 1.35 }}>{p.title}</div>
