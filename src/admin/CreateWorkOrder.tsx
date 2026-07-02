@@ -3,8 +3,12 @@ import type { AdminRepo } from './repo';
 import type { Customer, WorkTypeTemplate } from '../domain/types';
 import { Field, Button, inputStyle } from '../ui/kit';
 import { C, FONT } from '../ui/tokens';
+import type { WorkOrderPreviewData } from './WorkOrderPreview';
 
-export function CreateWorkOrder({ repo, onCreated, onManageCustomers }: { repo: AdminRepo; onCreated?: () => void; onManageCustomers?: () => void }) {
+export function CreateWorkOrder({ repo, onCreated, onManageCustomers, onPreviewChange }: {
+  repo: AdminRepo; onCreated?: () => void; onManageCustomers?: () => void;
+  onPreviewChange?: (p: WorkOrderPreviewData) => void;
+}) {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [templates, setTemplates] = useState<WorkTypeTemplate[]>([]);
   const [customerId, setCustomerId] = useState('');
@@ -20,6 +24,19 @@ export function CreateWorkOrder({ repo, onCreated, onManageCustomers }: { repo: 
     repo.listCustomers().then((c) => { setCustomers(c); setCustomerId(c[0]?.id ?? ''); setReady(true); });
     repo.listTemplates().then((t) => { setTemplates(t); setTemplateId(t[0]?.id ?? ''); });
   }, [repo]);
+
+  useEffect(() => {
+    if (!onPreviewChange) return;
+    const tpl = templates.find((t) => t.id === templateId);
+    const required = tpl ? tpl.requiredPhotos.filter((s) => s.required).length || tpl.minCount : 0;
+    onPreviewChange({
+      customerName: customers.find((c) => c.id === customerId)?.name ?? '',
+      route: tpl?.route ?? null,
+      carrier: tpl?.carrier ?? null,
+      containerNos: containerNo.split(',').map((s) => s.trim()).filter(Boolean),
+      requiredCount: required,
+    });
+  }, [onPreviewChange, customers, templates, customerId, templateId, containerNo]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();

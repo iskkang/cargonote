@@ -48,7 +48,7 @@ test('getWorkOrderReview assembles order/template/customer/containers with lates
 test('publish inserts a publication + viewer share_link, sets status, reuses token', async () => {
   const port = memPort(baseSeed());
   const repo = createSupabaseAdminRepo(port);
-  const manifest = { route: 'TCR', customer: '칭다오 파트너', containers: [] };
+  const manifest = { route: 'TCR', customer: '칭다오 파트너', date: '2026-07-02', containers: [] };
   const { viewerToken } = await repo.publish('wo1', manifest);
   expect(viewerToken).toMatch(/^[A-Za-z0-9]+$/);
   const wo = (await port.select('work_orders', { col: 'id', val: 'wo1' }))[0];

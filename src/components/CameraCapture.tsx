@@ -19,7 +19,7 @@ export function CameraCapture({ mode, onCapture }: { mode: 'input' | 'stream'; o
 
   if (mode === 'input') {
     return (
-      <label style={{ display: 'inline-block', background: '#FF6A00', color: '#fff', padding: '12px 18px', borderRadius: 10, fontWeight: 600 }}>
+      <label style={{ display: 'inline-block', background: '#01888F', color: '#fff', padding: '12px 18px', borderRadius: 10, fontWeight: 600 }}>
         사진 촬영
         <input ref={inputRef} type="file" accept="image/*" capture="environment" hidden multiple
           onChange={(e) => { Array.from(e.target.files ?? []).forEach(onCapture); e.target.value = ''; }} />
