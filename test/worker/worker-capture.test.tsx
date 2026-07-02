@@ -1,0 +1,23 @@
+import { render, screen } from '@testing-library/react';
+import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import { WorkerCapture } from '../../src/worker/WorkerCapture';
+
+test('resolves the demo token and shows the container + template checklist', async () => {
+  render(
+    <MemoryRouter initialEntries={['/c/demotoken123']}>
+      <Routes><Route path="/c/:token" element={<WorkerCapture />} /></Routes>
+    </MemoryRouter>,
+  );
+  expect(await screen.findByText(/FBLU4204812/)).toBeInTheDocument();     // container plate
+  expect(await screen.findByText(/빈 컨테이너/)).toBeInTheDocument();       // a required slot label
+  expect(await screen.findByText(/반송/)).toBeInTheDocument();             // TCR warning
+});
+
+test('shows an error for an unknown token', async () => {
+  render(
+    <MemoryRouter initialEntries={['/c/bad']}>
+      <Routes><Route path="/c/:token" element={<WorkerCapture />} /></Routes>
+    </MemoryRouter>,
+  );
+  expect(await screen.findByText(/잘못된 링크/)).toBeInTheDocument();
+});

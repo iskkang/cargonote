@@ -12,7 +12,12 @@ test('renders the capture spike at /spike', async () => {
   expect(await screen.findByRole('heading', { name: /캡처 스파이크/ })).toBeInTheDocument();
 });
 
-test('renders a placeholder for a worker capture link', () => {
-  render(<MemoryRouter initialEntries={['/c/abc123']}><AppRoutes /></MemoryRouter>);
+test('renders a placeholder for the viewer gallery link', () => {
+  render(<MemoryRouter initialEntries={['/v/abc123']}><AppRoutes /></MemoryRouter>);
   expect(screen.getByText(/준비 중/)).toBeInTheDocument();
+});
+
+test('renders WorkerCapture for a worker capture link (unknown token → 잘못된 링크)', async () => {
+  render(<MemoryRouter initialEntries={['/c/abc123']}><AppRoutes /></MemoryRouter>);
+  expect(await screen.findByText(/잘못된 링크/)).toBeInTheDocument();
 });

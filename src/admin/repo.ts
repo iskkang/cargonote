@@ -24,7 +24,15 @@ export function createInMemoryAdminRepo(): AdminRepo {
   ];
   const templates: WorkTypeTemplate[] = [
     tpl('tpl-tsr', 'TSR', 'FESCO', 8),
-    tpl('tpl-tcr', 'TCR', '중국세관', 8),
+    {
+      ...tpl('tpl-tcr', 'TCR', '중국세관', 8),
+      warningText: '반송 주의: TCR 반송 규정에 따라 문서 확인 필수',
+      requiredPhotos: [
+        { key: 'empty', label: '빈 컨테이너', instruction: '컨테이너 번호가 보이도록 촬영', required: true },
+        { key: 'seal', label: '씰 번호', instruction: '씰 번호 판독 가능하게', required: true },
+        { key: 'csc', label: 'CSC 판넬', instruction: 'CSC 예외 확인', required: true },
+      ],
+    },
   ];
   const orders: WorkOrder[] = [
     { id: 'wo-1', customerId: 'cust-mtl', templateId: 'tpl-tsr', workDate: '2026-07-01', status: 'submitted', assigneeName: '김작업', assigneeContact: '010-1111', shipperLabel: null },
