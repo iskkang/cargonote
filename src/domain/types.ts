@@ -26,7 +26,15 @@ export interface WorkTypeTemplate {
   requiredPhotos: RequiredPhotoSlot[];
 }
 
-export interface Customer { id: string; name: string; contact: string | null; notes: string | null; }
+export interface Customer {
+  id: string;
+  name: string;
+  contactName: string | null;
+  phone: string | null;
+  email: string | null;
+  contact: string | null;
+  notes: string | null;
+}
 export interface WorkOrder {
   id: string; customerId: string; templateId: string; workDate: string | null;
   status: WorkOrderStatus; assigneeName: string | null; assigneeContact: string | null; shipperLabel: string | null;
