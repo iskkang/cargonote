@@ -1,11 +1,10 @@
 import { useState } from 'react';
-import { createInMemoryAdminRepo } from './repo';
+import { getAdminRepo } from './repoFactory';
+import type { AdminRepo } from './repo';
 import { WorkOrderBoard } from './WorkOrderBoard';
 import { CreateWorkOrder } from './CreateWorkOrder';
 
-const repo = createInMemoryAdminRepo();
-
-export function AdminConsole() {
+export function AdminConsole({ repo = getAdminRepo() }: { repo?: AdminRepo } = {}) {
   const [creating, setCreating] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   return (

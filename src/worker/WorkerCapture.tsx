@@ -1,22 +1,21 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import type { AdminRepo } from '../admin/repo';
-import { createInMemoryAdminRepo } from '../admin/repo';
+import { getAdminRepo } from '../admin/repoFactory';
 import type { Container, WorkTypeTemplate } from '../domain/types';
 import { checklistStatus } from '../domain/checklist';
 import { makeVariants } from '../lib/image';
 import { sha256Hex } from '../lib/hash';
-import { enqueue, allItems } from '../lib/captureQueue';
-import { captureToSlot, capturedSlotKeys } from './capture';
+import { supabase } from '../lib/supabase';
+import { uploadSlotPhoto } from './uploadPhoto';
 
-const defaultRepo = createInMemoryAdminRepo();
-
-export function WorkerCapture({ repo = defaultRepo }: { repo?: AdminRepo }) {
+export function WorkerCapture({ repo = getAdminRepo() }: { repo?: AdminRepo } = {}) {
   const { token } = useParams();
   const [state, setState] = useState<{ template: WorkTypeTemplate; container: Container; workOrderId: string } | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [captured, setCaptured] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     repo.getByWorkerToken(token ?? '').then((r) => {
@@ -26,7 +25,8 @@ export function WorkerCapture({ repo = defaultRepo }: { repo?: AdminRepo }) {
   }, [repo, token]);
 
   async function refresh(containerId: string) {
-    setCaptured(capturedSlotKeys(await allItems(), containerId));
+    const photos = await repo.listPhotos(containerId);
+    setCaptured(photos.filter((p) => p.slotKey).map((p) => p.slotKey as string));
   }
   useEffect(() => { if (state) void refresh(state.container.id); }, [state]);
 
@@ -36,8 +36,18 @@ export function WorkerCapture({ repo = defaultRepo }: { repo?: AdminRepo }) {
   const status = checklistStatus(captured, state.template);
 
   async function shoot(slotKey: string, photo: Blob) {
-    await captureToSlot(photo, { slotKey, containerId: state!.container.id, workOrderId: state!.workOrderId }, { makeVariants, sha256Hex, enqueue });
-    await refresh(state!.container.id);
+    setError(null);
+    try {
+      await uploadSlotPhoto(photo, { slotKey, containerId: state!.container.id }, {
+        makeVariants, sha256Hex,
+        storage: { upload: (path, body, opts) => supabase.storage.from('captures').upload(path, body, opts) },
+        insertPhoto: (p) => repo.insertPhoto(p),
+        now: () => new Date().toISOString(),
+      });
+      await refresh(state!.container.id);
+    } catch (e) {
+      setError('업로드 실패 — 신호를 확인하고 다시 시도하세요.');
+    }
   }
 
   return (
@@ -45,6 +55,7 @@ export function WorkerCapture({ repo = defaultRepo }: { repo?: AdminRepo }) {
       <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: '#9FB2C2' }}>거래처 링크 · {state.template.route}</div>
       <div style={sx.plate}>{state.container.containerNo}</div>
       {state.template.warningText && <div style={sx.warn}>{state.template.warningText}</div>}
+      {error && <div style={{ ...sx.warn, color: '#DC2626', borderColor: 'rgba(220,38,38,0.4)', background: 'rgba(220,38,38,0.1)' }}>{error}</div>}
       <div style={{ marginTop: 12 }}>
         {state.template.requiredPhotos.filter((s) => s.required).map((slot) => {
           const done = captured.includes(slot.key);
