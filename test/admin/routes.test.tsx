@@ -2,9 +2,9 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { AppRoutes } from '../../src/routes';
 
-test('renders the admin console at /admin', () => {
+test('gates /admin behind the login form when unauthenticated', async () => {
   render(<MemoryRouter initialEntries={['/admin']}><AppRoutes /></MemoryRouter>);
-  expect(screen.getByRole('heading', { name: /관리자 콘솔/ })).toBeInTheDocument();
+  expect(await screen.findByLabelText(/이메일/)).toBeInTheDocument();
 });
 
 test('renders the capture spike at /spike', async () => {

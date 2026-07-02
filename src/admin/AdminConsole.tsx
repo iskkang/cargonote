@@ -3,6 +3,7 @@ import { getAdminRepo } from './repoFactory';
 import type { AdminRepo } from './repo';
 import { WorkOrderBoard } from './WorkOrderBoard';
 import { CreateWorkOrder } from './CreateWorkOrder';
+import { defaultAuthDeps } from '../auth/session';
 
 export function AdminConsole({ repo = getAdminRepo() }: { repo?: AdminRepo } = {}) {
   const [creating, setCreating] = useState(false);
@@ -11,7 +12,10 @@ export function AdminConsole({ repo = getAdminRepo() }: { repo?: AdminRepo } = {
     <main style={{ minHeight: '100vh', background: '#D7DEE5', fontFamily: 'Pretendard, sans-serif', color: '#0F1B26' }}>
       <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', background: '#fff', borderBottom: '0.5px solid rgba(90,107,125,0.25)' }}>
         <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 800, fontSize: 18 }}>CARGO<span style={{ color: '#FF6A00' }}>LINK</span></span>
-        <button onClick={() => setCreating((v) => !v)} style={{ background: '#FF6A00', color: '#fff', border: 0, borderRadius: 10, padding: '8px 14px', fontWeight: 600 }}>새 작업</button>
+        <span style={{ display: 'flex', gap: 8 }}>
+          <button onClick={() => setCreating((v) => !v)} style={{ background: '#FF6A00', color: '#fff', border: 0, borderRadius: 10, padding: '8px 14px', fontWeight: 600 }}>새 작업</button>
+          <button onClick={() => defaultAuthDeps.signOut()} style={{ background: 'transparent', color: '#5A6B7D', border: '1px solid rgba(90,107,125,0.3)', borderRadius: 10, padding: '8px 14px' }}>로그아웃</button>
+        </span>
       </header>
       <div style={{ maxWidth: 900, margin: '0 auto', padding: 20 }}>
         <h1 style={{ fontSize: 20, color: '#0F1B26' }}>관리자 콘솔</h1>

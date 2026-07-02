@@ -14,7 +14,7 @@ export interface WorkerClient {
 
 type RpcFn = (name: string, params: Record<string, unknown>) => Promise<{ data: unknown; error: { message: string } | null }>;
 
-export function createSupabaseWorkerClient(rpc: RpcFn = (n, p) => supabase.rpc(n, p)): WorkerClient {
+export function createSupabaseWorkerClient(rpc: RpcFn = (n, p) => supabase.rpc(n, p) as unknown as ReturnType<RpcFn>): WorkerClient {
   return {
     async bootstrap(token) {
       const { data, error } = await rpc('worker_bootstrap', { p_token: token });

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import type { AdminRepo } from '../admin/repo';
-import { getAdminRepo } from '../admin/repoFactory';
+import type { WorkerClient } from './workerClient';
+import { getWorkerClient } from '../admin/repoFactory';
 import type { Container, WorkTypeTemplate } from '../domain/types';
 import { checklistStatus } from '../domain/checklist';
 import { makeVariants } from '../lib/image';
@@ -9,23 +9,23 @@ import { sha256Hex } from '../lib/hash';
 import { supabase } from '../lib/supabase';
 import { uploadSlotPhoto } from './uploadPhoto';
 
-export function WorkerCapture({ repo = getAdminRepo() }: { repo?: AdminRepo } = {}) {
+export function WorkerCapture({ client = getWorkerClient() }: { client?: WorkerClient } = {}) {
   const { token } = useParams();
-  const [state, setState] = useState<{ template: WorkTypeTemplate; container: Container; workOrderId: string } | null>(null);
+  const [state, setState] = useState<{ template: WorkTypeTemplate; container: Container } | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [captured, setCaptured] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    repo.getByWorkerToken(token ?? '').then((r) => {
+    client.bootstrap(token ?? '').then((r) => {
       if (!r || r.containers.length === 0) { setNotFound(true); return; }
-      setState({ template: r.template, container: r.containers[0], workOrderId: r.order.id });
-    });
-  }, [repo, token]);
+      setState({ template: r.template, container: r.containers[0] });
+    }).catch(() => setNotFound(true));
+  }, [client, token]);
 
   async function refresh(containerId: string) {
-    const photos = await repo.listPhotos(containerId);
+    const photos = await client.listPhotos(token ?? '', containerId);
     setCaptured(photos.filter((p) => p.slotKey).map((p) => p.slotKey as string));
   }
   useEffect(() => { if (state) void refresh(state.container.id); }, [state]);
@@ -41,11 +41,11 @@ export function WorkerCapture({ repo = getAdminRepo() }: { repo?: AdminRepo } = 
       await uploadSlotPhoto(photo, { slotKey, containerId: state!.container.id }, {
         makeVariants, sha256Hex,
         storage: { upload: (path, body, opts) => supabase.storage.from('captures').upload(path, body, opts) },
-        insertPhoto: (p) => repo.insertPhoto(p),
+        insertPhoto: (p) => client.insertPhoto(token ?? '', p),
         now: () => new Date().toISOString(),
       });
       await refresh(state!.container.id);
-    } catch (e) {
+    } catch {
       setError('업로드 실패 — 신호를 확인하고 다시 시도하세요.');
     }
   }
