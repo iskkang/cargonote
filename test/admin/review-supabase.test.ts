@@ -18,6 +18,7 @@ function memPort(seed: Record<string, Row[]> = {}): DbPort {
       tables[t] = rows.map((r) => { if (match(r, f)) { const n = { ...r, ...values }; updated.push(n); return n; } return r; });
       return updated;
     },
+    async delete(t, f) { tables[t] = (tables[t] ?? []).filter((r) => !match(r, f)); },
   };
 }
 

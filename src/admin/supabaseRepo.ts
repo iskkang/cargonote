@@ -12,6 +12,23 @@ export function createSupabaseAdminRepo(db: DbPort): AdminRepo {
     async listCustomers() {
       return (await db.select('customers')).map(rowToCustomer);
     },
+    async createCustomer(input) {
+      const [row] = await db.insert('customers', {
+        name: input.name, contact_name: input.contactName, phone: input.phone, email: input.email,
+      });
+      if (!row) throw new Error('customer insert returned no row (check RLS)');
+      return rowToCustomer(row);
+    },
+    async updateCustomer(id, input) {
+      const [row] = await db.update('customers', { col: 'id', val: id }, {
+        name: input.name, contact_name: input.contactName, phone: input.phone, email: input.email,
+      });
+      if (!row) throw new Error('customer update returned no row');
+      return rowToCustomer(row);
+    },
+    async deleteCustomer(id) {
+      await db.delete('customers', { col: 'id', val: id });
+    },
     async listTemplates() {
       return (await db.select('work_type_templates')).map((r) => parseTemplate(r as unknown as RawTemplateRow));
     },
