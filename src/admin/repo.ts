@@ -1,9 +1,13 @@
-import type { Container, Customer, WorkOrder, WorkTypeTemplate } from '../domain/types';
+import type { Container, Customer, Photo, WorkOrder, WorkTypeTemplate } from '../domain/types';
 import { randomToken } from './token';
 
 export interface NewWorkOrder {
   customerId: string; templateId: string; containerNos: string[];
   workDate: string | null; assigneeName: string; assigneeContact: string;
+}
+export interface NewPhoto {
+  containerId: string; slotKey: string; displayPath: string; thumbPath: string;
+  fileHash: string; byteSize: number; capturedAt: string;
 }
 export interface AdminRepo {
   listCustomers(): Promise<Customer[]>;
@@ -11,6 +15,8 @@ export interface AdminRepo {
   listWorkOrders(): Promise<WorkOrder[]>;
   createWorkOrder(input: NewWorkOrder): Promise<{ order: WorkOrder; workerToken: string }>;
   getByWorkerToken(token: string): Promise<{ order: WorkOrder; template: WorkTypeTemplate; containers: Container[] } | null>;
+  insertPhoto(p: NewPhoto): Promise<void>;
+  listPhotos(containerId: string): Promise<Photo[]>;
 }
 
 function tpl(id: string, route: string, carrier: string, minCount: number): WorkTypeTemplate {
@@ -43,6 +49,8 @@ export function createInMemoryAdminRepo(): AdminRepo {
   ];
   const tokens = new Map<string, string>([['demotoken123', 'wo-2']]);
   let seq = orders.length;
+  const photos: Photo[] = [];
+  let pseq = 0;
   return {
     async listCustomers() { return [...customers]; },
     async listTemplates() { return [...templates]; },
@@ -66,6 +74,17 @@ export function createInMemoryAdminRepo(): AdminRepo {
       const workerToken = randomToken();
       tokens.set(workerToken, order.id);
       return { order, workerToken };
+    },
+    async insertPhoto(p) {
+      photos.push({
+        id: `photo-${++pseq}`, containerId: p.containerId, slotKey: p.slotKey,
+        originalPath: null, displayPath: p.displayPath, thumbPath: p.thumbPath,
+        fileHash: p.fileHash, byteSize: p.byteSize, capturedAt: p.capturedAt,
+        gpsLat: null, gpsLng: null, status: 'uploaded',
+      });
+    },
+    async listPhotos(containerId) {
+      return photos.filter((p) => p.containerId === containerId);
     },
   };
 }
