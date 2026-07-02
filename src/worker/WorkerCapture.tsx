@@ -28,7 +28,7 @@ export function WorkerCapture({ repo = defaultRepo }: { repo?: AdminRepo }) {
   async function refresh(containerId: string) {
     setCaptured(capturedSlotKeys(await allItems(), containerId));
   }
-  useEffect(() => { if (state) refresh(state.container.id); }, [state]);
+  useEffect(() => { if (state) void refresh(state.container.id); }, [state]);
 
   if (notFound) return <main style={sx.page}><p style={{ color: '#E0A100' }}>잘못된 링크입니다.</p></main>;
   if (!state) return <main style={sx.page} />;
