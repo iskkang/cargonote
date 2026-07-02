@@ -23,14 +23,16 @@ export function PageShell({ children, tone = 'light', style }: { children: React
 
 export function Brand({ tagline, dark }: { tagline?: string; dark?: boolean }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
-      <div style={{ width: 34, height: 34, borderRadius: 9, background: dark ? C.orange : C.navy, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(15,27,38,.28)' }}>
-        <div style={{ width: 15, height: 15, border: `2.6px solid ${dark ? C.navy : C.orange}`, borderRadius: 3 }} />
-      </div>
-      <div style={{ lineHeight: 1 }}>
-        <div style={{ fontFamily: FONT.sans, fontWeight: 800, fontSize: 20, letterSpacing: '.02em', color: dark ? C.onDark : C.navy }}>CARGO<span style={{ color: C.orange }}>LINK</span></div>
-        {tagline && <div style={{ fontSize: 11, color: dark ? C.onDarkDim : C.text, marginTop: 4 }}>{tagline}</div>}
-      </div>
+    <div style={{ display: 'inline-flex', flexDirection: 'column', gap: 6 }}>
+      <img
+        src="/concheck_primary_logo_no_korean_transparent.png"
+        alt="ConCheck"
+        style={{
+          height: 30, width: 'auto', display: 'block', alignSelf: 'flex-start',
+          ...(dark ? { background: C.white, borderRadius: 8, padding: '5px 9px', boxShadow: '0 2px 8px rgba(15,27,38,.28)' } : null),
+        }}
+      />
+      {tagline && <span style={{ fontFamily: FONT.sans, fontSize: 11, color: dark ? C.onDarkDim : C.text }}>{tagline}</span>}
     </div>
   );
 }
