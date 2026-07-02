@@ -59,8 +59,10 @@ export function WorkerCapture({ client = getWorkerClient() }: { client?: WorkerC
         now: () => new Date().toISOString(),
       });
       await refresh(state!.container.id);
-    } catch {
-      setError('업로드 실패 — 신호를 확인하고 다시 시도하세요.');
+    } catch (e) {
+      console.error('upload failed', e);
+      const msg = e instanceof Error ? e.message : String(e);
+      setError(`업로드 실패 — ${msg}`);
     }
   }
 
