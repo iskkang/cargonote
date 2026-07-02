@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import type { AdminRepo } from './repo';
 import type { Customer, WorkTypeTemplate } from '../domain/types';
-import { Field, Button, inputStyle } from '../ui/kit';
-import { C } from '../ui/tokens';
+import { Field, Button, Card, Badge, inputStyle } from '../ui/kit';
+import { C, FONT } from '../ui/tokens';
 import { ShareLinkBar } from '../ui/ShareLinkBar';
 import type { WorkOrderPreviewData } from './WorkOrderPreview';
 
@@ -18,7 +18,7 @@ export function CreateWorkOrder({ repo, onCreated, onManageCustomers, onPreviewC
   const [workDate, setWorkDate] = useState('');
   const [assigneeName, setAssigneeName] = useState('');
   const [assigneeContact, setAssigneeContact] = useState('');
-  const [link, setLink] = useState<string | null>(null);
+  const [created, setCreated] = useState<{ containerNo: string; customer: string; route: string | null; requiredCount: number; link: string } | null>(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -49,7 +49,14 @@ export function CreateWorkOrder({ repo, onCreated, onManageCustomers, onPreviewC
       customerId, templateId, containerNos,
       workDate: workDate || null, assigneeName, assigneeContact,
     });
-    setLink(`${location.origin}/c/${workerToken}`);
+    const tpl = templates.find((t) => t.id === templateId);
+    setCreated({
+      containerNo: containerNos[0] + (containerNos.length > 1 ? ` 외 ${containerNos.length - 1}` : ''),
+      customer: customers.find((c) => c.id === customerId)?.name ?? '',
+      route: tpl?.route ?? null,
+      requiredCount: tpl ? (tpl.requiredPhotos.filter((s) => s.required).length || tpl.minCount) : 0,
+      link: `${location.origin}/c/${workerToken}`,
+    });
     onCreated?.();
   }
 
@@ -72,12 +79,41 @@ export function CreateWorkOrder({ repo, onCreated, onManageCustomers, onPreviewC
       <Field label="담당자 이름"><input style={inputStyle} value={assigneeName} onChange={(e) => setAssigneeName(e.target.value)} /></Field>
       <Field label="담당자 연락처"><input style={inputStyle} value={assigneeContact} onChange={(e) => setAssigneeContact(e.target.value)} /></Field>
       <Button type="submit" disabled={ready && !canSubmit}>작업 생성</Button>
-      {link && (
-        <div style={{ marginTop: 16 }}>
-          <div style={{ fontSize: 12, color: C.text, marginBottom: 2 }}>작업자에게 링크 보내기</div>
-          <ShareLinkBar url={link} title="적입 검수 촬영 링크" testId="worker-link" />
-        </div>
+
+      {created && (
+        <Card style={{ marginTop: 18, border: `1px solid ${C.teal}` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+            <span style={crd.check}>✓</span>
+            <strong style={{ color: C.navy, fontSize: 15 }}>작업이 생성되었습니다</strong>
+            <Badge tone="caution" style={{ marginLeft: 'auto' }}>생성됨</Badge>
+          </div>
+          <div style={crd.plate}>
+            <div style={crd.plateLabel}>CONTAINER No.</div>
+            <div style={crd.plateNo}>{created.containerNo}</div>
+          </div>
+          <Row label="작업 유형" value={created.route ? `${created.route} 적입 검수` : '—'} />
+          <Row label="거래처" value={created.customer || '—'} />
+          <Row label="필요 사진" value={`${created.requiredCount}장`} />
+          <div style={{ fontSize: 12, color: C.text, margin: '12px 0 2px' }}>작업자에게 링크 보내기</div>
+          <ShareLinkBar url={created.link} title="적입 검수 촬영 링크" testId="worker-link" />
+        </Card>
       )}
     </form>
   );
 }
+
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', fontFamily: FONT.sans }}>
+      <span style={{ fontSize: 13, color: C.text }}>{label}</span>
+      <span style={{ fontSize: 13, fontWeight: 600, color: C.navy }}>{value}</span>
+    </div>
+  );
+}
+
+const crd = {
+  check: { width: 24, height: 24, borderRadius: 999, background: C.tealTint, color: C.teal, fontWeight: 800, fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' } as const,
+  plate: { background: C.navy, borderLeft: `4px solid ${C.teal}`, borderRadius: 10, padding: '10px 14px', marginBottom: 10 } as const,
+  plateLabel: { fontFamily: FONT.sans, fontSize: 10, letterSpacing: '.12em', color: C.onDarkDim, marginBottom: 3 } as const,
+  plateNo: { fontFamily: FONT.sans, fontWeight: 800, fontSize: 20, letterSpacing: '.04em', color: C.onDark } as const,
+};

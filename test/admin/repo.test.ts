@@ -56,6 +56,17 @@ test('deleteCustomer throws when the customer has work orders', async () => {
   await expect(repo.deleteCustomer(order.customerId)).rejects.toThrow();
 });
 
+test('listWorkOrderSummaries returns route, customer, required + captured counts', async () => {
+  const repo = createInMemoryAdminRepo();
+  await repo.insertPhoto({ containerId: 'ctn-1', slotKey: 'seal', displayPath: 'd.webp', thumbPath: 't.webp', fileHash: 'h', byteSize: 1, capturedAt: '2026-07-02T01:00:00Z' });
+  const summaries = await repo.listWorkOrderSummaries();
+  const wo2 = summaries.find((s) => s.order.id === 'wo-2')!;
+  expect(wo2.customerName).toContain('칭다오');
+  expect(wo2.route).toBe('TCR');
+  expect(wo2.requiredCount).toBeGreaterThan(0);
+  expect(wo2.capturedCount).toBe(1);
+});
+
 test('deleteWorkOrder removes the order (and its containers)', async () => {
   const repo = createInMemoryAdminRepo();
   const before = (await repo.listWorkOrders()).length;

@@ -134,7 +134,7 @@ function DetailsPanel({ container, date, customer, route }: {
   return (
     <Card style={{ padding: 18 }}>
       <div style={sx.dTitle}>{container.containerNo}</div>
-      <DRow label="日付 · 작업일" value={date || '—'} />
+      <DRow label="작업일" value={date || '—'} />
       <DRow label="거래처" value={customer || '—'} />
       <DRow label="루트" value={route || '—'} />
       <DRow label="사진" value={`${container.photos.length}장`} />

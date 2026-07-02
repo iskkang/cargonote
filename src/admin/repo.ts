@@ -18,6 +18,10 @@ export interface NewCustomer {
 export interface WorkOrderEdit {
   assigneeName: string; assigneeContact: string; workDate: string | null;
 }
+export interface WorkOrderSummary {
+  order: WorkOrder; customerName: string; route: string | null;
+  requiredCount: number; capturedCount: number;
+}
 export interface AdminRepo {
   listCustomers(): Promise<Customer[]>;
   createCustomer(input: NewCustomer): Promise<Customer>;
@@ -25,6 +29,7 @@ export interface AdminRepo {
   deleteCustomer(id: string): Promise<void>;
   listTemplates(): Promise<WorkTypeTemplate[]>;
   listWorkOrders(): Promise<WorkOrder[]>;
+  listWorkOrderSummaries(): Promise<WorkOrderSummary[]>;
   createWorkOrder(input: NewWorkOrder): Promise<{ order: WorkOrder; workerToken: string }>;
   updateWorkOrder(id: string, input: WorkOrderEdit): Promise<WorkOrder>;
   deleteWorkOrder(id: string): Promise<void>;
@@ -91,6 +96,15 @@ export function createInMemoryAdminRepo(): AdminRepo {
     },
     async listTemplates() { return [...templates]; },
     async listWorkOrders() { return [...orders]; },
+    async listWorkOrderSummaries() {
+      return orders.map((o) => {
+        const tpl = templates.find((t) => t.id === o.templateId);
+        const required = tpl ? (tpl.requiredPhotos.filter((s) => s.required).length || tpl.minCount) : 0;
+        const cids = containers.filter((c) => c.workOrderId === o.id).map((c) => c.id);
+        const slots = new Set(photos.filter((p) => cids.includes(p.containerId) && p.slotKey && p.status === 'uploaded').map((p) => p.slotKey));
+        return { order: o, customerName: customers.find((c) => c.id === o.customerId)?.name ?? o.customerId, route: tpl?.route ?? null, requiredCount: required, capturedCount: slots.size };
+      });
+    },
     async getByWorkerToken(token) {
       const orderId = tokens.get(token);
       const order = orders.find((o) => o.id === orderId);

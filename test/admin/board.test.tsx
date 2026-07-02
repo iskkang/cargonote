@@ -3,11 +3,11 @@ import { vi } from 'vitest';
 import { WorkOrderBoard } from '../../src/admin/WorkOrderBoard';
 import { createInMemoryAdminRepo } from '../../src/admin/repo';
 
-test('lists seeded work orders with customer and status', async () => {
+test('lists seeded work orders with customer, photo count, and derived status', async () => {
   render(<WorkOrderBoard repo={createInMemoryAdminRepo()} />);
   expect(await screen.findByText(/MTL 지사/)).toBeInTheDocument();
-  expect(await screen.findByText(/제출됨/)).toBeInTheDocument();
-  expect(await screen.findByText(/전송됨/)).toBeInTheDocument();
+  expect(screen.getAllByText(/생성됨/).length).toBeGreaterThan(0); // no photos captured yet
+  expect(screen.getAllByText(/사진 0\//).length).toBeGreaterThan(0);
 });
 
 test('shows a row per seeded order', async () => {
@@ -24,12 +24,13 @@ test('삭제 removes a row after confirm', async () => {
   await waitFor(() => expect(screen.getAllByTestId('wo-row').length).toBe(1));
 });
 
-test('수정 opens an edit form and saves', async () => {
+test('수정 saves and persists the new assignee', async () => {
   render(<WorkOrderBoard repo={createInMemoryAdminRepo()} />);
   await screen.findAllByTestId('wo-row');
   fireEvent.click(screen.getAllByRole('button', { name: /수정/ })[0]);
-  const name = await screen.findByLabelText(/담당자 이름/);
-  fireEvent.change(name, { target: { value: '변경담당' } });
+  fireEvent.change(await screen.findByLabelText(/담당자 이름/), { target: { value: '변경담당' } });
   fireEvent.click(screen.getByRole('button', { name: /저장/ }));
-  expect(await screen.findByText(/변경담당/)).toBeInTheDocument();
+  await waitFor(() => expect(screen.queryByLabelText(/담당자 이름/)).toBeNull());
+  fireEvent.click(screen.getAllByRole('button', { name: /수정/ })[0]);
+  expect((await screen.findByLabelText(/담당자 이름/) as HTMLInputElement).value).toBe('변경담당');
 });

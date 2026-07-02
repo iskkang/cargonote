@@ -35,6 +35,25 @@ export function createSupabaseAdminRepo(db: DbPort): AdminRepo {
     async listWorkOrders() {
       return (await db.select('work_orders')).map(rowToWorkOrder);
     },
+    async listWorkOrderSummaries() {
+      const orders = (await db.select('work_orders')).map(rowToWorkOrder);
+      const customers = (await db.select('customers')).map(rowToCustomer);
+      const templates = (await db.select('work_type_templates')).map((r) => parseTemplate(r as unknown as RawTemplateRow));
+      const out = [];
+      for (const o of orders) {
+        const tpl = templates.find((t) => t.id === o.templateId);
+        const required = tpl ? (tpl.requiredPhotos.filter((s) => s.required).length || tpl.minCount) : 0;
+        const containerRows = await db.select('containers', { col: 'work_order_id', val: o.id });
+        const slots = new Set<string>();
+        for (const cRow of containerRows) {
+          const c = rowToContainer(cRow);
+          const ps = (await db.select('photos', { col: 'container_id', val: c.id })).map(rowToPhoto);
+          ps.forEach((p) => { if (p.slotKey && p.status === 'uploaded') slots.add(p.slotKey); });
+        }
+        out.push({ order: o, customerName: customers.find((c) => c.id === o.customerId)?.name ?? o.customerId, route: tpl?.route ?? null, requiredCount: required, capturedCount: slots.size });
+      }
+      return out;
+    },
     async createWorkOrder(input: NewWorkOrder) {
       const [orderRow] = await db.insert('work_orders', {
         customer_id: input.customerId, template_id: input.templateId, work_date: input.workDate,
