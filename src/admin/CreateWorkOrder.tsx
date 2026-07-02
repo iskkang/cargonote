@@ -38,10 +38,14 @@ export function CreateWorkOrder({ repo, onCreated, onManageCustomers, onPreviewC
     });
   }, [onPreviewChange, customers, templates, customerId, templateId, containerNo]);
 
+  const containerNos = containerNo.split(',').map((s) => s.trim()).filter(Boolean);
+  const canSubmit = customers.length > 0 && containerNos.length > 0;
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (!canSubmit) return;
     const { workerToken } = await repo.createWorkOrder({
-      customerId, templateId, containerNos: containerNo.split(',').map((s) => s.trim()).filter(Boolean),
+      customerId, templateId, containerNos,
       workDate: workDate || null, assigneeName, assigneeContact,
     });
     setLink(`${location.origin}/c/${workerToken}`);
@@ -60,10 +64,13 @@ export function CreateWorkOrder({ repo, onCreated, onManageCustomers, onPreviewC
       )}
       <Field label="템플릿"><select style={inputStyle} value={templateId} onChange={(e) => setTemplateId(e.target.value)}>{templates.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</select></Field>
       <Field label="컨테이너 번호"><input style={inputStyle} value={containerNo} onChange={(e) => setContainerNo(e.target.value)} placeholder="TCLU1234567 (쉼표로 여러 개)" /></Field>
+      {ready && customers.length > 0 && containerNos.length === 0 && (
+        <div style={{ fontSize: 12, color: C.text, marginTop: -6, marginBottom: 12 }}>촬영할 컨테이너 번호를 1개 이상 입력하세요.</div>
+      )}
       <Field label="작업일"><input type="date" style={inputStyle} value={workDate} onChange={(e) => setWorkDate(e.target.value)} /></Field>
       <Field label="담당자 이름"><input style={inputStyle} value={assigneeName} onChange={(e) => setAssigneeName(e.target.value)} /></Field>
       <Field label="담당자 연락처"><input style={inputStyle} value={assigneeContact} onChange={(e) => setAssigneeContact(e.target.value)} /></Field>
-      <Button type="submit" disabled={ready && customers.length === 0}>작업 생성</Button>
+      <Button type="submit" disabled={ready && !canSubmit}>작업 생성</Button>
       {link && (
         <div style={{ marginTop: 16 }}>
           <div style={{ fontSize: 12, color: C.text }}>작업자 링크</div>

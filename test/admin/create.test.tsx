@@ -12,6 +12,15 @@ test('creates a work order and shows a worker capture link', async () => {
   expect(link.textContent).toMatch(/\/c\/[A-Za-z0-9]+/);
 });
 
+test('disables 작업 생성 until a container number is entered', async () => {
+  const repo = createInMemoryAdminRepo();
+  render(<CreateWorkOrder repo={repo} />);
+  const submit = await screen.findByRole('button', { name: /작업 생성/ });
+  expect(submit).toBeDisabled();
+  fireEvent.change(screen.getByLabelText(/컨테이너 번호/), { target: { value: 'TCLU7654321' } });
+  expect(submit).toBeEnabled();
+});
+
 test('guides to add a customer when none exist', async () => {
   const empty = { ...createInMemoryAdminRepo(), listCustomers: async () => [] };
   render(<CreateWorkOrder repo={empty} />);
