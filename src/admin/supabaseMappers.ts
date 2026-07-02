@@ -6,7 +6,11 @@ const strOrNull = (v: unknown): string | null => (typeof v === 'string' ? v : nu
 const numOrNull = (v: unknown): number | null => (typeof v === 'number' ? v : null);
 
 export function rowToCustomer(r: Row): Customer {
-  return { id: str(r.id), name: str(r.name), contact: strOrNull(r.contact), notes: strOrNull(r.notes) };
+  return {
+    id: str(r.id), name: str(r.name),
+    contactName: strOrNull(r.contact_name), phone: strOrNull(r.phone), email: strOrNull(r.email),
+    contact: strOrNull(r.contact), notes: strOrNull(r.notes),
+  };
 }
 
 export function rowToWorkOrder(r: Row): WorkOrder {

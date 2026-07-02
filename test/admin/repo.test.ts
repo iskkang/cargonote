@@ -25,3 +25,33 @@ test('createWorkOrder adds a sent order and returns a worker token', async () =>
   expect(workerToken).toMatch(/^[A-Za-z0-9]+$/);
   expect((await repo.listWorkOrders()).length).toBe(before + 1);
 });
+
+test('createCustomer adds a customer with contact fields', async () => {
+  const repo = createInMemoryAdminRepo();
+  const before = (await repo.listCustomers()).length;
+  const c = await repo.createCustomer({ name: '동방물류', contactName: '박담당', phone: '010-9', email: 'db@x.com' });
+  expect(c.name).toBe('동방물류');
+  expect(c.contactName).toBe('박담당');
+  expect((await repo.listCustomers()).length).toBe(before + 1);
+});
+
+test('updateCustomer changes fields in place', async () => {
+  const repo = createInMemoryAdminRepo();
+  const c = await repo.createCustomer({ name: 'A', contactName: null, phone: null, email: null });
+  const u = await repo.updateCustomer(c.id, { name: 'B', contactName: '이', phone: '02', email: 'b@x.com' });
+  expect(u.name).toBe('B');
+  expect((await repo.listCustomers()).find((x) => x.id === c.id)!.contactName).toBe('이');
+});
+
+test('deleteCustomer removes an unreferenced customer', async () => {
+  const repo = createInMemoryAdminRepo();
+  const c = await repo.createCustomer({ name: 'Temp', contactName: null, phone: null, email: null });
+  await repo.deleteCustomer(c.id);
+  expect((await repo.listCustomers()).find((x) => x.id === c.id)).toBeUndefined();
+});
+
+test('deleteCustomer throws when the customer has work orders', async () => {
+  const repo = createInMemoryAdminRepo();
+  const [order] = await repo.listWorkOrders();
+  await expect(repo.deleteCustomer(order.customerId)).rejects.toThrow();
+});

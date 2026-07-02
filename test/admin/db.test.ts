@@ -7,6 +7,7 @@ function fakeClient(resp: { data?: unknown; error?: { message: string } | null }
   const builder: any = {
     select: (...a: any[]) => { calls.push(['select', ...a]); return builder; },
     insert: (...a: any[]) => { calls.push(['insert', ...a]); return builder; },
+    delete: (...a: any[]) => { calls.push(['delete', ...a]); return builder; },
     eq: (...a: any[]) => { calls.push(['eq', ...a]); return builder; },
     then: (onF: any, onR: any) => Promise.resolve(result).then(onF, onR),
   };
@@ -43,4 +44,19 @@ test('insert throws on error', async () => {
   const { client } = fakeClient({ error: { message: 'nope' } });
   const db = createSupabaseDbPort(client);
   await expect(db.insert('photos', { a: 1 })).rejects.toThrow('nope');
+});
+
+test('delete calls from().delete().eq()', async () => {
+  const { client, calls } = fakeClient({ data: [] });
+  const db = createSupabaseDbPort(client);
+  await db.delete('customers', { col: 'id', val: 'c1' });
+  expect(calls).toContainEqual(['from', 'customers']);
+  expect(calls).toContainEqual(['delete']);
+  expect(calls).toContainEqual(['eq', 'id', 'c1']);
+});
+
+test('delete throws on error', async () => {
+  const { client } = fakeClient({ error: { message: 'fk violation' } });
+  const db = createSupabaseDbPort(client);
+  await expect(db.delete('customers', { col: 'id', val: 'c1' })).rejects.toThrow('fk violation');
 });

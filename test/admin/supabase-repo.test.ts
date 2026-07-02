@@ -21,6 +21,9 @@ function memPort(seed: Record<string, Row[]> = {}): DbPort {
       );
       return tables[table].filter((r) => String(r[match.col]) === match.val);
     },
+    async delete(table: string, match: Filter) {
+      tables[table] = (tables[table] ?? []).filter((r) => String(r[match.col]) !== match.val);
+    },
   };
 }
 
@@ -73,4 +76,22 @@ test('insertPhoto then listPhotos round-trips through the port', async () => {
   const list = await repo.listPhotos('k1');
   expect(list.map((p) => p.slotKey)).toEqual(['seal']);
   expect(list[0].displayPath).toBe('d.webp');
+});
+
+test('createCustomer inserts and maps contact fields', async () => {
+  const db = memPort();
+  const repo = createSupabaseAdminRepo(db);
+  const c = await repo.createCustomer({ name: '동방', contactName: '박', phone: '010', email: 'd@x.com' });
+  expect(c.name).toBe('동방');
+  expect(c.contactName).toBe('박');
+  expect((await repo.listCustomers()).length).toBe(1);
+});
+
+test('updateCustomer updates and deleteCustomer removes', async () => {
+  const db = memPort({ customers: [{ id: 'c1', name: 'A', contact_name: null, phone: null, email: null, contact: null, notes: null }] });
+  const repo = createSupabaseAdminRepo(db);
+  const u = await repo.updateCustomer('c1', { name: 'B', contactName: '이', phone: '02', email: 'b@x.com' });
+  expect(u.name).toBe('B');
+  await repo.deleteCustomer('c1');
+  expect((await repo.listCustomers()).length).toBe(0);
 });

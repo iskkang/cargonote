@@ -14,8 +14,8 @@ test('rowToWorkOrder maps snake_case columns to camelCase domain', () => {
 test('rowToContainer and rowToCustomer map nullable fields', () => {
   expect(rowToContainer({ id: 'k1', work_order_id: 'wo1', container_no: 'ABCD1234567', seal_no: null, worker_memo: null }))
     .toEqual({ id: 'k1', workOrderId: 'wo1', containerNo: 'ABCD1234567', sealNo: null, workerMemo: null });
-  expect(rowToCustomer({ id: 'c1', name: 'MTL', contact: null, notes: null }))
-    .toEqual({ id: 'c1', name: 'MTL', contact: null, notes: null });
+  expect(rowToCustomer({ id: 'c1', name: 'MTL', contact_name: '김담당', phone: '010-1', email: 'a@b.c', contact: null, notes: null }))
+    .toEqual({ id: 'c1', name: 'MTL', contactName: '김담당', phone: '010-1', email: 'a@b.c', contact: null, notes: null });
 });
 
 test('rowToPhoto maps paths, hash, byte size, status', () => {
