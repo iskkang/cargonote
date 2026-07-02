@@ -11,3 +11,10 @@ test('creates a work order and shows a worker capture link', async () => {
   const link = await screen.findByTestId('worker-link');
   expect(link.textContent).toMatch(/\/c\/[A-Za-z0-9]+/);
 });
+
+test('guides to add a customer when none exist', async () => {
+  const empty = { ...createInMemoryAdminRepo(), listCustomers: async () => [] };
+  render(<CreateWorkOrder repo={empty} />);
+  expect(await screen.findByText(/먼저 거래처를 등록하세요/)).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /작업 생성/ })).toBeDisabled();
+});
