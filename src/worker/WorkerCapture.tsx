@@ -8,6 +8,8 @@ import { makeVariants } from '../lib/image';
 import { sha256Hex } from '../lib/hash';
 import { supabase } from '../lib/supabase';
 import { uploadSlotPhoto } from './uploadPhoto';
+import { PageShell, Brand, Card, Badge, Button } from '../ui/kit';
+import { C, FONT } from '../ui/tokens';
 
 export function WorkerCapture({ client = getWorkerClient() }: { client?: WorkerClient } = {}) {
   const { token } = useParams();
@@ -30,8 +32,12 @@ export function WorkerCapture({ client = getWorkerClient() }: { client?: WorkerC
   }
   useEffect(() => { if (state) void refresh(state.container.id); }, [state]);
 
-  if (notFound) return <main style={sx.page}><p style={{ color: '#E0A100' }}>잘못된 링크입니다.</p></main>;
-  if (!state) return <main style={sx.page} />;
+  if (notFound) return (
+    <PageShell tone="dark" style={sx.page}>
+      <p style={{ color: C.caution }}>잘못된 링크입니다.</p>
+    </PageShell>
+  );
+  if (!state) return <PageShell tone="dark" style={sx.page}>{null}</PageShell>;
 
   const status = checklistStatus(captured, state.template);
 
@@ -51,21 +57,45 @@ export function WorkerCapture({ client = getWorkerClient() }: { client?: WorkerC
   }
 
   return (
-    <main style={sx.page}>
-      <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: '#9FB2C2' }}>거래처 링크 · {state.template.route}</div>
+    <PageShell tone="dark" style={sx.page}>
+      {/* Header */}
+      <div style={sx.header}>
+        <Brand dark />
+      </div>
+
+      {/* Route breadcrumb */}
+      <div style={sx.breadcrumb}>거래처 링크 · {state.template.route}</div>
+
+      {/* Container plate */}
       <div style={sx.plate}>{state.container.containerNo}</div>
-      {state.template.warningText && <div style={sx.warn}>{state.template.warningText}</div>}
-      {error && <div style={{ ...sx.warn, color: '#DC2626', borderColor: 'rgba(220,38,38,0.4)', background: 'rgba(220,38,38,0.1)' }}>{error}</div>}
-      <div style={{ marginTop: 12 }}>
+
+      {/* Warning card */}
+      {state.template.warningText && (
+        <Card dark style={sx.warnCard}>
+          <span style={{ color: C.caution, fontWeight: 600, fontSize: 13 }}>{state.template.warningText}</span>
+        </Card>
+      )}
+
+      {/* Error card */}
+      {error && (
+        <Card dark style={sx.errorCard}>
+          <span style={{ color: C.negative, fontWeight: 600, fontSize: 13 }}>{error}</span>
+        </Card>
+      )}
+
+      {/* Slot rows */}
+      <div style={{ marginTop: 16 }}>
         {state.template.requiredPhotos.filter((s) => s.required).map((slot) => {
           const done = captured.includes(slot.key);
           return (
             <div key={slot.key} style={sx.row}>
               <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 500, color: '#fff' }}>{slot.label}</div>
-                <div style={{ fontSize: 12, color: '#9FB2C2' }}>{slot.instruction}</div>
+                <div style={{ fontWeight: 600, color: C.onDark, fontSize: 14, fontFamily: FONT.sans }}>{slot.label}</div>
+                <div style={{ fontSize: 12, color: C.onDarkDim, marginTop: 2, fontFamily: FONT.sans }}>{slot.instruction}</div>
               </div>
-              {done ? <span style={{ color: '#15A34A', fontSize: 13 }}>완료</span> : (
+              {done ? (
+                <Badge tone="positive">완료</Badge>
+              ) : (
                 <label style={sx.shoot}>촬영
                   <input type="file" accept="image/*" capture="environment" hidden
                     onChange={(e) => { const f = e.target.files?.[0]; if (f) shoot(slot.key, f); e.target.value = ''; }} />
@@ -75,22 +105,53 @@ export function WorkerCapture({ client = getWorkerClient() }: { client?: WorkerC
           );
         })}
       </div>
-      <div style={{ marginTop: 16, fontSize: 13, color: status.complete ? '#15A34A' : '#E0A100' }}>
+
+      {/* Progress line */}
+      <div style={{ marginTop: 16, fontSize: 13, fontFamily: FONT.sans, color: status.complete ? C.positive : C.caution }}>
         {status.satisfied.length} / {status.satisfied.length + status.missing.length} 촬영{status.missing.length ? ` · 누락 ${status.missing.length}` : ''}
       </div>
-      <button onClick={() => setSubmitted(true)} disabled={submitted}
-        style={{ ...sx.submit, opacity: submitted ? 0.6 : 1 }}>
+
+      {/* Submit button */}
+      <Button
+        onClick={() => setSubmitted(true)}
+        disabled={submitted}
+        style={{ width: '100%', marginTop: 16, padding: 11, fontSize: 15 }}
+      >
         {submitted ? '제출됨' : status.complete ? '제출' : '누락 있음 — 그래도 제출'}
-      </button>
-    </main>
+      </Button>
+    </PageShell>
   );
 }
 
 const sx = {
-  page: { minHeight: '100vh', background: '#0F1B26', color: '#E7ECF1', fontFamily: 'Pretendard, sans-serif', padding: 16, maxWidth: 420, margin: '0 auto' } as const,
-  plate: { fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, fontSize: 20, letterSpacing: 0.5, background: '#16242F', border: '1px solid #22507A', borderRadius: 10, padding: '10px 14px', marginTop: 6 } as const,
-  warn: { marginTop: 10, fontSize: 12, color: '#E0A100', background: 'rgba(224,161,0,0.1)', border: '1px solid rgba(224,161,0,0.3)', borderRadius: 8, padding: '8px 10px' } as const,
-  row: { display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderTop: '0.5px solid rgba(159,178,194,0.2)' } as const,
-  shoot: { background: '#FF6A00', color: '#fff', borderRadius: 8, padding: '6px 12px', fontSize: 13, fontWeight: 600, cursor: 'pointer' } as const,
-  submit: { width: '100%', marginTop: 16, padding: 11, borderRadius: 10, border: 0, background: '#FF6A00', color: '#fff', fontSize: 15, fontWeight: 600 } as const,
+  page: { padding: 16, maxWidth: 420, margin: '0 auto' } as const,
+  header: { paddingBottom: 16, borderBottom: '0.5px solid rgba(159,178,194,0.15)', marginBottom: 14 } as const,
+  breadcrumb: { fontFamily: FONT.sans, fontSize: 12, color: C.onDarkDim, marginBottom: 6 } as const,
+  plate: {
+    fontFamily: FONT.sans,
+    fontWeight: 700,
+    fontSize: 22,
+    letterSpacing: 2,
+    background: '#16242F',
+    border: `1px solid ${C.blue55}`,
+    borderLeft: `4px solid ${C.orange}`,
+    borderRadius: 10,
+    padding: '10px 14px',
+    color: C.onDark,
+  } as const,
+  warnCard: { marginTop: 10, padding: '10px 14px', borderLeft: `4px solid ${C.caution}`, borderRadius: 8 } as const,
+  errorCard: { marginTop: 10, padding: '10px 14px', borderLeft: `4px solid ${C.negative}`, borderRadius: 8 } as const,
+  row: { display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', borderTop: `0.5px solid rgba(159,178,194,0.2)` } as const,
+  shoot: {
+    background: C.orange,
+    color: C.white,
+    borderRadius: 8,
+    padding: '7px 14px',
+    fontSize: 13,
+    fontWeight: 600,
+    cursor: 'pointer',
+    fontFamily: FONT.sans,
+    boxShadow: '0 4px 12px -4px rgba(255,106,0,.45)',
+    flexShrink: 0,
+  } as const,
 };
