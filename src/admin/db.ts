@@ -7,6 +7,7 @@ export interface DbPort {
   select(table: string, filter?: Filter): Promise<Row[]>;
   insert(table: string, values: Row | Row[]): Promise<Row[]>;
   update(table: string, match: Filter, values: Row): Promise<Row[]>;
+  delete(table: string, match: Filter): Promise<void>;
 }
 
 export function createSupabaseDbPort(client: SupabaseClient): DbPort {
@@ -27,6 +28,10 @@ export function createSupabaseDbPort(client: SupabaseClient): DbPort {
       const { data, error } = await client.from(table).update(values).eq(match.col, match.val).select();
       if (error) throw new Error(error.message);
       return (data ?? []) as Row[];
+    },
+    async delete(table, match) {
+      const { error } = await client.from(table).delete().eq(match.col, match.val);
+      if (error) throw new Error(error.message);
     },
   };
 }
