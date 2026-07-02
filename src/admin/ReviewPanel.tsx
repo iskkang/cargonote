@@ -3,13 +3,15 @@ import type { AdminRepo } from './repo';
 import type { WorkOrderReview } from '../domain/review';
 import { requiredSlots } from '../domain/template';
 import { checklistStatus } from '../domain/checklist';
-import { createThumbUrls } from './thumbs';
+import { createThumbUrls, createSignedViewerUrls } from './thumbs';
+import { buildViewerManifest } from '../domain/viewer';
 
 export function ReviewPanel({
-  workOrderId, repo, onBack, thumbUrls = (paths) => createThumbUrls(paths),
+  workOrderId, repo, onBack, thumbUrls = (paths) => createThumbUrls(paths), signViewer = (paths) => createSignedViewerUrls(paths),
 }: {
   workOrderId: string; repo: AdminRepo; onBack: () => void;
   thumbUrls?: (paths: string[]) => Promise<Record<string, string>>;
+  signViewer?: (paths: string[]) => Promise<Record<string, string>>;
 }) {
   const [review, setReview] = useState<WorkOrderReview | null>(null);
   const [urls, setUrls] = useState<Record<string, string>>({});
@@ -32,7 +34,10 @@ export function ReviewPanel({
   async function publish() {
     setPublishing(true);
     try {
-      const { viewerToken } = await repo.publish(workOrderId);
+      const paths = review!.containers.flatMap((c) => c.photos.flatMap((p) => [p.thumbPath, p.displayPath].filter((x): x is string => !!x)));
+      const urls = await signViewer(paths);
+      const manifest = buildViewerManifest(review!, urls);
+      const { viewerToken } = await repo.publish(workOrderId, manifest);
       setViewerLink(`${location.origin}/v/${viewerToken}`);
     } finally { setPublishing(false); }
   }

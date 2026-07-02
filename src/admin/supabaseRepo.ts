@@ -5,6 +5,7 @@ import { rowToContainer, rowToCustomer, rowToPhoto, rowToWorkOrder } from './sup
 import { randomToken } from './token';
 import type { WorkOrderReview } from '../domain/review';
 import { latestPerSlot } from '../domain/review';
+import type { ViewerManifest } from '../domain/viewer';
 
 export function createSupabaseAdminRepo(db: DbPort): AdminRepo {
   return {
@@ -70,7 +71,7 @@ export function createSupabaseAdminRepo(db: DbPort): AdminRepo {
       }
       return { order, template, customer, containers } as WorkOrderReview;
     },
-    async publish(id: string) {
+    async publish(id: string, manifest: ViewerManifest) {
       const links = await db.select('share_links', { col: 'work_order_id', val: id });
       const existing = links.find((l) => l.kind === 'viewer');
       let viewerToken: string;
@@ -79,12 +80,6 @@ export function createSupabaseAdminRepo(db: DbPort): AdminRepo {
       } else {
         viewerToken = randomToken();
         await db.insert('share_links', { work_order_id: id, token: viewerToken, kind: 'viewer' });
-      }
-      const containerRows = await db.select('containers', { col: 'work_order_id', val: id });
-      const manifest: string[] = [];
-      for (const cRow of containerRows) {
-        const photos = latestPerSlot((await db.select('photos', { col: 'container_id', val: String(cRow.id) })).map(rowToPhoto));
-        manifest.push(...photos.map((p) => p.id));
       }
       await db.insert('publications', { work_order_id: id, viewer_token: viewerToken, photo_manifest: manifest });
       await db.update('work_orders', { col: 'id', val: id }, { status: 'published' });

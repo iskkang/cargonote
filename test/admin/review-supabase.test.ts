@@ -47,17 +47,16 @@ test('getWorkOrderReview assembles order/template/customer/containers with lates
 test('publish inserts a publication + viewer share_link, sets status, reuses token', async () => {
   const port = memPort(baseSeed());
   const repo = createSupabaseAdminRepo(port);
-  const { viewerToken } = await repo.publish('wo1');
+  const manifest = { route: 'TCR', customer: '칭다오 파트너', containers: [] };
+  const { viewerToken } = await repo.publish('wo1', manifest);
   expect(viewerToken).toMatch(/^[A-Za-z0-9]+$/);
-  // status updated
   const wo = (await port.select('work_orders', { col: 'id', val: 'wo1' }))[0];
   expect(wo.status).toBe('published');
-  // a viewer share_link exists with that token
   const links = await port.select('share_links', { col: 'work_order_id', val: 'wo1' });
   expect(links.some((l) => l.kind === 'viewer' && l.token === viewerToken)).toBe(true);
-  // a publication row exists
-  expect((await port.select('publications', { col: 'work_order_id', val: 'wo1' })).length).toBe(1);
-  // re-publish reuses the same viewer token
-  const again = await repo.publish('wo1');
+  const pubs = await port.select('publications', { col: 'work_order_id', val: 'wo1' });
+  expect(pubs.length).toBe(1);
+  expect((pubs[0].photo_manifest as any).route).toBe('TCR');
+  const again = await repo.publish('wo1', manifest);
   expect(again.viewerToken).toBe(viewerToken);
 });
