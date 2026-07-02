@@ -15,6 +15,12 @@ function memPort(seed: Record<string, Row[]> = {}): DbPort {
       tables[table] = [...(tables[table] ?? []), ...inserted];
       return inserted;
     },
+    async update(table: string, match: Filter, values: Row) {
+      tables[table] = (tables[table] ?? []).map((r) =>
+        String(r[match.col]) === match.val ? { ...r, ...values } : r
+      );
+      return tables[table].filter((r) => String(r[match.col]) === match.val);
+    },
   };
 }
 

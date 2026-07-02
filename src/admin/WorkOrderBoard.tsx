@@ -3,7 +3,7 @@ import type { AdminRepo } from './repo';
 import type { Customer, WorkOrder, WorkTypeTemplate } from '../domain/types';
 import { statusLabel, statusColor } from './status';
 
-export function WorkOrderBoard({ repo }: { repo: AdminRepo }) {
+export function WorkOrderBoard({ repo, onSelect }: { repo: AdminRepo; onSelect?: (id: string) => void }) {
   const [orders, setOrders] = useState<WorkOrder[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [templates, setTemplates] = useState<WorkTypeTemplate[]>([]);
@@ -20,7 +20,7 @@ export function WorkOrderBoard({ repo }: { repo: AdminRepo }) {
   return (
     <div>
       {orders.map((o) => (
-        <div key={o.id} data-testid="wo-row" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderTop: '0.5px solid rgba(90,107,125,0.25)' }}>
+        <div key={o.id} data-testid="wo-row" onClick={() => onSelect?.(o.id)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderTop: '0.5px solid rgba(90,107,125,0.25)', cursor: onSelect ? 'pointer' : 'default' }}>
           <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, color: '#5A6B7D', minWidth: 56 }}>{tplRoute(o.templateId)}</span>
           <span style={{ flex: 1, fontWeight: 500, color: '#0F1B26' }}>{custName(o.customerId)}</span>
           <span style={{ fontSize: 12, color: '#5A6B7D' }}>{o.assigneeName}</span>
