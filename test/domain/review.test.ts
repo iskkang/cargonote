@@ -23,3 +23,11 @@ test('drops photos with a null slot key', () => {
 test('empty in, empty out', () => {
   expect(latestPerSlot([])).toEqual([]);
 });
+
+test('drops soft_deleted photos even when latest for their slot', () => {
+  const out = latestPerSlot([
+    ph('a', 'seal', '2026-07-02T01:00:00Z'),
+    { ...ph('b', 'seal', '2026-07-02T05:00:00Z'), status: 'soft_deleted' },
+  ]);
+  expect(out.map((p) => p.id)).toEqual(['a']); // b is latest but soft_deleted → a wins
+});

@@ -22,7 +22,7 @@ export function AdminConsole({ repo = getAdminRepo() }: { repo?: AdminRepo } = {
       <div style={{ maxWidth: 900, margin: '0 auto', padding: 20 }}>
         <h1 style={{ fontSize: 20, color: '#0F1B26' }}>관리자 콘솔</h1>
         {selectedId ? (
-          <ReviewPanel workOrderId={selectedId} repo={repo} onBack={() => setSelectedId(null)} />
+          <ReviewPanel workOrderId={selectedId} repo={repo} onBack={() => { setSelectedId(null); setCreating(false); setRefreshKey((k) => k + 1); }} />
         ) : (
           <>
             {creating && (
