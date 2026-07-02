@@ -3,6 +3,8 @@ import type { DbPort } from './db';
 import { parseTemplate, type RawTemplateRow } from '../domain/template';
 import { rowToContainer, rowToCustomer, rowToPhoto, rowToWorkOrder } from './supabaseMappers';
 import { randomToken } from './token';
+import type { WorkOrderReview } from '../domain/review';
+import { latestPerSlot } from '../domain/review';
 
 export function createSupabaseAdminRepo(db: DbPort): AdminRepo {
   return {
@@ -50,6 +52,43 @@ export function createSupabaseAdminRepo(db: DbPort): AdminRepo {
     },
     async listPhotos(containerId: string) {
       return (await db.select('photos', { col: 'container_id', val: containerId })).map(rowToPhoto);
+    },
+    async getWorkOrderReview(id: string) {
+      const [orderRow] = await db.select('work_orders', { col: 'id', val: id });
+      if (!orderRow) return null;
+      const order = rowToWorkOrder(orderRow);
+      const [tplRow] = await db.select('work_type_templates', { col: 'id', val: order.templateId });
+      const template = parseTemplate(tplRow as unknown as RawTemplateRow);
+      const [custRow] = await db.select('customers', { col: 'id', val: order.customerId });
+      const customer = custRow ? rowToCustomer(custRow) : null;
+      const containerRows = await db.select('containers', { col: 'work_order_id', val: order.id });
+      const containers = [];
+      for (const cRow of containerRows) {
+        const container = rowToContainer(cRow);
+        const photos = latestPerSlot((await db.select('photos', { col: 'container_id', val: container.id })).map(rowToPhoto));
+        containers.push({ container, photos });
+      }
+      return { order, template, customer, containers } as WorkOrderReview;
+    },
+    async publish(id: string) {
+      const links = await db.select('share_links', { col: 'work_order_id', val: id });
+      const existing = links.find((l) => l.kind === 'viewer');
+      let viewerToken: string;
+      if (existing) {
+        viewerToken = String(existing.token);
+      } else {
+        viewerToken = randomToken();
+        await db.insert('share_links', { work_order_id: id, token: viewerToken, kind: 'viewer' });
+      }
+      const containerRows = await db.select('containers', { col: 'work_order_id', val: id });
+      const manifest: string[] = [];
+      for (const cRow of containerRows) {
+        const photos = latestPerSlot((await db.select('photos', { col: 'container_id', val: String(cRow.id) })).map(rowToPhoto));
+        manifest.push(...photos.map((p) => p.id));
+      }
+      await db.insert('publications', { work_order_id: id, viewer_token: viewerToken, photo_manifest: manifest });
+      await db.update('work_orders', { col: 'id', val: id }, { status: 'published' });
+      return { viewerToken };
     },
   };
 }
