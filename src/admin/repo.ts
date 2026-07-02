@@ -12,8 +12,14 @@ export interface NewPhoto {
   containerId: string; slotKey: string; displayPath: string; thumbPath: string;
   fileHash: string; byteSize: number; capturedAt: string;
 }
+export interface NewCustomer {
+  name: string; contactName: string | null; phone: string | null; email: string | null;
+}
 export interface AdminRepo {
   listCustomers(): Promise<Customer[]>;
+  createCustomer(input: NewCustomer): Promise<Customer>;
+  updateCustomer(id: string, input: NewCustomer): Promise<Customer>;
+  deleteCustomer(id: string): Promise<void>;
   listTemplates(): Promise<WorkTypeTemplate[]>;
   listWorkOrders(): Promise<WorkOrder[]>;
   createWorkOrder(input: NewWorkOrder): Promise<{ order: WorkOrder; workerToken: string }>;
@@ -31,9 +37,10 @@ function tpl(id: string, route: string, carrier: string, minCount: number): Work
 
 export function createInMemoryAdminRepo(): AdminRepo {
   const customers: Customer[] = [
-    { id: 'cust-mtl', name: 'MTL 지사(블라디보스토크)', contact: 'vlad@example.com', notes: null },
-    { id: 'cust-cn', name: '칭다오 파트너', contact: 'qd@example.com', notes: null },
+    { id: 'cust-mtl', name: 'MTL 지사(블라디보스토크)', contactName: null, phone: null, email: 'vlad@example.com', contact: 'vlad@example.com', notes: null },
+    { id: 'cust-cn', name: '칭다오 파트너', contactName: null, phone: null, email: 'qd@example.com', contact: 'qd@example.com', notes: null },
   ];
+  let cseq = 0;
   const templates: WorkTypeTemplate[] = [
     tpl('tpl-tsr', 'TSR', 'FESCO', 8),
     {
@@ -61,6 +68,22 @@ export function createInMemoryAdminRepo(): AdminRepo {
   const publications: { workOrderId: string; viewerToken: string; manifest: ViewerManifest }[] = [];
   return {
     async listCustomers() { return [...customers]; },
+    async createCustomer(input) {
+      const c: Customer = { id: `cust-new-${++cseq}`, name: input.name, contactName: input.contactName, phone: input.phone, email: input.email, contact: null, notes: null };
+      customers.push(c);
+      return c;
+    },
+    async updateCustomer(id, input) {
+      const c = customers.find((x) => x.id === id);
+      if (!c) throw new Error('customer not found');
+      c.name = input.name; c.contactName = input.contactName; c.phone = input.phone; c.email = input.email;
+      return c;
+    },
+    async deleteCustomer(id) {
+      if (orders.some((o) => o.customerId === id)) throw new Error('customer has work orders');
+      const i = customers.findIndex((x) => x.id === id);
+      if (i >= 0) customers.splice(i, 1);
+    },
     async listTemplates() { return [...templates]; },
     async listWorkOrders() { return [...orders]; },
     async getByWorkerToken(token) {
