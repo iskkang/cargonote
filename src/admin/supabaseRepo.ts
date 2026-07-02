@@ -20,6 +20,7 @@ export function createSupabaseAdminRepo(db: DbPort): AdminRepo {
         customer_id: input.customerId, template_id: input.templateId, work_date: input.workDate,
         status: 'sent', assignee_name: input.assigneeName, assignee_contact: input.assigneeContact,
       });
+      if (!orderRow) throw new Error('work_order insert returned no row (check RLS select policy)');
       const order = rowToWorkOrder(orderRow);
       if (input.containerNos.length) {
         await db.insert('containers', input.containerNos.map((no) => ({ work_order_id: order.id, container_no: no })));

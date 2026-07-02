@@ -4,6 +4,8 @@ import { createSupabaseAdminRepo } from './supabaseRepo';
 import { createSupabaseDbPort } from './db';
 import { isSupabaseConfigured } from './repoConfig';
 import { supabase } from '../lib/supabase';
+import type { WorkerClient } from '../worker/workerClient';
+import { createInMemoryWorkerClient, createSupabaseWorkerClient } from '../worker/workerClient';
 
 let cached: AdminRepo | null = null;
 
@@ -14,4 +16,14 @@ export function getAdminRepo(): AdminRepo {
       : createInMemoryAdminRepo();
   }
   return cached;
+}
+
+let cachedWorker: WorkerClient | null = null;
+export function getWorkerClient(): WorkerClient {
+  if (!cachedWorker) {
+    cachedWorker = isSupabaseConfigured(import.meta.env.VITE_SUPABASE_URL as string | undefined)
+      ? createSupabaseWorkerClient()
+      : createInMemoryWorkerClient(getAdminRepo());
+  }
+  return cachedWorker;
 }
