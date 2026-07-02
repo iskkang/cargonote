@@ -59,7 +59,7 @@ export default function App() {
 
   return (
     <main style={{ padding: 16, maxWidth: 420, margin: '0 auto' }}>
-      <h1>CargoLink 캡처 스파이크</h1>
+      <h1 style={{ color: '#E7ECF1' }}>CargoLink 캡처 스파이크</h1>
       <div style={{ margin: '12px 0', display: 'flex', gap: 8 }}>
         <button aria-pressed={mode === 'input'} onClick={() => setMode('input')}>input capture</button>
         <button aria-pressed={mode === 'stream'} onClick={() => setMode('stream')}>getUserMedia</button>

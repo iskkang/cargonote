@@ -1,3 +1,15 @@
-:root { --navy:#0F1B26; --orange:#FF6A00; --gray:#5A6B7D; }
-body { margin:0; background:var(--navy); color:#E7ECF1; font-family: Pretendard, -apple-system, "Malgun Gothic", sans-serif; }
-h1 { color:#fff; font-size:20px; }
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
+
+:root {
+  --navy: #0F1B26; --orange: #FF6A00; --gray: #5A6B7D;
+  --page-1: #D7DEE5; --page-2: #C9D2DB; --line: #E1E7ED;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; }
+body {
+  background: linear-gradient(180deg, var(--page-1), var(--page-2));
+  color: var(--navy);
+  font-family: Pretendard, -apple-system, "Malgun Gothic", sans-serif;
+}
+h1 { font-size: 20px; margin: 0; }   /* color inherited from the screen container */
+:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(255,106,0,.26); border-radius: 6px; }
