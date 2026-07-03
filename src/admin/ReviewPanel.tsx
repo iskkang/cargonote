@@ -28,6 +28,10 @@ export function ReviewPanel({
       if (!r) return;
       const paths = r.containers.flatMap((c) => c.photos.map((p) => p.thumbPath).filter((x): x is string => !!x));
       setUrls(await thumbUrls(paths));
+      if (r.order.status === 'published') {
+        const tok = await repo.getViewerToken(workOrderId);
+        if (tok) setViewerLink(`${location.origin}/v/${tok}`);
+      }
     });
   }, [workOrderId, repo, thumbUrls]);
 

@@ -38,6 +38,7 @@ export interface AdminRepo {
   listPhotos(containerId: string): Promise<Photo[]>;
   getWorkOrderReview(id: string): Promise<WorkOrderReview | null>;
   publish(id: string, manifest: ViewerManifest): Promise<{ viewerToken: string }>;
+  getViewerToken(id: string): Promise<string | null>;
   getViewerManifest(token: string): Promise<ViewerManifest | null>;
 }
 
@@ -176,6 +177,9 @@ export function createInMemoryAdminRepo(): AdminRepo {
       viewerTokens.set(id, viewerToken);
       publications.push({ workOrderId: id, viewerToken, manifest });
       return { viewerToken };
+    },
+    async getViewerToken(id) {
+      return viewerTokens.get(id) ?? null;
     },
     async getViewerManifest(token) {
       const pub = [...publications].reverse().find((p) => p.viewerToken === token);

@@ -136,6 +136,11 @@ export function createSupabaseAdminRepo(db: DbPort): AdminRepo {
       await db.update('work_orders', { col: 'id', val: id }, { status: 'published' });
       return { viewerToken };
     },
+    async getViewerToken(id: string) {
+      const links = await db.select('share_links', { col: 'work_order_id', val: id });
+      const link = links.find((l) => l.kind === 'viewer' && l.revoked !== true);
+      return link ? String(link.token) : null;
+    },
     async getViewerManifest(token: string) {
       const links = await db.select('share_links', { col: 'token', val: token });
       const link = links.find((l) => l.kind === 'viewer' && l.revoked !== true);
