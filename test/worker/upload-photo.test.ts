@@ -27,7 +27,7 @@ test('uploads display + thumb to slot paths and inserts a photo row', async () =
     'containers/ctn-1/seal-hash1.webp',
     'containers/ctn-1/seal-hash1-thumb.webp',
   ]);
-  expect(uploads[0].opts).toEqual({ contentType: 'image/webp', upsert: true });
+  expect(uploads[0].opts).toEqual({ contentType: 'image/webp', upsert: false });
   expect(inserted).toHaveLength(1);
   expect(inserted[0]).toMatchObject({
     containerId: 'ctn-1', slotKey: 'seal', fileHash: 'hash1',

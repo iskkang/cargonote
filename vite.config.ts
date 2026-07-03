@@ -7,8 +7,9 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      workbox: { skipWaiting: true, clientsClaim: true, cleanupOutdatedCaches: true },
       manifest: {
-        name: 'CargoLink 캡처', short_name: 'CargoLink',
+        name: 'ConCheck', short_name: 'ConCheck',
         theme_color: '#0F1B26', background_color: '#0F1B26', display: 'standalone',
         icons: [],
       },

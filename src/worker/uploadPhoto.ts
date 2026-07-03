@@ -23,9 +23,9 @@ export async function uploadSlotPhoto(
   const displayPath = `${base}.webp`;
   const thumbPath = `${base}-thumb.webp`;
 
-  const d = await deps.storage.upload(displayPath, display, { contentType: 'image/webp', upsert: true });
+  const d = await deps.storage.upload(displayPath, display, { contentType: 'image/webp', upsert: false });
   if (d.error) throw new Error(d.error.message);
-  const t = await deps.storage.upload(thumbPath, thumb, { contentType: 'image/webp', upsert: true });
+  const t = await deps.storage.upload(thumbPath, thumb, { contentType: 'image/webp', upsert: false });
   if (t.error) throw new Error(t.error.message);
 
   await deps.insertPhoto({
