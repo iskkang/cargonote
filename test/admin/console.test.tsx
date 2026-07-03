@@ -3,7 +3,7 @@ import { AdminConsole } from '../../src/admin/AdminConsole';
 
 test('defaults to the new-work view with the create form + link preview', async () => {
   render(<AdminConsole />);
-  expect(await screen.findByRole('button', { name: /작업 생성/ })).toBeInTheDocument();
+  expect(await screen.findByRole('button', { name: /발급하기/ })).toBeInTheDocument();
   expect(screen.getByText(/작업자에게 전달될 링크 미리보기/)).toBeInTheDocument();
 });
 

@@ -43,6 +43,7 @@ export function AdminConsole({ repo = getAdminRepo() }: { repo?: AdminRepo } = {
               <div style={sx.split}>
                 <Card><CreateWorkOrder repo={repo} onPreviewChange={setPreview}
                   onManageCustomers={() => setView('customers')}
+                  onDone={() => setView('board')}
                   onCreated={() => setRefreshKey((k) => k + 1)} /></Card>
                 <WorkOrderPreview data={preview ?? { customerName: '', route: null, carrier: null, containerNos: [], requiredCount: 0 }} />
               </div>
