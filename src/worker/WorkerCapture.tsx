@@ -5,6 +5,7 @@ import { getWorkerClient } from '../admin/repoFactory';
 import type { Container, WorkOrder, WorkTypeTemplate, RequiredPhotoSlot } from '../domain/types';
 import { checklistStatus } from '../domain/checklist';
 import { groupByPhase } from '../domain/photoPhase';
+import { DAMAGE_SLOT } from '../domain/review';
 import { makeVariants } from '../lib/image';
 import { sha256Hex } from '../lib/hash';
 import { supabase } from '../lib/supabase';
@@ -56,6 +57,7 @@ export function WorkerCapture({ client = getWorkerClient() }: { client?: WorkerC
   const total = slots.length;
   const done = status.satisfied.length;
   const missingSlots = slots.filter((s) => !captured.includes(s.key));
+  const damageShots = captured.filter((k) => k === DAMAGE_SLOT).length;
   const plate = splitPlate(state.container.containerNo);
 
   async function shoot(slotKey: string, photo: Blob) {
@@ -130,6 +132,18 @@ export function WorkerCapture({ client = getWorkerClient() }: { client?: WorkerC
               </div>
             );
           })}
+
+          <div style={sx.damageBox}>
+            <div style={sx.damageHead}>
+              <span style={{ fontWeight: 700, color: C.onDark }}>데미지·추가 사진</span>
+              <span style={{ fontSize: 13, color: damageShots ? C.negative : C.onDarkDim }}>{damageShots}장</span>
+            </div>
+            <div style={sx.damageHint}>화물 손상이 있으면 사진을 추가로 찍어 보내세요. (여러 장 가능)</div>
+            <label style={sx.damageBtn}>＋ 데미지 사진 추가
+              <input type="file" accept="image/*" capture="environment" hidden multiple
+                onChange={(e) => { Array.from(e.target.files ?? []).forEach((f) => shoot(DAMAGE_SLOT, f)); e.target.value = ''; }} />
+            </label>
+          </div>
 
           <Button onClick={() => setStep('submit')} style={sx.cta}>제출 확인</Button>
         </>
@@ -232,6 +246,10 @@ const sx = {
   rowInstr: { fontSize: 12, color: C.onDarkDim, marginTop: 2, fontFamily: FONT.sans } as const,
   shoot: { background: C.teal, color: C.white, borderRadius: 8, padding: '7px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: FONT.sans, boxShadow: '0 4px 12px -4px rgba(1,136,143,.45)', flexShrink: 0 } as const,
   reshoot: { background: 'transparent', color: C.onDarkDim, border: `1px solid ${C.onDarkDim}`, borderRadius: 8, padding: '6px 12px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: FONT.sans, flexShrink: 0 } as const,
+  damageBox: { marginTop: 18, padding: 14, border: `1px dashed ${C.negative}`, borderRadius: 12, background: 'rgba(220,38,38,0.06)' } as const,
+  damageHead: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: FONT.sans } as const,
+  damageHint: { fontSize: 12, color: C.onDarkDim, margin: '6px 0 10px', fontFamily: FONT.sans } as const,
+  damageBtn: { display: 'inline-block', background: 'transparent', color: C.negative, border: `1px solid ${C.negative}`, borderRadius: 8, padding: '8px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: FONT.sans } as const,
   cta: { width: '100%', marginTop: 18, padding: 12, fontSize: 15 } as const,
   textBtn: { display: 'block', width: '100%', marginTop: 10, background: 'transparent', border: 0, color: C.onDarkDim, fontFamily: FONT.sans, fontSize: 13, cursor: 'pointer' } as const,
   footNote: { textAlign: 'center' as const, fontFamily: FONT.sans, fontSize: 12, color: C.onDarkDim, marginTop: 12 } as const,

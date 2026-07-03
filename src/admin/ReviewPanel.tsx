@@ -3,6 +3,7 @@ import type { AdminRepo } from './repo';
 import type { WorkOrderReview } from '../domain/review';
 import { requiredSlots } from '../domain/template';
 import { checklistStatus } from '../domain/checklist';
+import { DAMAGE_SLOT } from '../domain/review';
 import { createThumbUrls, createSignedViewerUrls } from './thumbs';
 import { buildViewerManifest } from '../domain/viewer';
 import { Card, Button, Badge } from '../ui/kit';
@@ -45,6 +46,8 @@ export function ReviewPanel({
   }
   const pct = req ? Math.round((cap / req) * 100) : 0;
   const missing = req - cap;
+  const damagePhotos = review.containers.flatMap((c) => c.photos.filter((p) => p.slotKey === DAMAGE_SLOT));
+  const damageCount = damagePhotos.length;
   const thumbList = review.containers.flatMap((c) => c.photos.map((p) => p.thumbPath && urls[p.thumbPath]).filter(Boolean) as string[]);
 
   async function publish() {
@@ -66,7 +69,10 @@ export function ReviewPanel({
           <Button variant="ghost" onClick={onBack}>← 작업 현황</Button>
           <span style={{ fontSize: 13, color: C.text }}>리포트 발행 완료</span>
         </div>
-        <Card dark style={{ padding: 0, overflow: 'hidden', maxWidth: 720 }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+          <Button onClick={() => window.print()}>PDF 다운로드</Button>
+        </div>
+        <Card style={{ padding: 0, overflow: 'hidden', maxWidth: 720 }}>
           <div style={sx.reportHead}>
             <div>
               <div style={sx.reportKicker}>CONCHECK 증빙 리포트</div>
@@ -78,6 +84,7 @@ export function ReviewPanel({
             <div style={sx.tiles}>
               <Tile label="완료율" value={`${pct}%`} accent={C.positive} />
               <Tile label="사진" value={`${cap}/${req}`} />
+              <Tile label="데미지" value={`${damageCount}`} accent={damageCount ? C.negative : undefined} />
               <Tile label="Seal No." value={firstContainer?.sealNo || '—'} />
             </div>
             {thumbList.length > 0 && (
@@ -86,15 +93,11 @@ export function ReviewPanel({
               </div>
             )}
             <div style={sx.chainRow}>
-              <span style={{ fontSize: 12, color: C.onDarkDim }}>발행 · {review.customer?.name ?? ''}</span>
-              <span style={{ fontSize: 12, color: C.tealBright }}>🔒 체인오브커스터디 잠금</span>
+              <span style={{ fontSize: 12, color: C.text }}>발행 · {review.customer?.name ?? ''}</span>
+              <span style={{ fontSize: 12, color: C.teal, fontWeight: 600 }}>🔒 체인오브커스터디 잠금</span>
             </div>
           </div>
         </Card>
-
-        <div style={{ display: 'flex', gap: 8, marginTop: 14, alignItems: 'center' }}>
-          <Button variant="ghost" disabled>PDF 다운로드 (준비중)</Button>
-        </div>
         <Card style={{ marginTop: 12, maxWidth: 720 }}>
           <div style={{ fontSize: 12, color: C.text, marginBottom: 6 }}>수신자에게 링크 보내기</div>
           <ShareLinkBar url={viewerLink} title="적입 검수 완료 · 증빙 리포트" testId="viewer-link" />
@@ -135,6 +138,23 @@ export function ReviewPanel({
               </div>
             </div>
           ))}
+
+          {damagePhotos.length > 0 && (
+            <div style={{ marginTop: 6 }}>
+              <div style={{ ...sx.plate, color: C.negative }}>데미지 사진 · {damageCount}장</div>
+              <div style={sx.grid}>
+                {damagePhotos.map((p, i) => {
+                  const url = p.thumbPath ? urls[p.thumbPath] : undefined;
+                  return (
+                    <div key={i} style={sx.pcard}>
+                      {url ? <img src={url} alt="데미지" style={sx.pthumb} /> : <div style={{ ...sx.pthumb, ...sx.pmiss }}>이미지</div>}
+                      <div style={{ marginTop: 6 }}><Badge tone="negative">데미지</Badge></div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         <Card style={{ alignSelf: 'flex-start' }}>
@@ -143,6 +163,7 @@ export function ReviewPanel({
           <div style={sx.pctTrack}><div style={{ ...sx.pctFill, width: `${pct}%` }} /></div>
           <SumRow label="촬영 완료" value={`${cap}장`} dot={C.positive} />
           <SumRow label="누락" value={`${missing}장`} dot={missing ? C.negative : C.muted} />
+          <SumRow label="데미지" value={`${damageCount}장`} dot={damageCount ? C.negative : C.muted} />
           <Button onClick={publish} disabled={publishing} style={{ width: '100%', marginTop: 14 }}>
             {publishing ? '발행 중…' : '리포트 발행'}
           </Button>
@@ -155,8 +176,8 @@ export function ReviewPanel({
 function Tile({ label, value, accent }: { label: string; value: string; accent?: string }) {
   return (
     <div style={sx.tile}>
-      <div style={{ fontSize: 11, color: C.onDarkDim }}>{label}</div>
-      <div style={{ fontSize: 18, fontWeight: 800, color: accent ?? C.onDark, marginTop: 3 }}>{value}</div>
+      <div style={{ fontSize: 11, color: C.muted }}>{label}</div>
+      <div style={{ fontSize: 18, fontWeight: 800, color: accent ?? C.navy, marginTop: 3 }}>{value}</div>
     </div>
   );
 }
@@ -188,7 +209,7 @@ const sx = {
   reportTitle: { fontFamily: FONT.sans, fontSize: 19, fontWeight: 800, color: C.onDark, marginTop: 4 } as const,
   verified: { border: `2px solid ${C.teal}`, color: C.teal, borderRadius: 8, padding: '6px 10px', fontSize: 12, fontWeight: 800, textAlign: 'center' as const, lineHeight: 1.2 } as const,
   tiles: { display: 'flex', gap: 10, flexWrap: 'wrap' as const } as const,
-  tile: { flex: 1, minWidth: 90, background: '#16242F', borderRadius: 10, padding: '12px 14px' } as const,
-  reportThumb: { width: 96, height: 72, objectFit: 'cover' as const, borderRadius: 8, background: '#16242F' } as const,
-  chainRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, paddingTop: 12, borderTop: '1px solid rgba(159,178,194,.18)' } as const,
+  tile: { flex: 1, minWidth: 80, background: C.surfaceAlt, borderRadius: 10, padding: '12px 14px' } as const,
+  reportThumb: { width: 96, height: 72, objectFit: 'cover' as const, borderRadius: 8, background: C.surfaceAlt } as const,
+  chainRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, paddingTop: 12, borderTop: `1px solid ${C.line}` } as const,
 };

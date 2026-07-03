@@ -4,7 +4,7 @@ import { parseTemplate, type RawTemplateRow } from '../domain/template';
 import { rowToContainer, rowToCustomer, rowToPhoto, rowToWorkOrder } from './supabaseMappers';
 import { randomToken } from './token';
 import type { WorkOrderReview } from '../domain/review';
-import { latestPerSlot } from '../domain/review';
+import { latestPerSlot, DAMAGE_SLOT } from '../domain/review';
 import type { ViewerManifest } from '../domain/viewer';
 
 export function createSupabaseAdminRepo(db: DbPort): AdminRepo {
@@ -48,12 +48,15 @@ export function createSupabaseAdminRepo(db: DbPort): AdminRepo {
       const photos = photoRows.map(rowToPhoto);
       return orders.map((o) => {
         const tpl = templates.find((t) => t.id === o.templateId);
-        const required = tpl ? (tpl.requiredPhotos.filter((s) => s.required).length || tpl.minCount) : 0;
+        const reqKeys = new Set(tpl ? tpl.requiredPhotos.filter((s) => s.required).map((s) => s.key) : []);
+        const required = reqKeys.size || (tpl?.minCount ?? 0);
         const conts = containers.filter((c) => c.workOrderId === o.id);
         const cids = new Set(conts.map((c) => c.id));
-        const slots = new Set(photos.filter((p) => cids.has(p.containerId) && p.slotKey && p.status === 'uploaded').map((p) => p.slotKey));
+        const mine = photos.filter((p) => cids.has(p.containerId) && p.status === 'uploaded' && p.slotKey);
+        const captured = new Set(mine.filter((p) => reqKeys.has(p.slotKey as string)).map((p) => p.slotKey));
+        const damageCount = mine.filter((p) => p.slotKey === DAMAGE_SLOT).length;
         const containerNo = conts.length ? conts[0].containerNo + (conts.length > 1 ? ` 외 ${conts.length - 1}` : '') : '—';
-        return { order: o, customerName: customers.find((c) => c.id === o.customerId)?.name ?? o.customerId, route: tpl?.route ?? null, containerNo, requiredCount: required, capturedCount: slots.size };
+        return { order: o, customerName: customers.find((c) => c.id === o.customerId)?.name ?? o.customerId, route: tpl?.route ?? null, containerNo, requiredCount: required, capturedCount: captured.size, damageCount };
       });
     },
     async createWorkOrder(input: NewWorkOrder) {

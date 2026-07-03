@@ -56,15 +56,18 @@ test('deleteCustomer throws when the customer has work orders', async () => {
   await expect(repo.deleteCustomer(order.customerId)).rejects.toThrow();
 });
 
-test('listWorkOrderSummaries returns route, customer, required + captured counts', async () => {
+test('listWorkOrderSummaries returns route, customer, required + captured + damage counts', async () => {
   const repo = createInMemoryAdminRepo();
   await repo.insertPhoto({ containerId: 'ctn-1', slotKey: 'seal', displayPath: 'd.webp', thumbPath: 't.webp', fileHash: 'h', byteSize: 1, capturedAt: '2026-07-02T01:00:00Z' });
+  await repo.insertPhoto({ containerId: 'ctn-1', slotKey: 'damage', displayPath: 'd2.webp', thumbPath: 't2.webp', fileHash: 'h2', byteSize: 1, capturedAt: '2026-07-02T02:00:00Z' });
+  await repo.insertPhoto({ containerId: 'ctn-1', slotKey: 'damage', displayPath: 'd3.webp', thumbPath: 't3.webp', fileHash: 'h3', byteSize: 1, capturedAt: '2026-07-02T03:00:00Z' });
   const summaries = await repo.listWorkOrderSummaries();
   const wo2 = summaries.find((s) => s.order.id === 'wo-2')!;
   expect(wo2.customerName).toContain('칭다오');
   expect(wo2.route).toBe('TCR');
   expect(wo2.requiredCount).toBeGreaterThan(0);
-  expect(wo2.capturedCount).toBe(1);
+  expect(wo2.capturedCount).toBe(1);   // damage does not inflate required capture count
+  expect(wo2.damageCount).toBe(2);
 });
 
 test('deleteWorkOrder removes the order (and its containers)', async () => {

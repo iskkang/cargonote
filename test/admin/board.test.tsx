@@ -6,7 +6,7 @@ import { createInMemoryAdminRepo } from '../../src/admin/repo';
 test('lists seeded work orders with customer, photo count, and derived status', async () => {
   render(<WorkOrderBoard repo={createInMemoryAdminRepo()} />);
   expect(await screen.findByText(/MTL 지사/)).toBeInTheDocument();
-  expect(screen.getAllByText(/생성됨/).length).toBeGreaterThan(0); // no photos captured yet
+  expect(screen.getAllByText(/대기/).length).toBeGreaterThan(0);   // no photos captured yet
   expect(screen.getAllByText(/0\/8/).length).toBeGreaterThan(0);   // capture progress column
 });
 
