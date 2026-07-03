@@ -25,7 +25,7 @@ const ITEMS: { key: AdminView; label: string; disabled?: boolean }[] = [
   { key: 'new', label: '새 작업' },
   { key: 'board', label: '작업 현황' },
   { key: 'customers', label: '거래처' },
-  { key: 'reports', label: '리포트', disabled: true },
+  { key: 'reports', label: '리포트' },
 ];
 
 export function AdminSidebar({

@@ -19,7 +19,8 @@ test('거래처 nav switches to the customer manager view', async () => {
   expect(await screen.findByText(/칭다오 파트너/)).toBeInTheDocument();
 });
 
-test('리포트 nav is disabled (준비중)', async () => {
+test('리포트 nav shows the published-reports list', async () => {
   render(<AdminConsole />);
-  expect(screen.getByRole('button', { name: /리포트/ })).toBeDisabled();
+  fireEvent.click(screen.getByRole('button', { name: /리포트/ }));
+  expect(await screen.findByText(/발행된 리포트가 없습니다/)).toBeInTheDocument(); // seed has none published
 });
