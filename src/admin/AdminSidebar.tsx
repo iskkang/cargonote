@@ -48,7 +48,15 @@ export function AdminSidebar({
         })}
       </nav>
       <div style={sx.footer}>
-        {email && <div style={sx.email} title={email}>{email}</div>}
+        {email && (
+          <div style={sx.profile}>
+            <span style={sx.avatar}>{email[0]?.toUpperCase() ?? '?'}</span>
+            <span style={{ minWidth: 0 }}>
+              <div style={sx.profileEmail} title={email}>{email}</div>
+              <div style={sx.profileRole}>사무실 관리자</div>
+            </span>
+          </div>
+        )}
         <Button variant="ghost" onClick={onSignOut} style={{ width: '100%', color: C.onDarkDim, borderColor: 'rgba(159,178,194,.3)' }}>로그아웃</Button>
       </div>
     </aside>
@@ -69,5 +77,8 @@ const sx = {
   } as const,
   soon: { fontSize: 10, fontWeight: 700, color: C.onDarkDim, border: `1px solid ${C.onDarkDim}`, borderRadius: 999, padding: '1px 7px' } as const,
   footer: { padding: '14px 16px', borderTop: '1px solid rgba(159,178,194,.18)' } as const,
-  email: { fontSize: 12, color: C.onDarkDim, marginBottom: 10, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const } as const,
+  profile: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 } as const,
+  avatar: { width: 34, height: 34, borderRadius: 999, background: C.teal, color: C.white, fontWeight: 800, fontSize: 15, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 } as const,
+  profileEmail: { fontSize: 12, color: C.onDark, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const } as const,
+  profileRole: { fontSize: 11, color: C.onDarkDim } as const,
 };
