@@ -20,6 +20,6 @@ test('back button calls onBack', async () => {
   const repo = createInMemoryAdminRepo();
   let backed = false;
   render(<ReviewPanel workOrderId="wo-2" repo={repo} onBack={() => { backed = true; }} thumbUrls={stubThumbs} signViewer={stubSign} />);
-  fireEvent.click(await screen.findByRole('button', { name: /뒤로/ }));
+  fireEvent.click(await screen.findByRole('button', { name: /작업 현황/ }));
   expect(backed).toBe(true);
 });

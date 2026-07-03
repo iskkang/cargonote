@@ -20,7 +20,7 @@ export interface WorkOrderEdit {
 }
 export interface WorkOrderSummary {
   order: WorkOrder; customerName: string; route: string | null;
-  requiredCount: number; capturedCount: number;
+  containerNo: string; requiredCount: number; capturedCount: number;
 }
 export interface AdminRepo {
   listCustomers(): Promise<Customer[]>;
@@ -100,9 +100,11 @@ export function createInMemoryAdminRepo(): AdminRepo {
       return orders.map((o) => {
         const tpl = templates.find((t) => t.id === o.templateId);
         const required = tpl ? (tpl.requiredPhotos.filter((s) => s.required).length || tpl.minCount) : 0;
-        const cids = containers.filter((c) => c.workOrderId === o.id).map((c) => c.id);
+        const cs = containers.filter((c) => c.workOrderId === o.id);
+        const cids = cs.map((c) => c.id);
         const slots = new Set(photos.filter((p) => cids.includes(p.containerId) && p.slotKey && p.status === 'uploaded').map((p) => p.slotKey));
-        return { order: o, customerName: customers.find((c) => c.id === o.customerId)?.name ?? o.customerId, route: tpl?.route ?? null, requiredCount: required, capturedCount: slots.size };
+        const containerNo = cs.length ? cs[0].containerNo + (cs.length > 1 ? ` 외 ${cs.length - 1}` : '') : '—';
+        return { order: o, customerName: customers.find((c) => c.id === o.customerId)?.name ?? o.customerId, route: tpl?.route ?? null, containerNo, requiredCount: required, capturedCount: slots.size };
       });
     },
     async getByWorkerToken(token) {
