@@ -6,7 +6,7 @@ import { C, FONT } from '../ui/tokens';
 const PILLARS = [
   { h: 'H1', tag: '작업자 · 간단함', title: '현장은 사진만 찍는다', sub: '무설치 가이드 촬영 · 모바일' },
   { h: 'H2', tag: '관리자 · 통제', title: '상태 색으로 한눈에 통제', sub: '작업 생성 · 검수 · 발행' },
-  { h: 'H3', tag: '고객 · 신뢰', title: '로그인 없이 증빙을 본다', sub: '공유 갤러리 · 체인오브커스터디' },
+  { h: 'H3', tag: '고객 · 신뢰', title: '로그인 없이 증빙을 본다', sub: '공유 갤러리 · 증빙 기록 보존' },
 ];
 
 export function Login({ deps }: { deps: AuthDeps }) {

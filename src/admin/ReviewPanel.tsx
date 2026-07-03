@@ -117,7 +117,7 @@ export function ReviewPanel({
             )}
             <div style={sx.chainRow}>
               <span style={{ fontSize: 12, color: C.text }}>발행 · {review.customer?.name ?? ''}</span>
-              <span style={{ fontSize: 12, color: C.teal, fontWeight: 600 }}>🔒 체인오브커스터디 잠금</span>
+              <span style={{ fontSize: 12, color: C.teal, fontWeight: 600 }}>🔒 발행본 고정</span>
             </div>
           </div>
         </Card>
