@@ -34,8 +34,8 @@ export function ReviewPanel({
     Promise.race([repo.getWorkOrderReview(workOrderId), timeout])
       .then(async (r) => {
         if (cancelled) return;
+        if (!r) { setLoadError(true); return; }
         setReview(r);
-        if (!r) return;
         const paths = r.containers.flatMap((c) => c.photos.flatMap((p) => [p.thumbPath, p.displayPath].filter((x): x is string => !!x)));
         thumbUrls(paths).then((u) => !cancelled && setUrls(u)).catch(() => {});
         if (r.order.status === 'published') {
@@ -45,7 +45,10 @@ export function ReviewPanel({
       })
       .catch(() => { if (!cancelled) setLoadError(true); });
     return () => { cancelled = true; };
-  }, [workOrderId, repo, thumbUrls, reloadKey, startAsReport]);
+    // thumbUrls/signViewer are injected and stable per mount; excluding them
+    // keeps this effect from re-running on every render (which reset the loading state).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workOrderId, repo, reloadKey, startAsReport]);
 
   const viewerLink = publishedToken ? `${location.origin}/v/${publishedToken}` : null;
 
