@@ -11,15 +11,17 @@ import { ShareLinkBar } from '../ui/ShareLinkBar';
 import { C, FONT } from '../ui/tokens';
 
 export function ReviewPanel({
-  workOrderId, repo, onBack, thumbUrls = (paths) => createThumbUrls(paths), signViewer = (paths) => createSignedViewerUrls(paths),
+  workOrderId, repo, onBack, backLabel = '작업 현황', startAsReport = false,
+  thumbUrls = (paths) => createThumbUrls(paths), signViewer = (paths) => createSignedViewerUrls(paths),
 }: {
-  workOrderId: string; repo: AdminRepo; onBack: () => void;
+  workOrderId: string; repo: AdminRepo; onBack: () => void; backLabel?: string; startAsReport?: boolean;
   thumbUrls?: (paths: string[]) => Promise<Record<string, string>>;
   signViewer?: (paths: string[]) => Promise<Record<string, string>>;
 }) {
   const [review, setReview] = useState<WorkOrderReview | null>(null);
   const [urls, setUrls] = useState<Record<string, string>>({});
-  const [viewerLink, setViewerLink] = useState<string | null>(null);
+  const [publishedToken, setPublishedToken] = useState<string | null>(null);
+  const [showReport, setShowReport] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
@@ -27,7 +29,7 @@ export function ReviewPanel({
 
   useEffect(() => {
     let cancelled = false;
-    setReview(null); setLoadError(false); setViewerLink(null);
+    setReview(null); setLoadError(false); setPublishedToken(null); setShowReport(false);
     const timeout = new Promise<never>((_, rej) => setTimeout(() => rej(new Error('timeout')), 20000));
     Promise.race([repo.getWorkOrderReview(workOrderId), timeout])
       .then(async (r) => {
@@ -38,17 +40,19 @@ export function ReviewPanel({
         thumbUrls(paths).then((u) => !cancelled && setUrls(u)).catch(() => {});
         if (r.order.status === 'published') {
           const tok = await repo.getViewerToken(workOrderId).catch(() => null);
-          if (!cancelled && tok) setViewerLink(`${location.origin}/v/${tok}`);
+          if (!cancelled && tok) { setPublishedToken(tok); if (startAsReport) setShowReport(true); }
         }
       })
       .catch(() => { if (!cancelled) setLoadError(true); });
     return () => { cancelled = true; };
-  }, [workOrderId, repo, thumbUrls, reloadKey]);
+  }, [workOrderId, repo, thumbUrls, reloadKey, startAsReport]);
+
+  const viewerLink = publishedToken ? `${location.origin}/v/${publishedToken}` : null;
 
   if (loadError) return (
     <section style={{ fontFamily: FONT.sans, padding: 20 }}>
       <div style={sx.header}>
-        <Button variant="ghost" onClick={onBack}>← 작업 현황</Button>
+        <Button variant="ghost" onClick={onBack}>← {backLabel}</Button>
       </div>
       <div style={{ color: C.text, fontSize: 14, marginBottom: 12 }}>불러오지 못했습니다. 네트워크를 확인하고 다시 시도하세요.</div>
       <Button onClick={() => setReloadKey((k) => k + 1)}>다시 시도</Button>
@@ -80,16 +84,19 @@ export function ReviewPanel({
       const signed = await signViewer(paths);
       const manifest = buildViewerManifest(review!, signed);
       const { viewerToken } = await repo.publish(workOrderId, manifest);
-      setViewerLink(`${location.origin}/v/${viewerToken}`);
+      setPublishedToken(viewerToken);
+      setShowReport(true);
     } finally { setPublishing(false); }
   }
 
   // ---- Published report screen ----
-  if (viewerLink) {
+  if (viewerLink && showReport) {
     return (
       <section style={{ fontFamily: FONT.sans }}>
         <div style={sx.header}>
-          <Button variant="ghost" onClick={onBack}>← 작업 현황</Button>
+          <Button variant="ghost" onClick={startAsReport ? onBack : () => setShowReport(false)}>
+            {startAsReport ? `← ${backLabel}` : '← 검수 화면'}
+          </Button>
           <span style={{ fontSize: 13, color: C.text }}>리포트 발행 완료</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
@@ -133,7 +140,7 @@ export function ReviewPanel({
   return (
     <section style={{ fontFamily: FONT.sans }}>
       <div style={sx.header}>
-        <Button variant="ghost" onClick={onBack}>← 작업 현황</Button>
+        <Button variant="ghost" onClick={onBack}>← {backLabel}</Button>
         <span style={{ fontSize: 13, color: C.text }}>{review.customer?.name} · {review.template.route}</span>
       </div>
 
@@ -193,9 +200,15 @@ export function ReviewPanel({
           <SumRow label="촬영 완료" value={`${cap}장`} dot={C.positive} />
           <SumRow label="누락" value={`${missing}장`} dot={missing ? C.negative : C.muted} />
           <SumRow label="데미지" value={`${damageCount}장`} dot={damageCount ? C.negative : C.muted} />
-          <Button onClick={publish} disabled={publishing} style={{ width: '100%', marginTop: 14 }}>
-            {publishing ? '발행 중…' : '리포트 발행'}
-          </Button>
+          {publishedToken ? (
+            <Button onClick={() => setShowReport(true)} style={{ width: '100%', marginTop: 14 }}>
+              발행된 리포트 보기
+            </Button>
+          ) : (
+            <Button onClick={publish} disabled={publishing} style={{ width: '100%', marginTop: 14 }}>
+              {publishing ? '발행 중…' : '리포트 발행'}
+            </Button>
+          )}
         </Card>
       </div>
 

@@ -64,7 +64,7 @@ export function AdminConsole({ repo = getAdminRepo() }: { repo?: AdminRepo } = {
           {view === 'reports' && (
             <div style={{ marginTop: 12 }}>
               {reportId
-                ? <ReviewPanel workOrderId={reportId} repo={repo} onBack={() => setReportId(null)} />
+                ? <ReviewPanel workOrderId={reportId} repo={repo} startAsReport backLabel="리포트" onBack={() => setReportId(null)} />
                 : <ReportsList repo={repo} onSelect={setReportId} />}
             </div>
           )}
