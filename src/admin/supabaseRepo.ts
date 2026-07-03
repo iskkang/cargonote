@@ -36,24 +36,25 @@ export function createSupabaseAdminRepo(db: DbPort): AdminRepo {
       return (await db.select('work_orders')).map(rowToWorkOrder);
     },
     async listWorkOrderSummaries() {
-      const orders = (await db.select('work_orders')).map(rowToWorkOrder);
-      const customers = (await db.select('customers')).map(rowToCustomer);
-      const templates = (await db.select('work_type_templates')).map((r) => parseTemplate(r as unknown as RawTemplateRow));
-      const out = [];
-      for (const o of orders) {
+      // Bulk-fetch everything in parallel (5 queries total) instead of N+1 per order/container.
+      const [orderRows, custRows, tplRows, contRows, photoRows] = await Promise.all([
+        db.select('work_orders'), db.select('customers'), db.select('work_type_templates'),
+        db.select('containers'), db.select('photos'),
+      ]);
+      const orders = orderRows.map(rowToWorkOrder);
+      const customers = custRows.map(rowToCustomer);
+      const templates = tplRows.map((r) => parseTemplate(r as unknown as RawTemplateRow));
+      const containers = contRows.map(rowToContainer);
+      const photos = photoRows.map(rowToPhoto);
+      return orders.map((o) => {
         const tpl = templates.find((t) => t.id === o.templateId);
         const required = tpl ? (tpl.requiredPhotos.filter((s) => s.required).length || tpl.minCount) : 0;
-        const containerRows = await db.select('containers', { col: 'work_order_id', val: o.id });
-        const conts = containerRows.map(rowToContainer);
-        const slots = new Set<string>();
-        for (const c of conts) {
-          const ps = (await db.select('photos', { col: 'container_id', val: c.id })).map(rowToPhoto);
-          ps.forEach((p) => { if (p.slotKey && p.status === 'uploaded') slots.add(p.slotKey); });
-        }
+        const conts = containers.filter((c) => c.workOrderId === o.id);
+        const cids = new Set(conts.map((c) => c.id));
+        const slots = new Set(photos.filter((p) => cids.has(p.containerId) && p.slotKey && p.status === 'uploaded').map((p) => p.slotKey));
         const containerNo = conts.length ? conts[0].containerNo + (conts.length > 1 ? ` 외 ${conts.length - 1}` : '') : '—';
-        out.push({ order: o, customerName: customers.find((c) => c.id === o.customerId)?.name ?? o.customerId, route: tpl?.route ?? null, containerNo, requiredCount: required, capturedCount: slots.size });
-      }
-      return out;
+        return { order: o, customerName: customers.find((c) => c.id === o.customerId)?.name ?? o.customerId, route: tpl?.route ?? null, containerNo, requiredCount: required, capturedCount: slots.size };
+      });
     },
     async createWorkOrder(input: NewWorkOrder) {
       const [orderRow] = await db.insert('work_orders', {
