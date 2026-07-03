@@ -31,96 +31,164 @@ export function ReviewPanel({
   }, [workOrderId, repo, thumbUrls]);
 
   if (!review) return (
-    <section style={{ fontFamily: FONT.sans, padding: 20, marginTop: 12 }}>
+    <section style={{ fontFamily: FONT.sans, padding: 20 }}>
       <span style={{ color: C.text, fontSize: 13 }}>로딩 중…</span>
     </section>
   );
 
   const slots = requiredSlots(review.template);
+  const firstContainer = review.containers[0]?.container;
+
+  let cap = 0; const req = slots.length * Math.max(review.containers.length, 1);
+  for (const c of review.containers) {
+    cap += checklistStatus(c.photos.map((p) => p.slotKey).filter((x): x is string => !!x), review.template).satisfied.length;
+  }
+  const pct = req ? Math.round((cap / req) * 100) : 0;
+  const missing = req - cap;
+  const thumbList = review.containers.flatMap((c) => c.photos.map((p) => p.thumbPath && urls[p.thumbPath]).filter(Boolean) as string[]);
 
   async function publish() {
     setPublishing(true);
     try {
       const paths = review!.containers.flatMap((c) => c.photos.flatMap((p) => [p.thumbPath, p.displayPath].filter((x): x is string => !!x)));
-      const urls = await signViewer(paths);
-      const manifest = buildViewerManifest(review!, urls);
+      const signed = await signViewer(paths);
+      const manifest = buildViewerManifest(review!, signed);
       const { viewerToken } = await repo.publish(workOrderId, manifest);
       setViewerLink(`${location.origin}/v/${viewerToken}`);
     } finally { setPublishing(false); }
   }
 
+  // ---- Published report screen ----
+  if (viewerLink) {
+    return (
+      <section style={{ fontFamily: FONT.sans }}>
+        <div style={sx.header}>
+          <Button variant="ghost" onClick={onBack}>← 작업 현황</Button>
+          <span style={{ fontSize: 13, color: C.text }}>리포트 발행 완료</span>
+        </div>
+        <Card dark style={{ padding: 0, overflow: 'hidden', maxWidth: 720 }}>
+          <div style={sx.reportHead}>
+            <div>
+              <div style={sx.reportKicker}>CONCHECK 증빙 리포트</div>
+              <div style={sx.reportTitle}>{review.template.route} 검수 · {firstContainer?.containerNo}</div>
+            </div>
+            <span style={sx.verified}>VERIFIED<br /><span style={{ fontSize: 9, fontWeight: 600 }}>촬영→검증</span></span>
+          </div>
+          <div style={{ padding: 18 }}>
+            <div style={sx.tiles}>
+              <Tile label="완료율" value={`${pct}%`} accent={C.positive} />
+              <Tile label="사진" value={`${cap}/${req}`} />
+              <Tile label="Seal No." value={firstContainer?.sealNo || '—'} />
+            </div>
+            {thumbList.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, margin: '14px 0' }}>
+                {thumbList.slice(0, 6).map((u, i) => <img key={i} src={u} alt="" style={sx.reportThumb} />)}
+              </div>
+            )}
+            <div style={sx.chainRow}>
+              <span style={{ fontSize: 12, color: C.onDarkDim }}>발행 · {review.customer?.name ?? ''}</span>
+              <span style={{ fontSize: 12, color: C.tealBright }}>🔒 체인오브커스터디 잠금</span>
+            </div>
+          </div>
+        </Card>
+
+        <div style={{ display: 'flex', gap: 8, marginTop: 14, alignItems: 'center' }}>
+          <Button variant="ghost" disabled>PDF 다운로드 (준비중)</Button>
+        </div>
+        <Card style={{ marginTop: 12, maxWidth: 720 }}>
+          <div style={{ fontSize: 12, color: C.text, marginBottom: 6 }}>수신자에게 링크 보내기</div>
+          <ShareLinkBar url={viewerLink} title="적입 검수 완료 · 증빙 리포트" testId="viewer-link" />
+        </Card>
+      </section>
+    );
+  }
+
+  // ---- Review screen ----
   return (
-    <section style={{ fontFamily: FONT.sans, marginTop: 12 }}>
-      {/* Header row */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <Button variant="ghost" onClick={onBack}>← 뒤로</Button>
-        <span style={{ fontSize: 13, color: C.text }}>
-          {review.customer?.name} · {review.template.route} · {review.order.status}
-        </span>
+    <section style={{ fontFamily: FONT.sans }}>
+      <div style={sx.header}>
+        <Button variant="ghost" onClick={onBack}>← 작업 현황</Button>
+        <span style={{ fontSize: 13, color: C.text }}>{review.customer?.name} · {review.template.route}</span>
       </div>
 
-      {/* Per-container cards */}
-      {review.containers.map(({ container, photos }) => {
-        const captured = photos.map((p) => p.slotKey).filter((x): x is string => !!x);
-        const status = checklistStatus(captured, review.template);
-        const tone = status.complete ? 'positive' : 'caution';
-        return (
-          <Card key={container.id} style={{ marginBottom: 14 }}>
-            {/* Container plate — Pretendard bold + letter-spacing (no mono) */}
-            <div style={{
-              fontFamily: FONT.sans,
-              fontWeight: 700,
-              fontSize: 17,
-              letterSpacing: '0.08em',
-              color: C.textStrong,
-              marginBottom: 8,
-            }}>
-              {container.containerNo}
+      <div className="cn-review" style={sx.split}>
+        <div>
+          {review.containers.map(({ container, photos }) => (
+            <div key={container.id} style={{ marginBottom: 18 }}>
+              <div style={sx.plate}>{container.containerNo}</div>
+              <div style={sx.grid}>
+                {slots.map((slot, i) => {
+                  const photo = photos.find((p) => p.slotKey === slot.key);
+                  const url = photo?.thumbPath ? urls[photo.thumbPath] : undefined;
+                  const done = !!photo;
+                  return (
+                    <div key={slot.key} style={sx.pcard}>
+                      <div style={{ position: 'relative' }}>
+                        {url ? <img src={url} alt={slot.label} style={sx.pthumb} /> : <div style={{ ...sx.pthumb, ...sx.pmiss }}>미촬영</div>}
+                        <span style={sx.pnum}>{String(i + 1).padStart(2, '0')}</span>
+                      </div>
+                      <div style={sx.plabel}>{slot.label}</div>
+                      <Badge tone={done ? 'positive' : 'negative'}>{done ? '촬영됨' : '누락'}</Badge>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
+          ))}
+        </div>
 
-            {/* Checklist count badge */}
-            <Badge tone={tone} style={{ marginBottom: 12 }}>
-              {status.satisfied.length} / {slots.length} 촬영
-              {status.missing.length ? ` · 누락 ${status.missing.length}` : ''}
-            </Badge>
-
-            {/* Thumbnails grid */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
-              {slots.map((slot) => {
-                const photo = photos.find((p) => p.slotKey === slot.key);
-                const url = photo?.thumbPath ? urls[photo.thumbPath] : undefined;
-                return (
-                  <div key={slot.key} style={{ width: 84 }}>
-                    {url
-                      ? <img src={url} alt={slot.label} style={sx.thumb} />
-                      : <div style={{ ...sx.thumb, ...sx.missing }}>미촬영</div>}
-                    <div style={{ fontSize: 11, color: C.text, marginTop: 2 }}>{slot.label}</div>
-                  </div>
-                );
-              })}
-            </div>
-          </Card>
-        );
-      })}
-
-      {/* Publish + viewer-link block */}
-      <div style={{ marginTop: 16 }}>
-        <Button onClick={publish} disabled={publishing}>
-          {publishing ? '발행 중…' : '발행'}
-        </Button>
-
-        {viewerLink && (
-          <Card style={{ marginTop: 12 }}>
-            <div style={{ fontSize: 12, color: C.text, marginBottom: 6 }}>수신자에게 링크 보내기</div>
-            <ShareLinkBar url={viewerLink} title="적입 검수 완료 · 증빙 리포트" testId="viewer-link" />
-          </Card>
-        )}
+        <Card style={{ alignSelf: 'flex-start' }}>
+          <div style={{ fontWeight: 700, color: C.navy, marginBottom: 12 }}>검수 요약</div>
+          <div style={sx.bigPct}>{pct}<span style={{ fontSize: 18 }}>%</span> <span style={{ fontSize: 13, color: C.text, fontWeight: 600 }}>완료율</span></div>
+          <div style={sx.pctTrack}><div style={{ ...sx.pctFill, width: `${pct}%` }} /></div>
+          <SumRow label="촬영 완료" value={`${cap}장`} dot={C.positive} />
+          <SumRow label="누락" value={`${missing}장`} dot={missing ? C.negative : C.muted} />
+          <Button onClick={publish} disabled={publishing} style={{ width: '100%', marginTop: 14 }}>
+            {publishing ? '발행 중…' : '리포트 발행'}
+          </Button>
+        </Card>
       </div>
     </section>
   );
 }
 
+function Tile({ label, value, accent }: { label: string; value: string; accent?: string }) {
+  return (
+    <div style={sx.tile}>
+      <div style={{ fontSize: 11, color: C.onDarkDim }}>{label}</div>
+      <div style={{ fontSize: 18, fontWeight: 800, color: accent ?? C.onDark, marginTop: 3 }}>{value}</div>
+    </div>
+  );
+}
+function SumRow({ label, value, dot }: { label: string; value: string; dot: string }) {
+  return (
+    <div style={sx.sumRow}>
+      <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: C.text }}><span style={{ width: 8, height: 8, borderRadius: 999, background: dot }} />{label}</span>
+      <span style={{ fontSize: 13, fontWeight: 700, color: C.navy }}>{value}</span>
+    </div>
+  );
+}
+
 const sx = {
-  thumb: { width: 84, height: 84, objectFit: 'cover' as const, borderRadius: 8, background: C.surfaceAlt } as const,
-  missing: { display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: C.onDarkDim } as const,
+  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 } as const,
+  split: { display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 260px', gap: 20, alignItems: 'start' } as const,
+  plate: { fontFamily: FONT.sans, fontWeight: 800, fontSize: 17, letterSpacing: '.06em', color: C.navy, marginBottom: 10 } as const,
+  grid: { display: 'flex', flexWrap: 'wrap' as const, gap: 10 } as const,
+  pcard: { width: 120 } as const,
+  pthumb: { width: 120, height: 90, objectFit: 'cover' as const, borderRadius: 8, background: C.surfaceAlt, display: 'block' } as const,
+  pmiss: { display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: C.muted } as const,
+  pnum: { position: 'absolute' as const, top: 6, left: 6, background: 'rgba(15,27,38,.72)', color: C.white, fontSize: 11, fontWeight: 700, borderRadius: 5, padding: '1px 6px' } as const,
+  plabel: { fontSize: 12, fontWeight: 600, color: C.textStrong, margin: '6px 0 4px' } as const,
+  bigPct: { fontFamily: FONT.sans, fontSize: 34, fontWeight: 800, color: C.navy, lineHeight: 1 } as const,
+  pctTrack: { height: 8, background: C.surfaceAlt, borderRadius: 999, overflow: 'hidden', margin: '10px 0 14px' } as const,
+  pctFill: { height: '100%', background: C.positive, borderRadius: 999 } as const,
+  sumRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0', borderTop: `1px solid ${C.line}` } as const,
+  reportHead: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', background: C.brandNavy, padding: '18px 20px' } as const,
+  reportKicker: { fontFamily: FONT.sans, fontSize: 11, letterSpacing: '.08em', color: C.onDarkDim } as const,
+  reportTitle: { fontFamily: FONT.sans, fontSize: 19, fontWeight: 800, color: C.onDark, marginTop: 4 } as const,
+  verified: { border: `2px solid ${C.teal}`, color: C.teal, borderRadius: 8, padding: '6px 10px', fontSize: 12, fontWeight: 800, textAlign: 'center' as const, lineHeight: 1.2 } as const,
+  tiles: { display: 'flex', gap: 10, flexWrap: 'wrap' as const } as const,
+  tile: { flex: 1, minWidth: 90, background: '#16242F', borderRadius: 10, padding: '12px 14px' } as const,
+  reportThumb: { width: 96, height: 72, objectFit: 'cover' as const, borderRadius: 8, background: '#16242F' } as const,
+  chainRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, paddingTop: 12, borderTop: '1px solid rgba(159,178,194,.18)' } as const,
 };

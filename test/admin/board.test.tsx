@@ -7,7 +7,7 @@ test('lists seeded work orders with customer, photo count, and derived status', 
   render(<WorkOrderBoard repo={createInMemoryAdminRepo()} />);
   expect(await screen.findByText(/MTL 지사/)).toBeInTheDocument();
   expect(screen.getAllByText(/생성됨/).length).toBeGreaterThan(0); // no photos captured yet
-  expect(screen.getAllByText(/사진 0\//).length).toBeGreaterThan(0);
+  expect(screen.getAllByText(/0\/8/).length).toBeGreaterThan(0);   // capture progress column
 });
 
 test('shows a row per seeded order', async () => {

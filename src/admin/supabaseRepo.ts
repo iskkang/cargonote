@@ -44,13 +44,14 @@ export function createSupabaseAdminRepo(db: DbPort): AdminRepo {
         const tpl = templates.find((t) => t.id === o.templateId);
         const required = tpl ? (tpl.requiredPhotos.filter((s) => s.required).length || tpl.minCount) : 0;
         const containerRows = await db.select('containers', { col: 'work_order_id', val: o.id });
+        const conts = containerRows.map(rowToContainer);
         const slots = new Set<string>();
-        for (const cRow of containerRows) {
-          const c = rowToContainer(cRow);
+        for (const c of conts) {
           const ps = (await db.select('photos', { col: 'container_id', val: c.id })).map(rowToPhoto);
           ps.forEach((p) => { if (p.slotKey && p.status === 'uploaded') slots.add(p.slotKey); });
         }
-        out.push({ order: o, customerName: customers.find((c) => c.id === o.customerId)?.name ?? o.customerId, route: tpl?.route ?? null, requiredCount: required, capturedCount: slots.size });
+        const containerNo = conts.length ? conts[0].containerNo + (conts.length > 1 ? ` 외 ${conts.length - 1}` : '') : '—';
+        out.push({ order: o, customerName: customers.find((c) => c.id === o.customerId)?.name ?? o.customerId, route: tpl?.route ?? null, containerNo, requiredCount: required, capturedCount: slots.size });
       }
       return out;
     },
