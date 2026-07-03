@@ -109,17 +109,19 @@ export function createSupabaseAdminRepo(db: DbPort): AdminRepo {
       const [orderRow] = await db.select('work_orders', { col: 'id', val: id });
       if (!orderRow) return null;
       const order = rowToWorkOrder(orderRow);
-      const [tplRow] = await db.select('work_type_templates', { col: 'id', val: order.templateId });
-      const template = parseTemplate(tplRow as unknown as RawTemplateRow);
-      const [custRow] = await db.select('customers', { col: 'id', val: order.customerId });
-      const customer = custRow ? rowToCustomer(custRow) : null;
-      const containerRows = await db.select('containers', { col: 'work_order_id', val: order.id });
-      const containers = [];
-      for (const cRow of containerRows) {
+      // template / customer / containers depend only on the order — fetch in parallel.
+      const [tplRows, custRows, containerRows] = await Promise.all([
+        db.select('work_type_templates', { col: 'id', val: order.templateId }),
+        db.select('customers', { col: 'id', val: order.customerId }),
+        db.select('containers', { col: 'work_order_id', val: order.id }),
+      ]);
+      const template = parseTemplate(tplRows[0] as unknown as RawTemplateRow);
+      const customer = custRows[0] ? rowToCustomer(custRows[0]) : null;
+      const containers = await Promise.all(containerRows.map(async (cRow) => {
         const container = rowToContainer(cRow);
         const photos = latestPerSlot((await db.select('photos', { col: 'container_id', val: container.id })).map(rowToPhoto));
-        containers.push({ container, photos });
-      }
+        return { container, photos };
+      }));
       return { order, template, customer, containers } as WorkOrderReview;
     },
     async publish(id: string, manifest: ViewerManifest) {

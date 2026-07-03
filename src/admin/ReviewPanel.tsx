@@ -21,20 +21,39 @@ export function ReviewPanel({
   const [urls, setUrls] = useState<Record<string, string>>({});
   const [viewerLink, setViewerLink] = useState<string | null>(null);
   const [publishing, setPublishing] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
+  const [lightbox, setLightbox] = useState<string | null>(null);
 
   useEffect(() => {
-    repo.getWorkOrderReview(workOrderId).then(async (r) => {
-      setReview(r);
-      if (!r) return;
-      const paths = r.containers.flatMap((c) => c.photos.map((p) => p.thumbPath).filter((x): x is string => !!x));
-      setUrls(await thumbUrls(paths));
-      if (r.order.status === 'published') {
-        const tok = await repo.getViewerToken(workOrderId);
-        if (tok) setViewerLink(`${location.origin}/v/${tok}`);
-      }
-    });
-  }, [workOrderId, repo, thumbUrls]);
+    let cancelled = false;
+    setReview(null); setLoadError(false); setViewerLink(null);
+    const timeout = new Promise<never>((_, rej) => setTimeout(() => rej(new Error('timeout')), 20000));
+    Promise.race([repo.getWorkOrderReview(workOrderId), timeout])
+      .then(async (r) => {
+        if (cancelled) return;
+        setReview(r);
+        if (!r) return;
+        const paths = r.containers.flatMap((c) => c.photos.flatMap((p) => [p.thumbPath, p.displayPath].filter((x): x is string => !!x)));
+        thumbUrls(paths).then((u) => !cancelled && setUrls(u)).catch(() => {});
+        if (r.order.status === 'published') {
+          const tok = await repo.getViewerToken(workOrderId).catch(() => null);
+          if (!cancelled && tok) setViewerLink(`${location.origin}/v/${tok}`);
+        }
+      })
+      .catch(() => { if (!cancelled) setLoadError(true); });
+    return () => { cancelled = true; };
+  }, [workOrderId, repo, thumbUrls, reloadKey]);
 
+  if (loadError) return (
+    <section style={{ fontFamily: FONT.sans, padding: 20 }}>
+      <div style={sx.header}>
+        <Button variant="ghost" onClick={onBack}>← 작업 현황</Button>
+      </div>
+      <div style={{ color: C.text, fontSize: 14, marginBottom: 12 }}>불러오지 못했습니다. 네트워크를 확인하고 다시 시도하세요.</div>
+      <Button onClick={() => setReloadKey((k) => k + 1)}>다시 시도</Button>
+    </section>
+  );
   if (!review) return (
     <section style={{ fontFamily: FONT.sans, padding: 20 }}>
       <span style={{ color: C.text, fontSize: 13 }}>로딩 중…</span>
@@ -127,11 +146,14 @@ export function ReviewPanel({
                 {slots.map((slot, i) => {
                   const photo = photos.find((p) => p.slotKey === slot.key);
                   const url = photo?.thumbPath ? urls[photo.thumbPath] : undefined;
+                  const large = (photo?.displayPath && urls[photo.displayPath]) || url;
                   const done = !!photo;
                   return (
                     <div key={slot.key} style={sx.pcard}>
                       <div style={{ position: 'relative' }}>
-                        {url ? <img src={url} alt={slot.label} style={sx.pthumb} /> : <div style={{ ...sx.pthumb, ...sx.pmiss }}>미촬영</div>}
+                        {url
+                          ? <img src={url} alt={slot.label} style={{ ...sx.pthumb, cursor: 'zoom-in' }} onClick={() => large && setLightbox(large)} />
+                          : <div style={{ ...sx.pthumb, ...sx.pmiss }}>미촬영</div>}
                         <span style={sx.pnum}>{String(i + 1).padStart(2, '0')}</span>
                       </div>
                       <div style={sx.plabel}>{slot.label}</div>
@@ -149,9 +171,12 @@ export function ReviewPanel({
               <div style={sx.grid}>
                 {damagePhotos.map((p, i) => {
                   const url = p.thumbPath ? urls[p.thumbPath] : undefined;
+                  const large = (p.displayPath && urls[p.displayPath]) || url;
                   return (
                     <div key={i} style={sx.pcard}>
-                      {url ? <img src={url} alt="데미지" style={sx.pthumb} /> : <div style={{ ...sx.pthumb, ...sx.pmiss }}>이미지</div>}
+                      {url
+                        ? <img src={url} alt="데미지" style={{ ...sx.pthumb, cursor: 'zoom-in' }} onClick={() => large && setLightbox(large)} />
+                        : <div style={{ ...sx.pthumb, ...sx.pmiss }}>이미지</div>}
                       <div style={{ marginTop: 6 }}><Badge tone="negative">데미지</Badge></div>
                     </div>
                   );
@@ -173,6 +198,13 @@ export function ReviewPanel({
           </Button>
         </Card>
       </div>
+
+      {lightbox && (
+        <div style={sx.lbOverlay} role="dialog" aria-modal="true" onClick={() => setLightbox(null)}>
+          <img src={lightbox} alt="확대 이미지" style={sx.lbImg} onClick={(e) => e.stopPropagation()} />
+          <button type="button" onClick={() => setLightbox(null)} style={sx.lbClose} aria-label="닫기">✕</button>
+        </div>
+      )}
     </section>
   );
 }
@@ -216,4 +248,7 @@ const sx = {
   tile: { flex: 1, minWidth: 80, background: C.surfaceAlt, borderRadius: 10, padding: '12px 14px' } as const,
   reportThumb: { width: 96, height: 72, objectFit: 'cover' as const, borderRadius: 8, background: C.surfaceAlt } as const,
   chainRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, paddingTop: 12, borderTop: `1px solid ${C.line}` } as const,
+  lbOverlay: { position: 'fixed' as const, inset: 0, background: 'rgba(15,27,38,.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 60, cursor: 'zoom-out' } as const,
+  lbImg: { maxWidth: '92vw', maxHeight: '88vh', objectFit: 'contain' as const, borderRadius: 8, cursor: 'default' } as const,
+  lbClose: { position: 'fixed' as const, top: 16, right: 20, width: 40, height: 40, borderRadius: 999, border: 0, background: 'rgba(255,255,255,.15)', color: C.white, fontSize: 18, cursor: 'pointer' } as const,
 };

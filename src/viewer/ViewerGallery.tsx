@@ -5,6 +5,7 @@ import { getViewerClient } from '../admin/repoFactory';
 import type { ViewerManifest, ViewerContainer, ViewerPhoto } from '../domain/viewer';
 import { PageShell, Brand, Card, Button, Badge } from '../ui/kit';
 import { C, R, SH, FONT } from '../ui/tokens';
+import { T, LANGS, photoLabel, type Lang } from './i18n';
 
 async function downloadOne(url: string, name: string) {
   try {
@@ -25,6 +26,8 @@ export function ViewerGallery({ client = getViewerClient() }: { client?: ViewerC
   const [manifest, setManifest] = useState<ViewerManifest | null>(null);
   const [state, setState] = useState<'loading' | 'ok' | 'invalid'>('loading');
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [lang, setLang] = useState<Lang>('ko');
+  const t = T[lang];
 
   useEffect(() => {
     client.bootstrap(token ?? '')
@@ -36,7 +39,7 @@ export function ViewerGallery({ client = getViewerClient() }: { client?: ViewerC
   if (state === 'invalid' || !manifest) {
     return (
       <PageShell style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <p style={{ fontFamily: FONT.sans, fontSize: 16, fontWeight: 600, color: C.caution }}>잘못된 링크입니다.</p>
+        <p style={{ fontFamily: FONT.sans, fontSize: 16, fontWeight: 600, color: C.caution }}>잘못된 링크입니다. · Invalid link.</p>
       </PageShell>
     );
   }
@@ -65,7 +68,13 @@ export function ViewerGallery({ client = getViewerClient() }: { client?: ViewerC
         <header style={sx.hero}>
           <Brand />
           <div style={sx.heroRight}>
-            <div style={sx.heroTitle}>증빙 리포트</div>
+            <div style={sx.langBar}>
+              {LANGS.map((l) => (
+                <button key={l.code} type="button" onClick={() => setLang(l.code)}
+                  style={{ ...sx.langBtn, ...(lang === l.code ? sx.langActive : {}) }}>{l.label}</button>
+              ))}
+            </div>
+            <div style={sx.heroTitle}>{t.report}</div>
             <div style={sx.subtitle}>{manifest.customer} · {manifest.route}</div>
           </div>
         </header>
@@ -74,18 +83,18 @@ export function ViewerGallery({ client = getViewerClient() }: { client?: ViewerC
         <div style={sx.exportBar}>
           <label style={sx.selAll}>
             <input type="checkbox" checked={allSelected} onChange={toggleAll} />
-            전체 선택
+            {t.selectAll}
           </label>
           <Button onClick={downloadSelected} disabled={selected.size === 0}>
-            선택 사진 다운로드{selected.size ? ` (${selected.size})` : ''}
+            {t.download}{selected.size ? ` (${selected.size})` : ''}
           </Button>
         </div>
 
         {/* Per-container sections */}
         {manifest.containers.map((c) => (
           <div key={c.containerNo} className="cn-viewer" style={{ marginBottom: 22 }}>
-            <PhotoGrid container={c} selected={selected} onToggle={toggle} />
-            <DetailsPanel container={c} date={manifest.date} customer={manifest.customer} route={manifest.route} />
+            <PhotoGrid container={c} selected={selected} onToggle={toggle} lang={lang} />
+            <DetailsPanel container={c} date={manifest.date} customer={manifest.customer} route={manifest.route} t={t} />
           </div>
         ))}
       </div>
@@ -93,53 +102,54 @@ export function ViewerGallery({ client = getViewerClient() }: { client?: ViewerC
   );
 }
 
-function PhotoGrid({ container, selected, onToggle }: {
-  container: ViewerContainer; selected: Set<string>; onToggle: (k: string) => void;
+function PhotoGrid({ container, selected, onToggle, lang }: {
+  container: ViewerContainer; selected: Set<string>; onToggle: (k: string) => void; lang: Lang;
 }) {
   return (
     <div style={sx.grid}>
       {container.photos.map((p, i) => (
         <PhotoCard key={`${p.slotKey}-${i}`} photo={p} containerNo={container.containerNo}
-          checked={selected.has(p.displayUrl)} onToggle={() => onToggle(p.displayUrl)} />
+          checked={selected.has(p.displayUrl)} onToggle={() => onToggle(p.displayUrl)} lang={lang} />
       ))}
     </div>
   );
 }
 
-function PhotoCard({ photo, containerNo, checked, onToggle }: {
-  photo: ViewerPhoto; containerNo: string; checked: boolean; onToggle: () => void;
+function PhotoCard({ photo, containerNo, checked, onToggle, lang }: {
+  photo: ViewerPhoto; containerNo: string; checked: boolean; onToggle: () => void; lang: Lang;
 }) {
+  const label = photoLabel(photo.slotKey, photo.label, lang);
   return (
     <div style={sx.card}>
       <div style={sx.imgWrap}>
-        <input type="checkbox" checked={checked} onChange={onToggle} aria-label={`${photo.label} 선택`} style={sx.check} />
+        <input type="checkbox" checked={checked} onChange={onToggle} aria-label={label} style={sx.check} />
         <a href={photo.displayUrl} target="_blank" rel="noreferrer">
-          <img src={photo.thumbUrl} alt={photo.label} style={sx.thumb} />
+          <img src={photo.thumbUrl} alt={label} style={sx.thumb} />
         </a>
-        <button type="button" title="다운로드" aria-label={`${photo.label} 다운로드`}
-          onClick={() => downloadOne(photo.displayUrl, `${containerNo}-${photo.label || 'photo'}.jpg`)}
+        <button type="button" title="↓" aria-label={label}
+          onClick={() => downloadOne(photo.displayUrl, `${containerNo}-${label || 'photo'}.jpg`)}
           style={sx.dl}>↓</button>
       </div>
       <div style={sx.tagRow}>
         <span style={sx.tagDot} />
-        <span style={sx.tag}>{photo.label}</span>
+        <span style={sx.tag}>{label}</span>
       </div>
     </div>
   );
 }
 
-function DetailsPanel({ container, date, customer, route }: {
-  container: ViewerContainer; date: string | null; customer: string | null; route: string | null;
+function DetailsPanel({ container, date, customer, route, t }: {
+  container: ViewerContainer; date: string | null; customer: string | null; route: string | null; t: (typeof T)[Lang];
 }) {
   return (
     <Card style={{ padding: 18 }}>
       <div style={sx.dTitle}>{container.containerNo}</div>
-      <DRow label="작업일" value={date || '—'} />
-      <DRow label="거래처" value={customer || '—'} />
-      <DRow label="루트" value={route || '—'} />
-      <DRow label="사진" value={`${container.photos.length}장`} />
-      <div style={sx.dSection}>Documents</div>
-      <Badge tone="neutral">첨부 없음</Badge>
+      <DRow label={t.date} value={date || '—'} />
+      <DRow label={t.customer} value={customer || '—'} />
+      <DRow label={t.route} value={route || '—'} />
+      <DRow label={t.photos} value={`${container.photos.length}${t.unit ? t.unit : ''}`} />
+      <div style={sx.dSection}>{t.documents}</div>
+      <Badge tone="neutral">{t.noDocs}</Badge>
     </Card>
   );
 }
@@ -157,6 +167,9 @@ const sx = {
   inner: { maxWidth: 980, margin: '0 auto', padding: '24px 20px' } as const,
   hero: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 18, flexWrap: 'wrap' as const, gap: 12 } as const,
   heroRight: { textAlign: 'right' as const } as const,
+  langBar: { display: 'inline-flex', gap: 4, marginBottom: 8, background: C.white, border: `1px solid ${C.line}`, borderRadius: 999, padding: 3 } as const,
+  langBtn: { fontFamily: FONT.sans, fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 999, border: 0, background: 'transparent', color: C.text, cursor: 'pointer' } as const,
+  langActive: { background: C.navy, color: C.white } as const,
   heroTitle: { fontFamily: FONT.sans, fontWeight: 800, fontSize: 18, color: C.navy } as const,
   subtitle: { fontFamily: FONT.sans, fontSize: 13, color: C.text, marginTop: 4 } as const,
   exportBar: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, background: C.white, border: `1px solid ${C.line}`, borderRadius: R.lg, padding: '10px 14px', marginBottom: 18, flexWrap: 'wrap' as const } as const,

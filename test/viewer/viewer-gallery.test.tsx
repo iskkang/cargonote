@@ -17,6 +17,19 @@ test('renders the published gallery for a valid token', async () => {
   expect(screen.getByAltText(/씰 근접/)).toBeInTheDocument();
 });
 
+test('language toggle switches UI strings and photo labels', async () => {
+  const manifest = { route: 'TCR', customer: '칭다오 파트너', date: '2026-07-02', containers: [{ containerNo: 'ABCD1234567', photos: [{ slotKey: 'seal', label: '씰 근접', thumbUrl: 'x', displayUrl: 'y' }] }] };
+  render(
+    <MemoryRouter initialEntries={['/v/VTOK']}>
+      <Routes><Route path="/v/:token" element={<ViewerGallery client={client(manifest)} />} /></Routes>
+    </MemoryRouter>,
+  );
+  expect(await screen.findByText(/증빙 리포트/)).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'EN' }));
+  expect(await screen.findByText(/Inspection Report/)).toBeInTheDocument();
+  expect(screen.getByAltText('Seal close-up')).toBeInTheDocument();
+});
+
 test('select-all enables the download button with a count', async () => {
   const manifest = { route: 'TCR', customer: '칭다오 파트너', date: '2026-07-02', containers: [{ containerNo: 'ABCD1234567', photos: [{ slotKey: 'seal', label: '씰 근접', thumbUrl: 'x', displayUrl: 'y' }] }] };
   render(
