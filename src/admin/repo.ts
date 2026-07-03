@@ -1,7 +1,7 @@
 import type { Container, Customer, Photo, WorkOrder, WorkTypeTemplate } from '../domain/types';
 import { randomToken } from './token';
 import type { WorkOrderReview } from '../domain/review';
-import { latestPerSlot } from '../domain/review';
+import { latestPerSlot, DAMAGE_SLOT } from '../domain/review';
 import type { ViewerManifest } from '../domain/viewer';
 
 export interface NewWorkOrder {
@@ -20,7 +20,7 @@ export interface WorkOrderEdit {
 }
 export interface WorkOrderSummary {
   order: WorkOrder; customerName: string; route: string | null;
-  containerNo: string; requiredCount: number; capturedCount: number;
+  containerNo: string; requiredCount: number; capturedCount: number; damageCount: number;
 }
 export interface AdminRepo {
   listCustomers(): Promise<Customer[]>;
@@ -99,12 +99,15 @@ export function createInMemoryAdminRepo(): AdminRepo {
     async listWorkOrderSummaries() {
       return orders.map((o) => {
         const tpl = templates.find((t) => t.id === o.templateId);
-        const required = tpl ? (tpl.requiredPhotos.filter((s) => s.required).length || tpl.minCount) : 0;
+        const reqKeys = new Set(tpl ? tpl.requiredPhotos.filter((s) => s.required).map((s) => s.key) : []);
+        const required = reqKeys.size || (tpl?.minCount ?? 0);
         const cs = containers.filter((c) => c.workOrderId === o.id);
-        const cids = cs.map((c) => c.id);
-        const slots = new Set(photos.filter((p) => cids.includes(p.containerId) && p.slotKey && p.status === 'uploaded').map((p) => p.slotKey));
+        const cids = new Set(cs.map((c) => c.id));
+        const mine = photos.filter((p) => cids.has(p.containerId) && p.status === 'uploaded' && p.slotKey);
+        const captured = new Set(mine.filter((p) => reqKeys.has(p.slotKey as string)).map((p) => p.slotKey));
+        const damageCount = mine.filter((p) => p.slotKey === DAMAGE_SLOT).length;
         const containerNo = cs.length ? cs[0].containerNo + (cs.length > 1 ? ` 외 ${cs.length - 1}` : '') : '—';
-        return { order: o, customerName: customers.find((c) => c.id === o.customerId)?.name ?? o.customerId, route: tpl?.route ?? null, containerNo, requiredCount: required, capturedCount: slots.size };
+        return { order: o, customerName: customers.find((c) => c.id === o.customerId)?.name ?? o.customerId, route: tpl?.route ?? null, containerNo, requiredCount: required, capturedCount: captured.size, damageCount };
       });
     },
     async getByWorkerToken(token) {

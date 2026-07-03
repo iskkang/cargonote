@@ -4,16 +4,17 @@ import { Badge, EmptyState, Button, Field, inputStyle } from '../ui/kit';
 import { C, FONT } from '../ui/tokens';
 
 type Edit = { id: string; assigneeName: string; assigneeContact: string; workDate: string };
-type StatusKey = '생성됨' | '수신중' | '수신됨' | '발행됨';
+type StatusKey = '대기' | '진행중' | '확인필요' | '완료' | '데미지';
 
-function boardStatus(s: WorkOrderSummary): { label: StatusKey; tone: 'neutral' | 'caution' | 'positive' } {
-  if (s.order.status === 'published') return { label: '발행됨', tone: 'positive' };
-  if (s.requiredCount > 0 && s.capturedCount >= s.requiredCount) return { label: '수신됨', tone: 'positive' };
-  if (s.capturedCount > 0) return { label: '수신중', tone: 'caution' };
-  return { label: '생성됨', tone: 'caution' };
+function boardStatus(s: WorkOrderSummary): { label: StatusKey; tone: 'neutral' | 'caution' | 'positive' | 'negative' } {
+  if (s.damageCount > 0) return { label: '데미지', tone: 'negative' };
+  if (s.order.status === 'published') return { label: '완료', tone: 'positive' };
+  if (s.requiredCount > 0 && s.capturedCount >= s.requiredCount) return { label: '확인필요', tone: 'caution' };
+  if (s.capturedCount > 0) return { label: '진행중', tone: 'neutral' };
+  return { label: '대기', tone: 'neutral' };
 }
 
-const FILTERS: (StatusKey | '전체')[] = ['전체', '생성됨', '수신중', '수신됨', '발행됨'];
+const FILTERS: (StatusKey | '전체')[] = ['전체', '확인필요', '진행중', '완료', '데미지'];
 
 export function WorkOrderBoard({ repo, onSelect }: { repo: AdminRepo; onSelect?: (id: string) => void }) {
   const [rows, setRows] = useState<WorkOrderSummary[]>([]);

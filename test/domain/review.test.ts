@@ -24,6 +24,15 @@ test('empty in, empty out', () => {
   expect(latestPerSlot([])).toEqual([]);
 });
 
+test('keeps ALL damage photos (not collapsed) alongside latest-per-required-slot', () => {
+  const out = latestPerSlot([
+    ph('a', 'seal', '2026-07-02T01:00:00Z'),
+    ph('d1', 'damage', '2026-07-02T02:00:00Z'),
+    ph('d2', 'damage', '2026-07-02T03:00:00Z'),
+  ]);
+  expect(out.map((p) => p.id).sort()).toEqual(['a', 'd1', 'd2']);
+});
+
 test('drops soft_deleted photos even when latest for their slot', () => {
   const out = latestPerSlot([
     ph('a', 'seal', '2026-07-02T01:00:00Z'),
