@@ -42,6 +42,22 @@ test('packMulti spreads across multiple containers with per-container counts', (
   expect(Math.round(m.containers[0].fillPct)).toBe(100);
 });
 
+test('maxLayers caps stacking (1 layer → floor only)', () => {
+  const { boxes } = expandBoxes([cargo({ qty: 8 })]);
+  const res = packContainer(boxes, { L: 200, W: 200, H: 200 }, { maxLayers: 1 });
+  expect(res.placements.every((p) => p.z < 0.1)).toBe(true); // no stacking
+  expect(res.packed).toBe(4); // 2×2 on the floor
+});
+
+test('layDown:false keeps a too-tall box upright (cannot be tilted to fit)', () => {
+  const box = { l: 100, w: 100, h: 250 }; // 250 tall — taller than the 200-high container
+  const cont = { L: 300, W: 200, H: 200 }; // but 300 long, so it fits lying on its side
+  const upright = expandBoxes([cargo({ qty: 1, ...box, layDown: false })]);
+  expect(packContainer(upright.boxes, cont).packed).toBe(0);
+  const tilt = expandBoxes([cargo({ qty: 1, ...box, layDown: true })]);
+  expect(packContainer(tilt.boxes, cont).packed).toBe(1);
+});
+
 test('rotate keeps count and swaps container L/W on odd turns', () => {
   const { boxes } = expandBoxes([cargo()]);
   const res = packContainer(boxes, { L: 200, W: 200, H: 200 });

@@ -2,14 +2,17 @@ import { useEffect, useRef } from 'react';
 import type { Placement } from '../domain/pack';
 
 /** Three.js orbit/zoom viewer for a packed container. three is loaded lazily. */
-export function PackView3DGL({ placements, L, W, H, highlight }: {
+export function PackView3DGL({ placements, L, W, H, highlight, cog }: {
   placements: Placement[]; L: number; W: number; H: number; highlight: number | null;
+  cog?: { x: number; y: number; z: number } | null;
 }) {
   const mount = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const ref = useRef<any>({});
   const hlRef = useRef(highlight);
   hlRef.current = highlight;
+  const cogRef = useRef(cog);
+  cogRef.current = cog;
 
   const applyHighlight = () => {
     const r = ref.current;
@@ -43,6 +46,16 @@ export function PackView3DGL({ placements, L, W, H, highlight }: {
       const em = new THREE.LineBasicMaterial({ color: 0x0f1b26, transparent: true, opacity: 0.25 });
       m.add(new THREE.LineSegments(new THREE.EdgesGeometry(g), em));
       r.group.add(m); r.boxes.push({ line: p.line, mat, edge: em });
+    }
+    const cg2 = cogRef.current;
+    if (cg2) {
+      const rad = Math.max(L, W, H) * s * 0.04;
+      const sph = new THREE.Mesh(new THREE.SphereGeometry(rad, 18, 18), new THREE.MeshBasicMaterial({ color: 0xdc2626 }));
+      sph.position.set(cg2.x * s, cg2.z * s, cg2.y * s); r.group.add(sph);
+      const drop = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(cg2.x * s, cg2.z * s, cg2.y * s), new THREE.Vector3(cg2.x * s, 0, cg2.y * s),
+      ]);
+      r.group.add(new THREE.Line(drop, new THREE.LineBasicMaterial({ color: 0xdc2626, transparent: true, opacity: 0.6 })));
     }
     r.group.position.set(-L * s / 2, -H * s / 2, -W * s / 2);
     const maxDim = Math.max(L, W, H) * s;
@@ -85,7 +98,7 @@ export function PackView3DGL({ placements, L, W, H, highlight }: {
     };
   }, []);
 
-  useEffect(() => { build(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [placements, L, W, H]);
+  useEffect(() => { build(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [placements, L, W, H, cog?.x, cog?.y, cog?.z]);
   useEffect(() => { applyHighlight(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [highlight]);
 
   return <div ref={mount} style={{ width: '100%', height: 340, cursor: 'grab' }} />;

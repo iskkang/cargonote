@@ -8,6 +8,8 @@ export interface CargoLine {
   l: number; w: number; h: number; // cm
   weight: number;                   // kg per unit
   stackable: boolean;
+  color?: string;                   // hex, for the 3D/legend
+  layDown?: boolean;                // may be tilted onto its side (default true)
 }
 
 export interface ContainerSpec {
