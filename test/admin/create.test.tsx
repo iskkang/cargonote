@@ -21,6 +21,15 @@ test('disables 발급 until a container number is entered', async () => {
   expect(submit).toBeEnabled();
 });
 
+test('a load plan seeds one container slot per planned container', async () => {
+  const repo = createInMemoryAdminRepo();
+  const plan = { containerLabel: "40' HQ", containerCount: 2, fills: [79, 24], cargoKinds: 3, cargoQty: 60, totalCbm: 90.5, totalWeight: 12000 };
+  render(<CreateWorkOrder repo={repo} plan={plan} />);
+  const input = await screen.findByLabelText(/컨테이너 번호/) as HTMLInputElement;
+  expect(input.value).toBe("40' HQ #1, 40' HQ #2");
+  expect(screen.getByText(/적재 계획에서 이어옴/)).toBeInTheDocument();
+});
+
 test('guides to add a customer when none exist', async () => {
   const empty = { ...createInMemoryAdminRepo(), listCustomers: async () => [] };
   render(<CreateWorkOrder repo={empty} />);

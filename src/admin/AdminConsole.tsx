@@ -8,6 +8,7 @@ import { CustomerManager } from './CustomerManager';
 import { ReportsList } from './ReportsList';
 import { Dashboard } from './Dashboard';
 import { LoadCalculator } from './LoadCalculator';
+import type { LoadPlan } from './loadPlan';
 import { AdminSidebar, type AdminView } from './AdminSidebar';
 import { WorkOrderPreview, type WorkOrderPreviewData } from './WorkOrderPreview';
 import { AdminLangProvider, useT } from './i18n';
@@ -23,6 +24,7 @@ function AdminConsoleInner({ repo }: { repo: AdminRepo }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [reportId, setReportId] = useState<string | null>(null);
   const [preview, setPreview] = useState<WorkOrderPreviewData | null>(null);
+  const [loadPlan, setLoadPlan] = useState<LoadPlan | null>(null);
   const [email, setEmail] = useState<string | null>(null);
   const [navOpen, setNavOpen] = useState(false);
 
@@ -70,9 +72,10 @@ function AdminConsoleInner({ repo }: { repo: AdminRepo }) {
           {view === 'new' && (
             <div className="cn-split">
               <Card><CreateWorkOrder repo={repo} onPreviewChange={setPreview}
+                plan={loadPlan} onClearPlan={() => setLoadPlan(null)}
                 onManageCustomers={() => setView('customers')}
                 onDone={() => setView('board')}
-                onCreated={() => setRefreshKey((k) => k + 1)} /></Card>
+                onCreated={() => { setRefreshKey((k) => k + 1); setLoadPlan(null); }} /></Card>
               <WorkOrderPreview data={preview ?? { customerName: '', route: null, carrier: null, containerNos: [], requiredCount: 0 }} />
             </div>
           )}
@@ -82,7 +85,7 @@ function AdminConsoleInner({ repo }: { repo: AdminRepo }) {
             : <div style={{ marginTop: 4 }}><WorkOrderBoard key={refreshKey} repo={repo} onSelect={setSelectedId} /></div>
           )}
 
-          {view === 'load' && <div style={{ marginTop: 4 }}><LoadCalculator /></div>}
+          {view === 'load' && <div style={{ marginTop: 4 }}><LoadCalculator onCreateJob={(p) => { setLoadPlan(p); select('new'); }} /></div>}
 
           {view === 'customers' && <div style={{ marginTop: 4 }}><CustomerManager repo={repo} /></div>}
 

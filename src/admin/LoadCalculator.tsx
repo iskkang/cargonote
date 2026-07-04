@@ -3,6 +3,7 @@ import { computeStuffing, CONTAINERS, type CargoLine, type ContainerId } from '.
 import { expandBoxes, packMulti, PALETTE } from '../domain/pack';
 import { PackView3DGL } from './PackView3DGL';
 import { parseCargoFile } from './parseCargo';
+import type { LoadPlan } from './loadPlan';
 import { Button, Badge, inputStyle } from '../ui/kit';
 import { useT } from './i18n';
 import { C, FONT, R } from '../ui/tokens';
@@ -14,7 +15,7 @@ const blank = (): Row => {
   return { key: n, name: `Box-${n}`, qty: 1, l: 0, w: 0, h: 0, weight: 0, stackable: true, layDown: true, color: PALETTE[(n - 1) % PALETTE.length] };
 };
 
-export function LoadCalculator() {
+export function LoadCalculator({ onCreateJob }: { onCreateJob?: (p: LoadPlan) => void } = {}) {
   const t = useT();
   const [rows, setRows] = useState<Row[]>([blank()]);
   const [utilPct, setUtilPct] = useState(85);
@@ -68,6 +69,16 @@ export function LoadCalculator() {
     const offW = ((y - pack.cont.W / 2) / (pack.cont.W / 2)) * 100;
     return { x, y, z, offL, offW, ok: Math.abs(offL) <= 20 && Math.abs(offW) <= 20 };
   })();
+
+  const buildPlan = (): LoadPlan => ({
+    containerLabel: selSpec.label,
+    containerCount: pack.containers.length,
+    fills: pack.containers.map((c) => Math.round(c.fillPct)),
+    cargoKinds: rows.filter((r) => r.qty > 0 && r.l > 0 && r.w > 0 && r.h > 0).length,
+    cargoQty: result.totalQty,
+    totalCbm: result.totalCbm,
+    totalWeight: result.totalWeight,
+  });
 
   return (
     <div>
@@ -163,6 +174,11 @@ export function LoadCalculator() {
             );
           })()}
           <div style={sx.disclaimer}>ⓘ {t.load.disclaimer} ({t.load.util} {utilPct}%)</div>
+          {onCreateJob && pack.containers.length > 0 && (
+            <div style={{ marginTop: 14 }}>
+              <Button onClick={() => onCreateJob(buildPlan())}>{t.load.createJob}</Button>
+            </div>
+          )}
 
           <div style={sx.view3d}>
             <div style={sx.view3dHead}>

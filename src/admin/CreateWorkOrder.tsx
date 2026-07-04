@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { AdminRepo } from './repo';
+import type { LoadPlan } from './loadPlan';
 import type { Customer, WorkTypeTemplate } from '../domain/types';
 import { Field, Button, Card, Select, inputStyle } from '../ui/kit';
 import { useToast } from '../ui/overlays';
@@ -9,9 +10,10 @@ import { C, FONT } from '../ui/tokens';
 import { ShareLinkBar } from '../ui/ShareLinkBar';
 import type { WorkOrderPreviewData } from './WorkOrderPreview';
 
-export function CreateWorkOrder({ repo, onCreated, onManageCustomers, onPreviewChange, onDone }: {
+export function CreateWorkOrder({ repo, onCreated, onManageCustomers, onPreviewChange, onDone, plan, onClearPlan }: {
   repo: AdminRepo; onCreated?: () => void; onManageCustomers?: () => void;
   onPreviewChange?: (p: WorkOrderPreviewData) => void; onDone?: () => void;
+  plan?: LoadPlan | null; onClearPlan?: () => void;
 }) {
   const t = useT();
   const toast = useToast();
@@ -42,6 +44,11 @@ export function CreateWorkOrder({ repo, onCreated, onManageCustomers, onPreviewC
     setCustomerId(id);
     prefill(customers.find((x) => x.id === id));
   }
+
+  // A load plan seeds one container slot per planned container (placeholders the user replaces).
+  useEffect(() => {
+    if (plan) setContainerNo(Array.from({ length: plan.containerCount }, (_, i) => `${plan.containerLabel} #${i + 1}`).join(', '));
+  }, [plan]);
 
   useEffect(() => {
     if (!onPreviewChange) return;
@@ -110,6 +117,16 @@ export function CreateWorkOrder({ repo, onCreated, onManageCustomers, onPreviewC
 
   return (
     <form onSubmit={submit} style={{ maxWidth: 480 }}>
+      {plan && (
+        <div style={crd.plan}>
+          <div style={crd.planTop}>
+            <strong style={{ color: C.tealStrong, fontSize: 13 }}>{t.create.plan}</strong>
+            {onClearPlan && <button type="button" onClick={onClearPlan} style={crd.planClear}>✕ {t.create.planClear}</button>}
+          </div>
+          <div style={crd.planBody}><b>{plan.containerLabel}</b> × {plan.containerCount}{t.load.unit} · {plan.totalCbm.toFixed(1)} CBM · {t.load.fill} {plan.fills.join(' / ')}%</div>
+          <div style={crd.planHint}>{t.create.planHint}</div>
+        </div>
+      )}
       {ready && customers.length === 0 ? (
         <div style={{ marginBottom: 12, padding: '12px 14px', background: C.surfaceAlt, borderRadius: 8 }}>
           <div style={{ fontSize: 13, color: C.text, marginBottom: 8 }}>{t.create.noCustomer}</div>
@@ -164,6 +181,11 @@ const crd = {
   chips: { display: 'flex', flexWrap: 'wrap' as const, gap: 8 } as const,
   chip: { fontFamily: FONT.sans, fontSize: 13, fontWeight: 600, padding: '8px 14px', borderRadius: 999, border: `1px solid ${C.line}`, background: C.white, color: C.text, cursor: 'pointer' } as const,
   chipActive: { background: C.navy, color: C.white, border: `1px solid ${C.navy}` } as const,
+  plan: { background: C.tealTint, border: `1px solid ${C.teal}`, borderRadius: 10, padding: '10px 12px', marginBottom: 14 } as const,
+  planTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 } as const,
+  planClear: { border: 0, background: 'transparent', color: C.muted, cursor: 'pointer', fontSize: 12, fontFamily: FONT.sans } as const,
+  planBody: { fontFamily: FONT.sans, fontSize: 13, color: C.navy } as const,
+  planHint: { fontFamily: FONT.sans, fontSize: 11.5, color: C.text, marginTop: 4 } as const,
   miniLabel: { fontSize: 13, fontWeight: 600, color: C.text, marginBottom: 8 } as const,
   photoChip: { fontFamily: FONT.sans, fontSize: 12, fontWeight: 600, padding: '6px 12px', borderRadius: 999, border: `1px solid ${C.teal}`, color: C.teal, background: C.tealTint } as const,
 };

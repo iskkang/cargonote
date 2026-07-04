@@ -7,7 +7,7 @@ export const ADMIN_LANGS: { code: AdminLang; label: string }[] = [
 
 const ko = {
   nav: { home: '대시보드', new: '새 작업', board: '작업 현황', customers: '거래처', reports: '리포트', load: '적재 계산' },
-  load: { title: '적재 계산', sub: '화물 리스트로 20/40/40HQ 적재율과 필요 컨테이너 수를 추정합니다.', addRow: '＋ 화물 추가', name: '품명', qty: '수량', dimsCm: '치수 L·W·H (cm)', weight: '중량(kg)', stack: '적재', util: '가정 적재율', results: '적재 추정', totalCbm: '총 부피', totalWeight: '총 중량', totalQty: '총 수량', needed: '필요 컨테이너', fill: '적재율', bindVol: '부피 제약', bindWt: '중량 제약', maxUnits: '1대 최대', unit: '대', recommended: '추천', notFit: '치수 초과', freight: '운임(대당·선택)', empty: '화물을 추가하면 결과가 나옵니다.', disclaimer: '부피·중량 기반 추정치입니다. 실제 적재율은 화물 모양·스택 제약에 좌우됩니다.', remove: '삭제', view3d: '3D 적재도', rotate: '회전', packed: '적재', unplaced: '미적재', cap: '표시는 상위 일부만', upload: '엑셀·CSV 업로드', uploadHint: '열: 품명·수량·L·W·H·중량·적재(선택)', color: '색상', lay: '눕히기', maxLayers: '최대 단수', maxLayersHint: '0 = 무제한', cog: '무게중심', cogL: '길이', cogW: '폭', cogOk: '균형 양호', cogWarn: '편중 주의' },
+  load: { title: '적재 계산', sub: '화물 리스트로 20/40/40HQ 적재율과 필요 컨테이너 수를 추정합니다.', addRow: '＋ 화물 추가', name: '품명', qty: '수량', dimsCm: '치수 L·W·H (cm)', weight: '중량(kg)', stack: '적재', util: '가정 적재율', results: '적재 추정', totalCbm: '총 부피', totalWeight: '총 중량', totalQty: '총 수량', needed: '필요 컨테이너', fill: '적재율', bindVol: '부피 제약', bindWt: '중량 제약', maxUnits: '1대 최대', unit: '대', recommended: '추천', notFit: '치수 초과', freight: '운임(대당·선택)', empty: '화물을 추가하면 결과가 나옵니다.', disclaimer: '부피·중량 기반 추정치입니다. 실제 적재율은 화물 모양·스택 제약에 좌우됩니다.', remove: '삭제', view3d: '3D 적재도', rotate: '회전', packed: '적재', unplaced: '미적재', cap: '표시는 상위 일부만', upload: '엑셀·CSV 업로드', uploadHint: '열: 품명·수량·L·W·H·중량·적재(선택)', color: '색상', lay: '눕히기', maxLayers: '최대 단수', maxLayersHint: '0 = 무제한', cog: '무게중심', cogL: '길이', cogW: '폭', cogOk: '균형 양호', cogWarn: '편중 주의', createJob: '이 적재로 작업 만들기' },
   role: '사무실 관리자', signOut: '로그아웃', menu: '메뉴',
   titles: { home: '대시보드', new: '새 작업 만들기', board: '작업 현황', customers: '거래처 관리', reports: '리포트', review: '작업 검수', report: '증빙 리포트' },
   subs: {
@@ -34,6 +34,7 @@ const ko = {
   },
   create: {
     customer: '거래처', type: '작업 유형', container: '컨테이너 번호', containerPh: 'TCLU1234567 (쉼표로 여러 개)',
+    plan: '적재 계획에서 이어옴', planClear: '지우기', planHint: '임시 번호는 실제 컨테이너 번호로 교체하세요.',
     containerHint: '촬영할 컨테이너 번호를 1개 이상 입력하세요.', needPhotos: '필요 사진', unit: '장',
     workDate: '작업일', assigneeName: '담당자 이름', assigneeContact: '담당자 연락처', assigneeEmail: '담당자 이메일', submit: '링크·QR 발급하기',
     noCustomer: '먼저 거래처를 등록하세요.', manageCustomers: '거래처 관리로 이동',
@@ -62,7 +63,7 @@ const ko = {
 
 const en: typeof ko = {
   nav: { home: 'Dashboard', new: 'New job', board: 'Jobs', customers: 'Customers', reports: 'Reports', load: 'Load calc' },
-  load: { title: 'Load calculator', sub: 'Estimate 20/40/40HQ fill and containers needed from a cargo list.', addRow: '＋ Add cargo', name: 'Item', qty: 'Qty', dimsCm: 'Size L·W·H (cm)', weight: 'Weight (kg)', stack: 'Stack', util: 'Assumed fill', results: 'Estimate', totalCbm: 'Total volume', totalWeight: 'Total weight', totalQty: 'Total qty', needed: 'Containers', fill: 'Fill', bindVol: 'volume-bound', bindWt: 'weight-bound', maxUnits: 'Max / unit', unit: '', recommended: 'Best', notFit: 'oversize', freight: 'Freight (per box, opt.)', empty: 'Add cargo to see results.', disclaimer: 'A volume/weight estimate. Real fill depends on cargo shape and stacking.', remove: 'Remove', view3d: '3D layout', rotate: 'Rotate', packed: 'Packed', unplaced: 'Left out', cap: 'showing a subset', upload: 'Excel·CSV upload', uploadHint: 'Columns: item·qty·L·W·H·weight·stack (opt.)', color: 'Color', lay: 'Tilt', maxLayers: 'Max layers', maxLayersHint: '0 = unlimited', cog: 'Center of gravity', cogL: 'Length', cogW: 'Width', cogOk: 'Balanced', cogWarn: 'Off-center' },
+  load: { title: 'Load calculator', sub: 'Estimate 20/40/40HQ fill and containers needed from a cargo list.', addRow: '＋ Add cargo', name: 'Item', qty: 'Qty', dimsCm: 'Size L·W·H (cm)', weight: 'Weight (kg)', stack: 'Stack', util: 'Assumed fill', results: 'Estimate', totalCbm: 'Total volume', totalWeight: 'Total weight', totalQty: 'Total qty', needed: 'Containers', fill: 'Fill', bindVol: 'volume-bound', bindWt: 'weight-bound', maxUnits: 'Max / unit', unit: '', recommended: 'Best', notFit: 'oversize', freight: 'Freight (per box, opt.)', empty: 'Add cargo to see results.', disclaimer: 'A volume/weight estimate. Real fill depends on cargo shape and stacking.', remove: 'Remove', view3d: '3D layout', rotate: 'Rotate', packed: 'Packed', unplaced: 'Left out', cap: 'showing a subset', upload: 'Excel·CSV upload', uploadHint: 'Columns: item·qty·L·W·H·weight·stack (opt.)', color: 'Color', lay: 'Tilt', maxLayers: 'Max layers', maxLayersHint: '0 = unlimited', cog: 'Center of gravity', cogL: 'Length', cogW: 'Width', cogOk: 'Balanced', cogWarn: 'Off-center', createJob: 'Create job from this load' },
   role: 'Office admin', signOut: 'Sign out', menu: 'Menu',
   titles: { home: 'Dashboard', new: 'Create a job', board: 'Jobs', customers: 'Customers', reports: 'Reports', review: 'Job review', report: 'Proof report' },
   subs: {
@@ -89,6 +90,7 @@ const en: typeof ko = {
   },
   create: {
     customer: 'Customer', type: 'Job type', container: 'Container no.', containerPh: 'TCLU1234567 (comma-separated)',
+    plan: 'Carried from load plan', planClear: 'Clear', planHint: 'Replace the placeholder numbers with real container numbers.',
     containerHint: 'Enter at least one container number to capture.', needPhotos: 'Required photos', unit: '',
     workDate: 'Work date', assigneeName: 'Assignee name', assigneeContact: 'Assignee contact', assigneeEmail: 'Assignee email', submit: 'Issue link & QR',
     noCustomer: 'Add a customer first.', manageCustomers: 'Go to customers',
@@ -117,7 +119,7 @@ const en: typeof ko = {
 
 const zh: typeof ko = {
   nav: { home: '仪表盘', new: '新建任务', board: '任务列表', customers: '客户', reports: '报告', load: '装箱计算' },
-  load: { title: '装箱计算', sub: '根据货物清单估算 20/40/40HQ 的装载率与所需箱数。', addRow: '＋ 添加货物', name: '品名', qty: '数量', dimsCm: '尺寸 L·W·H (cm)', weight: '重量(kg)', stack: '可堆叠', util: '假设装载率', results: '装箱估算', totalCbm: '总体积', totalWeight: '总重量', totalQty: '总数量', needed: '所需箱数', fill: '装载率', bindVol: '体积受限', bindWt: '重量受限', maxUnits: '单箱最多', unit: '箱', recommended: '推荐', notFit: '尺寸超限', freight: '运费(每箱·可选)', empty: '添加货物后显示结果。', disclaimer: '基于体积与重量的估算值。实际装载率取决于货物形状与堆叠。', remove: '删除', view3d: '3D 装箱图', rotate: '旋转', packed: '已装', unplaced: '未装', cap: '仅显示部分', upload: '上传 Excel·CSV', uploadHint: '列：品名·数量·L·W·H·重量·可堆叠(可选)', color: '颜色', lay: '平放', maxLayers: '最大层数', maxLayersHint: '0 = 不限', cog: '重心', cogL: '长度', cogW: '宽度', cogOk: '平衡良好', cogWarn: '重心偏移' },
+  load: { title: '装箱计算', sub: '根据货物清单估算 20/40/40HQ 的装载率与所需箱数。', addRow: '＋ 添加货物', name: '品名', qty: '数量', dimsCm: '尺寸 L·W·H (cm)', weight: '重量(kg)', stack: '可堆叠', util: '假设装载率', results: '装箱估算', totalCbm: '总体积', totalWeight: '总重量', totalQty: '总数量', needed: '所需箱数', fill: '装载率', bindVol: '体积受限', bindWt: '重量受限', maxUnits: '单箱最多', unit: '箱', recommended: '推荐', notFit: '尺寸超限', freight: '运费(每箱·可选)', empty: '添加货物后显示结果。', disclaimer: '基于体积与重量的估算值。实际装载率取决于货物形状与堆叠。', remove: '删除', view3d: '3D 装箱图', rotate: '旋转', packed: '已装', unplaced: '未装', cap: '仅显示部分', upload: '上传 Excel·CSV', uploadHint: '列：品名·数量·L·W·H·重量·可堆叠(可选)', color: '颜色', lay: '平放', maxLayers: '最大层数', maxLayersHint: '0 = 不限', cog: '重心', cogL: '长度', cogW: '宽度', cogOk: '平衡良好', cogWarn: '重心偏移', createJob: '用此装载创建作业' },
   role: '办公室管理员', signOut: '退出登录', menu: '菜单',
   titles: { home: '仪表盘', new: '新建任务', board: '任务列表', customers: '客户管理', reports: '报告', review: '任务审核', report: '存证报告' },
   subs: {
@@ -144,6 +146,7 @@ const zh: typeof ko = {
   },
   create: {
     customer: '客户', type: '任务类型', container: '集装箱号', containerPh: 'TCLU1234567（逗号分隔多个）',
+    plan: '来自装载计划', planClear: '清除', planHint: '请将占位编号替换为实际箱号。',
     containerHint: '请输入至少一个要拍摄的集装箱号。', needPhotos: '必拍照片', unit: '张',
     workDate: '作业日期', assigneeName: '负责人姓名', assigneeContact: '负责人联系方式', assigneeEmail: '负责人邮箱', submit: '生成链接·二维码',
     noCustomer: '请先登记客户。', manageCustomers: '前往客户管理',
@@ -172,7 +175,7 @@ const zh: typeof ko = {
 
 const ru: typeof ko = {
   nav: { home: 'Панель', new: 'Новая задача', board: 'Задачи', customers: 'Клиенты', reports: 'Отчёты', load: 'Загрузка' },
-  load: { title: 'Калькулятор загрузки', sub: 'Оценка заполнения 20/40/40HQ и числа контейнеров по списку груза.', addRow: '＋ Добавить груз', name: 'Наим.', qty: 'Кол-во', dimsCm: 'Размер Д·Ш·В (см)', weight: 'Вес (кг)', stack: 'Штаб.', util: 'Заполнение', results: 'Оценка', totalCbm: 'Объём', totalWeight: 'Вес', totalQty: 'Всего', needed: 'Контейнеров', fill: 'Заполнение', bindVol: 'по объёму', bindWt: 'по весу', maxUnits: 'Макс/шт', unit: '', recommended: 'Лучший', notFit: 'не влезает', freight: 'Фрахт (за конт., опц.)', empty: 'Добавьте груз, чтобы увидеть результат.', disclaimer: 'Оценка по объёму и весу. Реальное заполнение зависит от формы груза и штабелирования.', remove: 'Удалить', view3d: '3D-схема', rotate: 'Повернуть', packed: 'Уложено', unplaced: 'Не влезло', cap: 'показана часть', upload: 'Загрузить Excel·CSV', uploadHint: 'Столбцы: наим.·кол-во·Д·Ш·В·вес·штаб. (опц.)', color: 'Цвет', lay: 'Класть', maxLayers: 'Макс. ярусов', maxLayersHint: '0 = без огр.', cog: 'Центр тяжести', cogL: 'Длина', cogW: 'Ширина', cogOk: 'Сбалансировано', cogWarn: 'Смещён' },
+  load: { title: 'Калькулятор загрузки', sub: 'Оценка заполнения 20/40/40HQ и числа контейнеров по списку груза.', addRow: '＋ Добавить груз', name: 'Наим.', qty: 'Кол-во', dimsCm: 'Размер Д·Ш·В (см)', weight: 'Вес (кг)', stack: 'Штаб.', util: 'Заполнение', results: 'Оценка', totalCbm: 'Объём', totalWeight: 'Вес', totalQty: 'Всего', needed: 'Контейнеров', fill: 'Заполнение', bindVol: 'по объёму', bindWt: 'по весу', maxUnits: 'Макс/шт', unit: '', recommended: 'Лучший', notFit: 'не влезает', freight: 'Фрахт (за конт., опц.)', empty: 'Добавьте груз, чтобы увидеть результат.', disclaimer: 'Оценка по объёму и весу. Реальное заполнение зависит от формы груза и штабелирования.', remove: 'Удалить', view3d: '3D-схема', rotate: 'Повернуть', packed: 'Уложено', unplaced: 'Не влезло', cap: 'показана часть', upload: 'Загрузить Excel·CSV', uploadHint: 'Столбцы: наим.·кол-во·Д·Ш·В·вес·штаб. (опц.)', color: 'Цвет', lay: 'Класть', maxLayers: 'Макс. ярусов', maxLayersHint: '0 = без огр.', cog: 'Центр тяжести', cogL: 'Длина', cogW: 'Ширина', cogOk: 'Сбалансировано', cogWarn: 'Смещён', createJob: 'Создать задание по загрузке' },
   role: 'Офис-администратор', signOut: 'Выйти', menu: 'Меню',
   titles: { home: 'Панель', new: 'Создать задачу', board: 'Задачи', customers: 'Клиенты', reports: 'Отчёты', review: 'Проверка задачи', report: 'Отчёт-подтверждение' },
   subs: {
@@ -199,6 +202,7 @@ const ru: typeof ko = {
   },
   create: {
     customer: 'Клиент', type: 'Тип задачи', container: '№ контейнера', containerPh: 'TCLU1234567 (через запятую)',
+    plan: 'Из плана загрузки', planClear: 'Убрать', planHint: 'Замените временные номера реальными номерами контейнеров.',
     containerHint: 'Введите хотя бы один номер контейнера.', needPhotos: 'Обязательные фото', unit: '',
     workDate: 'Дата работ', assigneeName: 'Имя исполнителя', assigneeContact: 'Контакт исполнителя', assigneeEmail: 'Email исполнителя', submit: 'Создать ссылку и QR',
     noCustomer: 'Сначала добавьте клиента.', manageCustomers: 'К клиентам',
