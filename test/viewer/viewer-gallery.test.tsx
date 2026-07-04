@@ -43,6 +43,16 @@ test('select-all enables the download button with a count', async () => {
   expect(screen.getByRole('button', { name: /선택 사진 다운로드 \(1\)/ })).toBeInTheDocument();
 });
 
+test('shows the integrity hash on a photo when present', async () => {
+  const manifest = { route: 'TCR', customer: '칭다오 파트너', date: '2026-07-02', containers: [{ containerNo: 'ABCD1234567', photos: [{ slotKey: 'seal', label: '씰 근접', thumbUrl: 'x', displayUrl: 'y', hash: 'abcdef1234567890' }] }] };
+  render(
+    <MemoryRouter initialEntries={['/v/VTOK']}>
+      <Routes><Route path="/v/:token" element={<ViewerGallery client={client(manifest)} />} /></Routes>
+    </MemoryRouter>,
+  );
+  expect(await screen.findByText(/abcdef123456/)).toBeInTheDocument();
+});
+
 test('shows an error for an invalid token', async () => {
   render(
     <MemoryRouter initialEntries={['/v/bad']}>

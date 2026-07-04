@@ -6,8 +6,15 @@ import { randomToken } from './token';
 import type { WorkOrderReview } from '../domain/review';
 import { latestPerSlot, DAMAGE_SLOT } from '../domain/review';
 import type { ViewerManifest } from '../domain/viewer';
+import { supabase } from '../lib/supabase';
 
 export function createSupabaseAdminRepo(db: DbPort): AdminRepo {
+  async function audit(entityId: string, action: string, detail?: Record<string, unknown>) {
+    try {
+      const { data } = await supabase.auth.getUser();
+      await db.insert('audit_logs', { entity_type: 'work_order', entity_id: entityId, action, actor: data?.user?.email ?? null, detail: detail ?? null });
+    } catch { /* best-effort — an audit failure must never block the action */ }
+  }
   return {
     async listCustomers() {
       return (await db.select('customers')).map(rowToCustomer);
@@ -71,6 +78,7 @@ export function createSupabaseAdminRepo(db: DbPort): AdminRepo {
       }
       const workerToken = randomToken();
       await db.insert('share_links', { work_order_id: order.id, token: workerToken, kind: 'worker' });
+      await audit(order.id, 'create', { containers: input.containerNos.length });
       return { order, workerToken };
     },
     async updateWorkOrder(id: string, input) {
@@ -81,6 +89,7 @@ export function createSupabaseAdminRepo(db: DbPort): AdminRepo {
       return rowToWorkOrder(row);
     },
     async deleteWorkOrder(id: string) {
+      await audit(id, 'delete');
       await db.delete('work_orders', { col: 'id', val: id });
     },
     async getByWorkerToken(token: string) {
@@ -137,6 +146,7 @@ export function createSupabaseAdminRepo(db: DbPort): AdminRepo {
       }
       await db.insert('publications', { work_order_id: id, viewer_token: viewerToken, photo_manifest: manifest });
       await db.update('work_orders', { col: 'id', val: id }, { status: 'published' });
+      await audit(id, 'publish');
       return { viewerToken };
     },
     async revokePublication(id: string) {
@@ -144,6 +154,7 @@ export function createSupabaseAdminRepo(db: DbPort): AdminRepo {
       const viewer = links.find((l) => l.kind === 'viewer');
       if (viewer) await db.update('share_links', { col: 'token', val: String(viewer.token) }, { revoked: true });
       await db.update('work_orders', { col: 'id', val: id }, { status: 'sent' });
+      await audit(id, 'revoke');
     },
     async getViewerToken(id: string) {
       const links = await db.select('share_links', { col: 'work_order_id', val: id });

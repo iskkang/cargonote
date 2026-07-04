@@ -134,6 +134,7 @@ function PhotoCard({ photo, containerNo, checked, onToggle, lang }: {
         <span style={sx.tagDot} />
         <span style={sx.tag}>{label}</span>
       </div>
+      {photo.hash && <div style={sx.hashRow} title={`SHA-256 ${photo.hash}`}>🔒 {photo.hash.slice(0, 12)}…</div>}
     </div>
   );
 }
@@ -183,6 +184,7 @@ const sx = {
   tagRow: { display: 'flex', alignItems: 'center', gap: 7, marginTop: 7 } as const,
   tagDot: { width: 8, height: 8, borderRadius: 999, background: C.teal, flexShrink: 0 } as const,
   tag: { fontFamily: FONT.sans, fontSize: 12, fontWeight: 600, color: C.textStrong } as const,
+  hashRow: { fontFamily: 'ui-monospace, monospace', fontSize: 10, color: C.muted, marginTop: 3, letterSpacing: '.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const } as const,
   dTitle: { fontFamily: FONT.sans, fontWeight: 800, fontSize: 17, letterSpacing: '.04em', color: C.navy, marginBottom: 12 } as const,
   dRow: { display: 'flex', justifyContent: 'space-between', gap: 10, padding: '7px 0', borderTop: `1px solid ${C.line}`, fontFamily: FONT.sans } as const,
   dLabel: { fontSize: 12, color: C.text } as const,

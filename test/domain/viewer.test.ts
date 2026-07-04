@@ -24,7 +24,7 @@ test('builds a viewer manifest with route, customer, labels, and signed urls', (
   expect(m.customer).toBe('칭다오 파트너');
   expect(m.containers).toHaveLength(1);
   expect(m.containers[0].containerNo).toBe('ABCD1234567');
-  expect(m.containers[0].photos[0]).toEqual({ slotKey: 'seal', label: '씰 근접', thumbUrl: 'https://s/seal-t', displayUrl: 'https://s/seal-d' });
+  expect(m.containers[0].photos[0]).toEqual({ slotKey: 'seal', label: '씰 근접', thumbUrl: 'https://s/seal-t', displayUrl: 'https://s/seal-d', hash: 'h', capturedAt: '2026-07-02T00:00:00Z' });
 });
 
 test('falls back to slotKey as label and empty string for missing urls', () => {
