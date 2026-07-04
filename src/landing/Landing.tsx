@@ -51,9 +51,34 @@ export function Landing() {
           </div>
         </section>
 
+        {/* Before / After */}
+        <section style={sx.section}>
+          <div style={sx.secHead}>{t.compare.head}</div>
+          <div style={sx.secSub}>{t.compare.sub}</div>
+          <div style={sx.cmpGrid}>
+            <div style={sx.beforeCard}>
+              <span style={sx.beforeChip}>{t.compare.beforeLabel}</span>
+              <ul style={sx.cmpList}>
+                {t.compare.before.map((p) => (
+                  <li key={p} style={sx.cmpLi}><span style={sx.xMark}>✕</span><span style={sx.cmpMuted}>{p}</span></li>
+                ))}
+              </ul>
+            </div>
+            <div style={sx.afterCard}>
+              <span style={sx.afterChip}>{t.compare.afterLabel}</span>
+              <ul style={sx.cmpList}>
+                {t.compare.after.map((p) => (
+                  <li key={p} style={sx.cmpLi}><span style={sx.okMark}>✓</span><span style={sx.cmpStrong}>{p}</span></li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
+
         {/* 3 roles */}
         <section style={sx.section}>
           <div style={sx.secHead}>{t.rolesHead}</div>
+          <div style={sx.secSub}>{t.rolesSub}</div>
           <div style={sx.roleGrid}>
             {t.roles.map((r) => (
               <div key={r.tag} className="lp-card" style={sx.roleCard}>
@@ -83,6 +108,7 @@ export function Landing() {
 
         {/* Features */}
         <section style={sx.section}>
+          <div style={sx.secHead}>{t.featuresHead}</div>
           <div style={sx.featGrid}>
             {t.features.map((f) => (
               <div key={f.k} className="lp-card" style={sx.featCard}>
@@ -194,7 +220,20 @@ const sx = {
   heroArt: { flex: '1 1 300px', minWidth: 260, maxWidth: 460, margin: '0 auto' } as const,
 
   section: { padding: 'clamp(24px,5vw,34px) 0' } as const,
-  secHead: { fontSize: 'clamp(20px,5vw,24px)', fontWeight: 800, color: C.navy, letterSpacing: '-0.01em', marginBottom: 20 } as const,
+  secHead: { fontSize: 'clamp(20px,5vw,24px)', fontWeight: 800, color: C.navy, letterSpacing: '-0.01em', marginBottom: 4 } as const,
+  secSub: { fontSize: 14, color: C.text, marginBottom: 20 } as const,
+
+  cmpGrid: { display: 'flex', gap: 16, flexWrap: 'wrap' as const } as const,
+  beforeCard: { flex: '1 1 300px', minWidth: 260, background: C.surfaceAlt, border: `1px solid ${C.line}`, borderRadius: R.xl, padding: 22 } as const,
+  afterCard: { flex: '1 1 300px', minWidth: 260, background: C.white, border: `2px solid ${C.teal}`, borderRadius: R.xl, padding: 22, boxShadow: '0 14px 30px -18px rgba(1,136,143,.45)' } as const,
+  beforeChip: { display: 'inline-block', fontSize: 12, fontWeight: 800, color: C.text, background: C.white, border: `1px solid ${C.line}`, borderRadius: R.pill, padding: '4px 12px', marginBottom: 14 } as const,
+  afterChip: { display: 'inline-block', fontSize: 12, fontWeight: 800, color: C.white, background: `linear-gradient(135deg, ${C.tealBright}, ${C.teal})`, borderRadius: R.pill, padding: '4px 12px', marginBottom: 14 } as const,
+  cmpList: { listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column' as const, gap: 11 } as const,
+  cmpLi: { display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 14, lineHeight: 1.45 } as const,
+  xMark: { flexShrink: 0, width: 18, height: 18, borderRadius: 999, background: '#F0D9D9', color: C.negative, fontSize: 10, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 1 } as const,
+  okMark: { flexShrink: 0, width: 18, height: 18, borderRadius: 999, background: C.tealTint, color: C.teal, fontSize: 10, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 1 } as const,
+  cmpMuted: { color: C.text } as const,
+  cmpStrong: { color: C.textStrong, fontWeight: 600 } as const,
 
   roleGrid: { display: 'flex', gap: 16, flexWrap: 'wrap' as const } as const,
   roleCard: { flex: '1 1 260px', minWidth: 240, background: C.white, border: `1px solid ${C.line}`, borderRadius: R.xl, boxShadow: SH.card, padding: 22 } as const,
