@@ -28,50 +28,24 @@ export function Landing() {
         {/* Top nav */}
         <nav style={sx.nav}>
           <Brand />
-          <Button onClick={goLogin}>관리자 로그인 →</Button>
+          <Button onClick={goLogin} style={sx.navBtn}>로그인 →</Button>
         </nav>
 
         {/* Hero */}
-        <section style={sx.hero}>
+        <section className="lp-hero" style={sx.hero}>
           <div style={sx.heroCopy}>
             <span style={sx.kicker}>MTL · 컨테이너 작업 증빙</span>
             <h1 style={sx.h1}>컨테이너 작업 증빙,<br />한 링크로 끝낸다</h1>
-            <p style={sx.lead}>
+            <p className="lp-lead" style={sx.lead}>
               이메일로 주고받던 적입 사진을 — 무설치 링크 촬영부터
               검수·발행, 수신자 열람까지 하나의 흐름으로.
             </p>
-            <div style={sx.ctaRow}>
-              <Button onClick={goLogin} style={{ padding: '12px 22px', fontSize: 15 }}>지금 시작</Button>
-              <Button variant="ghost" onClick={goHow} style={{ padding: '12px 22px', fontSize: 15 }}>작동 방식</Button>
+            <div className="lp-cta" style={sx.ctaRow}>
+              <Button onClick={goLogin} style={sx.ctaBtn}>지금 시작</Button>
+              <Button variant="ghost" onClick={goHow} style={sx.ctaBtn}>작동 방식</Button>
             </div>
           </div>
-
-          {/* Proof card visual */}
-          <div style={sx.proofCard}>
-            <div style={sx.proofHead}>
-              <div>
-                <div style={sx.proofKicker}>CONCHECK 증빙 리포트</div>
-                <div style={sx.proofTitle}>TSR 검수 · FBLU4204812</div>
-              </div>
-              <span style={sx.verified}>VERIFIED</span>
-            </div>
-            <div style={sx.proofBody}>
-              <div style={sx.proofTiles}>
-                <ProofTile label="완료율" value="100%" accent={C.positive} />
-                <ProofTile label="사진" value="8/8" />
-                <ProofTile label="데미지" value="0" />
-              </div>
-              <div style={sx.proofThumbs}>
-                {[C.blue50, C.blue45, C.tealHeavy, C.blue55, C.tealStrong].map((bg, i) => (
-                  <div key={i} style={{ ...sx.proofThumb, background: bg }} />
-                ))}
-              </div>
-              <div style={sx.proofFoot}>
-                <span>발행 · 연태지점</span>
-                <span style={{ color: C.tealBright, fontWeight: 700 }}>🔒 발행본 고정</span>
-              </div>
-            </div>
-          </div>
+          <div style={sx.heroArt}><ContainerArt /></div>
         </section>
 
         {/* 3 roles */}
@@ -101,12 +75,9 @@ export function Landing() {
           <div style={sx.secHead}>작동 방식</div>
           <div style={sx.steps}>
             {STEPS.map((s, i) => (
-              <div key={s} style={sx.stepWrap}>
-                <div style={sx.step}>
-                  <span style={sx.stepNo}>{String(i + 1).padStart(2, '0')}</span>
-                  <span style={sx.stepLabel}>{s}</span>
-                </div>
-                {i < STEPS.length - 1 && <span style={sx.stepArrow}>→</span>}
+              <div key={s} style={sx.step}>
+                <span style={sx.stepNo}>{String(i + 1).padStart(2, '0')}</span>
+                <span style={sx.stepLabel}>{s}</span>
               </div>
             ))}
           </div>
@@ -128,7 +99,7 @@ export function Landing() {
         <section style={sx.cta}>
           <div style={sx.ctaTitle}>지금 첫 작업을 만들어 보세요</div>
           <div style={sx.ctaSub}>사무실 계정으로 로그인하면 바로 시작할 수 있습니다.</div>
-          <Button onClick={goLogin} style={{ padding: '13px 26px', fontSize: 15, marginTop: 16 }}>관리자 로그인</Button>
+          <Button onClick={goLogin} style={{ ...sx.ctaBtn, marginTop: 16 }}>관리자 로그인</Button>
         </section>
 
         <footer style={sx.footer}>© MTL · ConCheck — 컨테이너 작업 증빙 자동화</footer>
@@ -137,40 +108,81 @@ export function Landing() {
   );
 }
 
-function ProofTile({ label, value, accent }: { label: string; value: string; accent?: string }) {
+/** Corrugated shipping container with a doors end, seal check, and a floating proof chip. */
+function ContainerArt() {
+  const ribs = Array.from({ length: 11 }, (_, i) => 56 + i * 21);
+  const corners: [number, number][] = [[40, 72], [362, 72], [40, 200], [362, 200]];
   return (
-    <div style={sx.proofTile}>
-      <div style={{ fontSize: 10, color: C.onDarkDim }}>{label}</div>
-      <div style={{ fontSize: 16, fontWeight: 800, color: accent ?? C.onDark, marginTop: 2 }}>{value}</div>
-    </div>
+    <svg viewBox="0 0 420 288" width="100%" style={{ height: 'auto', display: 'block' }} role="img" aria-label="컨테이너 증빙 일러스트">
+      <defs>
+        <linearGradient id="cc-body" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor={C.tealBright} /><stop offset="1" stopColor={C.tealStrong} />
+        </linearGradient>
+        <linearGradient id="cc-rail" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor={C.tealStrong} /><stop offset="1" stopColor={C.tealHeavy} />
+        </linearGradient>
+        <filter id="cc-sh" x="-20%" y="-20%" width="140%" height="150%">
+          <feDropShadow dx="0" dy="6" stdDeviation="8" floodColor="#0F1B26" floodOpacity="0.26" />
+        </filter>
+      </defs>
+
+      <ellipse cx="210" cy="248" rx="150" ry="15" fill="#0F1B26" opacity="0.12" />
+
+      <g filter="url(#cc-sh)">
+        <rect x="46" y="78" width="328" height="140" rx="9" fill="url(#cc-body)" />
+        <rect x="46" y="78" width="328" height="18" rx="9" fill="url(#cc-rail)" />
+        <rect x="46" y="200" width="328" height="18" rx="9" fill="url(#cc-rail)" />
+        {ribs.map((x) => (
+          <g key={x}>
+            <rect x={x} y="98" width="7" height="102" fill="#ffffff" opacity="0.06" />
+            <rect x={x + 7} y="98" width="3" height="102" fill="#0F1B26" opacity="0.10" />
+          </g>
+        ))}
+        {/* doors end */}
+        <rect x="300" y="96" width="74" height="106" fill="#0F1B26" opacity="0.06" />
+        <line x1="300" y1="96" x2="300" y2="202" stroke="#0F1B26" strokeOpacity="0.18" strokeWidth="2" />
+        {[318, 344].map((x) => (
+          <g key={x}>
+            <rect x={x} y="100" width="5" height="98" rx="2.5" fill={C.navy} opacity="0.5" />
+            <rect x={x - 3} y="140" width="11" height="14" rx="3" fill={C.navy} opacity="0.68" />
+          </g>
+        ))}
+        {/* seal check on the door */}
+        <circle cx="331" cy="118" r="12" fill="#ffffff" />
+        <path d="M325 118 l4 4 l8 -8" fill="none" stroke={C.positive} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        {corners.map(([x, y], i) => <rect key={i} x={x} y={y} width="18" height="18" rx="3" fill={C.brandNavy} />)}
+        <text x="66" y="126" fontFamily="ui-monospace, monospace" fontSize="15" fontWeight="700" fill="#ffffff" opacity="0.92">CONU 420481</text>
+        <text x="66" y="150" fontFamily="ui-monospace, monospace" fontSize="11" fontWeight="700" fill="#ffffff" opacity="0.7">22G1 · TSR</text>
+      </g>
+
+      {/* floating proof chip */}
+      <g filter="url(#cc-sh)">
+        <rect x="236" y="28" width="152" height="46" rx="12" fill="#ffffff" />
+        <circle cx="260" cy="51" r="12" fill={C.positive} />
+        <path d="M254 51 l4 4 l8 -8" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        <text x="280" y="47" fontFamily={FONT.sans} fontSize="12" fontWeight="700" fill={C.navy}>촬영 완료</text>
+        <text x="280" y="64" fontFamily={FONT.sans} fontSize="12" fontWeight="800" fill={C.teal}>8 / 8 · VERIFIED</text>
+      </g>
+    </svg>
   );
 }
 
 const sx = {
-  wrap: { maxWidth: 1040, margin: '0 auto', padding: '20px 24px 40px' } as const,
-  nav: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 8 } as const,
+  wrap: { maxWidth: 1040, margin: '0 auto', padding: '20px clamp(16px,4vw,24px) 40px' } as const,
+  nav: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, paddingBottom: 8 } as const,
+  navBtn: { padding: '9px 14px', whiteSpace: 'nowrap' as const } as const,
 
-  hero: { display: 'flex', gap: 32, alignItems: 'center', flexWrap: 'wrap' as const, padding: '40px 0 24px' } as const,
-  heroCopy: { flex: '1 1 340px', minWidth: 300 } as const,
+  hero: { display: 'flex', gap: 'clamp(20px,4vw,36px)', alignItems: 'center', flexWrap: 'wrap' as const, padding: 'clamp(24px,5vw,44px) 0 24px' } as const,
+  heroCopy: { flex: '1 1 340px', minWidth: 280 } as const,
   kicker: { display: 'inline-block', fontSize: 12, fontWeight: 700, letterSpacing: '.06em', color: C.teal, background: C.tealTint, borderRadius: R.pill, padding: '5px 12px' } as const,
-  h1: { fontSize: 40, lineHeight: 1.18, letterSpacing: '-0.02em', color: C.navy, margin: '18px 0 0', fontWeight: 800 } as const,
-  lead: { fontSize: 16, lineHeight: 1.6, color: C.text, margin: '16px 0 0', maxWidth: 460 } as const,
+  h1: { fontSize: 'clamp(28px,7vw,40px)', lineHeight: 1.18, letterSpacing: '-0.02em', color: C.navy, margin: '18px 0 0', fontWeight: 800 } as const,
+  lead: { fontSize: 'clamp(15px,3.6vw,16px)', lineHeight: 1.6, color: C.text, margin: '16px 0 0', maxWidth: 460 } as const,
   ctaRow: { display: 'flex', gap: 12, marginTop: 26, flexWrap: 'wrap' as const } as const,
+  ctaBtn: { padding: '12px 22px', fontSize: 15 } as const,
+  heroArt: { flex: '1 1 300px', minWidth: 260, maxWidth: 460, margin: '0 auto' } as const,
 
-  proofCard: { flex: '1 1 320px', minWidth: 300, maxWidth: 400, background: C.brandNavy, borderRadius: R.xl, boxShadow: SH.dark, overflow: 'hidden' } as const,
-  proofHead: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '18px 20px' } as const,
-  proofKicker: { fontSize: 11, letterSpacing: '.08em', color: C.onDarkDim } as const,
-  proofTitle: { fontSize: 18, fontWeight: 800, color: C.onDark, marginTop: 4 } as const,
-  verified: { border: `2px solid ${C.tealBright}`, color: C.tealBright, borderRadius: 8, padding: '5px 9px', fontSize: 11, fontWeight: 800 } as const,
-  proofBody: { background: C.white, margin: 10, borderRadius: R.lg, padding: 16 } as const,
-  proofTiles: { display: 'flex', gap: 8 } as const,
-  proofTile: { flex: 1, background: C.brandNavy, borderRadius: 10, padding: '10px 12px' } as const,
-  proofThumbs: { display: 'flex', gap: 6, margin: '12px 0' } as const,
-  proofThumb: { flex: 1, height: 46, borderRadius: 6 } as const,
-  proofFoot: { display: 'flex', justifyContent: 'space-between', fontSize: 11, color: C.text, paddingTop: 10, borderTop: `1px solid ${C.line}` } as const,
-
-  section: { padding: '30px 0' } as const,
-  secHead: { fontSize: 22, fontWeight: 800, color: C.navy, letterSpacing: '-0.01em', marginBottom: 18 } as const,
+  section: { padding: 'clamp(22px,5vw,30px) 0' } as const,
+  secHead: { fontSize: 'clamp(19px,5vw,22px)', fontWeight: 800, color: C.navy, letterSpacing: '-0.01em', marginBottom: 18 } as const,
 
   roleGrid: { display: 'flex', gap: 16, flexWrap: 'wrap' as const } as const,
   roleCard: { flex: '1 1 260px', minWidth: 240, background: C.white, border: `1px solid ${C.line}`, borderRadius: R.xl, boxShadow: SH.card, padding: 20 } as const,
@@ -182,20 +194,18 @@ const sx = {
   roleLi: { display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: C.textStrong } as const,
   dot: { width: 7, height: 7, borderRadius: 999, background: C.teal, flexShrink: 0 } as const,
 
-  steps: { display: 'flex', alignItems: 'center', flexWrap: 'wrap' as const, gap: 8 } as const,
-  stepWrap: { display: 'flex', alignItems: 'center', gap: 8 } as const,
+  steps: { display: 'flex', alignItems: 'center', flexWrap: 'wrap' as const, gap: 10 } as const,
   step: { display: 'flex', alignItems: 'center', gap: 10, background: C.white, border: `1px solid ${C.line}`, borderRadius: R.pill, padding: '10px 16px', boxShadow: SH.card } as const,
   stepNo: { fontFamily: FONT.sans, fontWeight: 800, fontSize: 12, color: C.white, background: C.teal, borderRadius: 999, padding: '2px 7px' } as const,
   stepLabel: { fontSize: 14, fontWeight: 700, color: C.navy } as const,
-  stepArrow: { color: C.muted, fontWeight: 700 } as const,
 
   featGrid: { display: 'flex', gap: 12, flexWrap: 'wrap' as const } as const,
-  featCard: { flex: '1 1 200px', minWidth: 180, background: C.surfaceAlt, borderRadius: R.lg, padding: '16px 18px' } as const,
+  featCard: { flex: '1 1 200px', minWidth: 160, background: C.surfaceAlt, borderRadius: R.lg, padding: '16px 18px' } as const,
   featK: { fontSize: 15, fontWeight: 800, color: C.teal } as const,
   featV: { fontSize: 13, lineHeight: 1.55, color: C.text, marginTop: 6 } as const,
 
-  cta: { textAlign: 'center' as const, background: C.brandNavy, borderRadius: R.xl, boxShadow: SH.dark, padding: '36px 24px', margin: '20px 0' } as const,
-  ctaTitle: { fontSize: 24, fontWeight: 800, color: C.onDark } as const,
+  cta: { textAlign: 'center' as const, background: C.brandNavy, borderRadius: R.xl, boxShadow: SH.dark, padding: 'clamp(28px,6vw,36px) 24px', margin: '20px 0' } as const,
+  ctaTitle: { fontSize: 'clamp(20px,5.5vw,24px)', fontWeight: 800, color: C.onDark } as const,
   ctaSub: { fontSize: 14, color: C.onDarkDim, marginTop: 8 } as const,
 
   footer: { textAlign: 'center' as const, fontSize: 12, color: C.text, paddingTop: 16 } as const,
