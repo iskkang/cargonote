@@ -1,17 +1,22 @@
+import { useState } from 'react';
 import { C, R, SH, FONT } from '../ui/tokens';
 
-/** Stylized in-browser reproductions of the three real product screens. */
+/**
+ * Three in-browser product screens. Drop real screenshots at
+ * /public/screens/{dashboard,review,viewer}.png to auto-replace the mockups.
+ */
 export function Shots({ captions }: { captions: string[] }) {
   return (
     <div style={sx.row}>
-      <Frame caption={captions[0]}><DashboardShot /></Frame>
-      <Frame caption={captions[1]}><ReviewShot /></Frame>
-      <Frame caption={captions[2]}><ViewerShot /></Frame>
+      <Frame src="/screens/dashboard.png" caption={captions[0]}><DashboardShot /></Frame>
+      <Frame src="/screens/review.png" caption={captions[1]}><ReviewShot /></Frame>
+      <Frame src="/screens/viewer.png" caption={captions[2]}><ViewerShot /></Frame>
     </div>
   );
 }
 
-function Frame({ children, caption }: { children: React.ReactNode; caption: string }) {
+function Frame({ src, children, caption }: { src: string; children: React.ReactNode; caption: string }) {
+  const [failed, setFailed] = useState(false);
   return (
     <div style={sx.col}>
       <div style={sx.frame}>
@@ -19,7 +24,11 @@ function Frame({ children, caption }: { children: React.ReactNode; caption: stri
           <span style={{ ...sx.dot, background: '#FF5F57' }} /><span style={{ ...sx.dot, background: '#FEBC2E' }} /><span style={{ ...sx.dot, background: '#28C840' }} />
           <span style={sx.addr}>cargonote.app</span>
         </div>
-        <div style={sx.screen}>{children}</div>
+        <div style={sx.screen}>
+          {failed
+            ? children
+            : <img src={src} alt={caption} onError={() => setFailed(true)} style={sx.shotImg} />}
+        </div>
       </div>
       <div style={sx.caption}>{caption}</div>
     </div>
@@ -89,6 +98,7 @@ const sx = {
   dot: { width: 9, height: 9, borderRadius: 999, display: 'inline-block' } as const,
   addr: { marginLeft: 8, flex: 1, height: 16, borderRadius: 999, background: C.white, border: `1px solid ${C.line}`, fontSize: 9, color: C.muted, display: 'flex', alignItems: 'center', paddingLeft: 10, fontFamily: FONT.sans } as const,
   screen: { height: 190, background: `linear-gradient(180deg,#F4F7F9,${C.white})` } as const,
+  shotImg: { width: '100%', height: '100%', objectFit: 'cover' as const, objectPosition: 'top', display: 'block' } as const,
 
   mHeadRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 } as const,
   mBar: { width: 84, height: 12, borderRadius: 6, background: C.navy, opacity: 0.85 } as const,
