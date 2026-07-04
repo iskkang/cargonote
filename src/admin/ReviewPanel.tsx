@@ -9,7 +9,7 @@ import { buildViewerManifest } from '../domain/viewer';
 import { Card, Button, Badge, Skeleton } from '../ui/kit';
 import { ShareLinkBar } from '../ui/ShareLinkBar';
 import { useConfirm, useToast } from '../ui/overlays';
-import { analyzeContainer, type AiContainerResult } from './ai';
+import { analyzeReview, type AiReview, type AiIssue } from './ai';
 import { useT } from './i18n';
 import { C, FONT } from '../ui/tokens';
 
@@ -33,7 +33,7 @@ export function ReviewPanel({
   const [loadError, setLoadError] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const [lightbox, setLightbox] = useState<string | null>(null);
-  const [ai, setAi] = useState<Record<string, AiContainerResult | 'loading' | 'error'>>({});
+  const [ai, setAi] = useState<Record<string, AiReview | 'loading' | 'error'>>({});
 
   useEffect(() => {
     let cancelled = false;
@@ -111,12 +111,18 @@ export function ReviewPanel({
     toast(t.review.revoked, 'positive');
   }
 
-  async function runAi(containerId: string, containerNo: string, photos: { displayPath: string | null }[]) {
-    const withUrl = photos.map((p) => p.displayPath && urls[p.displayPath]).find(Boolean) as string | undefined;
-    if (!withUrl) { setAi((a) => ({ ...a, [containerId]: 'error' })); return; }
+  async function runAi(containerId: string, containerNo: string, photos: { slotKey: string | null; displayPath: string | null }[]) {
+    const images = photos
+      .filter((p) => p.displayPath && urls[p.displayPath])
+      .map((p) => ({
+        label: p.slotKey === DAMAGE_SLOT ? t.review.damageT
+          : review!.template.requiredPhotos.find((s) => s.key === p.slotKey)?.label ?? (p.slotKey ?? ''),
+        imageUrl: urls[p.displayPath!] as string,
+      }));
+    if (images.length === 0) { setAi((a) => ({ ...a, [containerId]: 'error' })); return; }
     setAi((a) => ({ ...a, [containerId]: 'loading' }));
     try {
-      const r = await analyzeContainer({ imageUrl: withUrl, expectedContainerNo: containerNo });
+      const r = await analyzeReview({ images, expectedContainerNo: containerNo });
       setAi((a) => ({ ...a, [containerId]: r }));
     } catch {
       setAi((a) => ({ ...a, [containerId]: 'error' }));
@@ -185,12 +191,12 @@ export function ReviewPanel({
             <div key={container.id} style={{ marginBottom: 18 }}>
               <div style={sx.plateRow}>
                 <div style={sx.plate}>{container.containerNo}</div>
-                <Button variant="ghost" onClick={() => runAi(container.id, container.containerNo, photos)}
-                  disabled={ai[container.id] === 'loading'} style={{ padding: '4px 10px', fontSize: 12 }}>
-                  {ai[container.id] === 'loading' ? t.review.aiRunning : `✨ ${t.review.aiCheck}`}
+                <Button onClick={() => runAi(container.id, container.containerNo, photos)}
+                  disabled={ai[container.id] === 'loading'} style={{ padding: '9px 16px', fontSize: 13.5 }}>
+                  {ai[container.id] === 'loading' ? t.review.aiRunning : t.review.aiRun}
                 </Button>
               </div>
-              <AiLine result={ai[container.id]} t={t} />
+              <AiReviewCard result={ai[container.id]} t={t} />
               <div style={sx.grid}>
                 {slots.map((slot, i) => {
                   const photo = photos.find((p) => p.slotKey === slot.key);
@@ -285,18 +291,45 @@ function SumRow({ label, value, dot }: { label: string; value: string; dot: stri
     </div>
   );
 }
-function AiLine({ result, t }: { result: AiContainerResult | 'loading' | 'error' | undefined; t: ReturnType<typeof useT> }) {
+const ISSUE_KEY: Record<Exclude<AiIssue, null>, 'aiBlur' | 'aiIllegible' | 'aiSubject'> = { blur: 'aiBlur', illegible: 'aiIllegible', mismatch: 'aiSubject' };
+
+function AiReviewCard({ result, t }: { result: AiReview | 'loading' | 'error' | undefined; t: ReturnType<typeof useT> }) {
   if (!result || result === 'loading') return null;
-  if (result === 'error') return <div style={sx.aiRow}><Badge tone="caution">{t.review.aiFail}</Badge></div>;
+  if (result === 'error') return <div style={sx.aiErr}>{t.review.aiFail}</div>;
   const r = result;
-  const tone: 'positive' | 'caution' | 'negative' = r.containerMatch === false ? 'negative' : r.containerNo ? (r.iso6346Valid ? 'positive' : 'caution') : 'caution';
+  const numTone = r.containerMatch === false ? C.negative : r.containerNo ? (r.iso6346Valid ? C.positive : C.caution) : C.caution;
+  const reshoots = r.photos.filter((p) => p.reshoot);
   return (
-    <div style={sx.aiRow}>
-      <span style={{ fontSize: 11, color: C.muted, fontWeight: 800, letterSpacing: '.06em' }}>AI</span>
-      {r.containerNo
-        ? <Badge tone={tone}>{r.containerNo}{r.containerMatch === false ? ` · ${t.review.aiMismatch}` : r.containerMatch ? ` · ${t.review.aiMatch}` : ''}</Badge>
-        : <Badge tone="caution">{t.review.aiUnread}</Badge>}
-      {r.sealNo && <span style={sx.aiSeal}>{t.review.aiSeal} {r.sealNo}</span>}
+    <div style={sx.aiCard}>
+      <div style={sx.aiHead}><span>✨</span>{t.review.aiTitle}</div>
+      <div style={sx.aiTiles}>
+        <div style={sx.aiTile}>
+          <div style={sx.aiTileLabel}>{t.review.aiNumber}</div>
+          <div style={{ ...sx.aiTileValue, color: numTone }}>
+            {r.containerNo ?? t.review.aiUnread}
+            {r.containerMatch === true ? ` · ${t.review.aiMatch}` : r.containerMatch === false ? ` · ${t.review.aiMismatch}` : ''}
+          </div>
+          <div style={sx.aiTileSub}>{t.review.aiSeal} {r.sealNo ?? '—'}</div>
+        </div>
+        <div style={sx.aiTile}>
+          <div style={sx.aiTileLabel}>{t.review.aiDamage}</div>
+          <div style={{ ...sx.aiTileValue, color: r.damage.detected ? C.negative : C.positive }}>
+            {r.damage.detected ? (r.damage.summary || `${r.damage.items.length}`) : t.review.aiNoDamage}
+          </div>
+        </div>
+        <div style={sx.aiTile}>
+          <div style={sx.aiTileLabel}>{t.review.aiQualityOk}</div>
+          <div style={{ ...sx.aiTileValue, color: reshoots.length ? C.caution : C.positive }}>{r.okCount}/{r.total}</div>
+        </div>
+      </div>
+      {reshoots.length > 0 && (
+        <div style={sx.aiReshoot}>
+          <span style={{ color: C.caution, fontWeight: 700, fontSize: 13 }}>{t.review.aiReshoot} {reshoots.length}{t.review.aiUnit}</span>
+          <div style={sx.aiChips}>
+            {reshoots.map((p, i) => <span key={i} style={sx.aiChip}>{p.label}{p.issue ? ` · ${t.review[ISSUE_KEY[p.issue]]}` : ''}</span>)}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -306,8 +339,17 @@ const sx = {
   split: { display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 260px', gap: 20, alignItems: 'start' } as const,
   plate: { fontFamily: FONT.sans, fontWeight: 800, fontSize: 17, letterSpacing: '.06em', color: C.navy } as const,
   plateRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 10 } as const,
-  aiRow: { display: 'flex', alignItems: 'center', gap: 8, margin: '-2px 0 10px' } as const,
-  aiSeal: { fontFamily: FONT.sans, fontSize: 12, color: C.text } as const,
+  aiErr: { fontFamily: FONT.sans, fontSize: 13, color: C.negative, margin: '-2px 0 12px' } as const,
+  aiCard: { background: C.tealTint, border: `1px solid ${C.tealBright}`, borderRadius: 12, padding: 14, margin: '-2px 0 14px' } as const,
+  aiHead: { display: 'flex', alignItems: 'center', gap: 7, fontFamily: FONT.sans, fontWeight: 800, fontSize: 14, color: C.tealHeavy, marginBottom: 10 } as const,
+  aiTiles: { display: 'flex', gap: 8, flexWrap: 'wrap' as const } as const,
+  aiTile: { flex: '1 1 140px', minWidth: 130, background: C.white, borderRadius: 10, padding: '10px 12px' } as const,
+  aiTileLabel: { fontSize: 11, color: C.muted, fontWeight: 600 } as const,
+  aiTileValue: { fontSize: 15, fontWeight: 800, marginTop: 3, lineHeight: 1.3 } as const,
+  aiTileSub: { fontSize: 12, color: C.text, marginTop: 4 } as const,
+  aiReshoot: { marginTop: 12, paddingTop: 10, borderTop: `1px solid ${C.tealBright}` } as const,
+  aiChips: { display: 'flex', flexWrap: 'wrap' as const, gap: 6, marginTop: 7 } as const,
+  aiChip: { fontFamily: FONT.sans, fontSize: 12, fontWeight: 600, color: C.caution, background: C.cautionTint, borderRadius: 999, padding: '4px 11px' } as const,
   grid: { display: 'flex', flexWrap: 'wrap' as const, gap: 10 } as const,
   pcard: { width: 120 } as const,
   pthumb: { width: 120, height: 90, objectFit: 'cover' as const, borderRadius: 8, background: C.surfaceAlt, display: 'block' } as const,
