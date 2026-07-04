@@ -17,6 +17,13 @@ const FEATURES = [
   { k: '데미지 증빙', v: '손상 화물을 현장에서 별도 촬영' },
 ];
 
+const STATES = [
+  { label: '빈 컨테이너', level: 0 },
+  { label: '절반 적입', level: 0.5 },
+  { label: '만재', level: 1 },
+  { label: '봉인', level: 1, sealed: true },
+];
+
 export function Landing() {
   const nav = useNavigate();
   const goLogin = () => nav('/admin');
@@ -45,7 +52,31 @@ export function Landing() {
               <Button variant="ghost" onClick={goHow} style={sx.ctaBtn}>작동 방식</Button>
             </div>
           </div>
-          <div style={sx.heroArt}><ContainerArt /></div>
+
+          {/* Proof card with container-state illustrations */}
+          <div style={sx.proofCard}>
+            <div style={sx.proofHead}>
+              <div>
+                <div style={sx.proofKicker}>CONCHECK 증빙 리포트</div>
+                <div style={sx.proofTitle}>TSR 검수 · FBLU4204812</div>
+              </div>
+              <span style={sx.verified}>VERIFIED</span>
+            </div>
+            <div style={sx.proofBody}>
+              <div style={sx.proofTiles}>
+                <ProofTile label="완료율" value="100%" accent={C.positive} />
+                <ProofTile label="사진" value="8/8" />
+                <ProofTile label="데미지" value="0" />
+              </div>
+              <div style={sx.stateRow}>
+                {STATES.map((s) => <StateTile key={s.label} {...s} />)}
+              </div>
+              <div style={sx.proofFoot}>
+                <span>발행 · 연태지점</span>
+                <span style={{ color: C.tealStrong, fontWeight: 700 }}>🔒 발행본 고정</span>
+              </div>
+            </div>
+          </div>
         </section>
 
         {/* 3 roles */}
@@ -108,62 +139,41 @@ export function Landing() {
   );
 }
 
-/** Corrugated shipping container with a doors end, seal check, and a floating proof chip. */
-function ContainerArt() {
-  const ribs = Array.from({ length: 11 }, (_, i) => 56 + i * 21);
-  const corners: [number, number][] = [[40, 72], [362, 72], [40, 200], [362, 200]];
+function ProofTile({ label, value, accent }: { label: string; value: string; accent?: string }) {
   return (
-    <svg viewBox="0 0 420 288" width="100%" style={{ height: 'auto', display: 'block' }} role="img" aria-label="컨테이너 증빙 일러스트">
-      <defs>
-        <linearGradient id="cc-body" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor={C.tealBright} /><stop offset="1" stopColor={C.tealStrong} />
-        </linearGradient>
-        <linearGradient id="cc-rail" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor={C.tealStrong} /><stop offset="1" stopColor={C.tealHeavy} />
-        </linearGradient>
-        <filter id="cc-sh" x="-20%" y="-20%" width="140%" height="150%">
-          <feDropShadow dx="0" dy="6" stdDeviation="8" floodColor="#0F1B26" floodOpacity="0.26" />
-        </filter>
-      </defs>
+    <div style={sx.proofTile}>
+      <div style={{ fontSize: 10, color: C.onDarkDim }}>{label}</div>
+      <div style={{ fontSize: 16, fontWeight: 800, color: accent ?? C.onDark, marginTop: 2 }}>{value}</div>
+    </div>
+  );
+}
 
-      <ellipse cx="210" cy="248" rx="150" ry="15" fill="#0F1B26" opacity="0.12" />
-
-      <g filter="url(#cc-sh)">
-        <rect x="46" y="78" width="328" height="140" rx="9" fill="url(#cc-body)" />
-        <rect x="46" y="78" width="328" height="18" rx="9" fill="url(#cc-rail)" />
-        <rect x="46" y="200" width="328" height="18" rx="9" fill="url(#cc-rail)" />
-        {ribs.map((x) => (
-          <g key={x}>
-            <rect x={x} y="98" width="7" height="102" fill="#ffffff" opacity="0.06" />
-            <rect x={x + 7} y="98" width="3" height="102" fill="#0F1B26" opacity="0.10" />
+/** Mini corrugated container showing an inspection state: fill level 0→1, optional seal. */
+function StateTile({ label, level, sealed }: { label: string; level: number; sealed?: boolean }) {
+  const ribs = [14, 22, 30, 38, 46];
+  const bottom = 33, top = 33 - 20 * level;
+  return (
+    <div style={sx.stTile}>
+      <svg viewBox="0 0 60 44" width="100%" style={{ display: 'block' }} aria-hidden="true">
+        <rect x="4" y="9" width="52" height="26" rx="4" fill="#F4F8F9" stroke={C.teal} strokeWidth="2" />
+        {ribs.map((x) => <line key={x} x1={x} y1="12" x2={x} y2="32" stroke={C.teal} strokeOpacity="0.16" strokeWidth="1.4" />)}
+        {level > 0 && (
+          <g>
+            <rect x="7" y={top} width="46" height={bottom - top} rx="2" fill={C.caution} />
+            <line x1="22" y1={top} x2="22" y2={bottom} stroke="#fff" strokeOpacity="0.5" strokeWidth="1.2" />
+            <line x1="38" y1={top} x2="38" y2={bottom} stroke="#fff" strokeOpacity="0.5" strokeWidth="1.2" />
           </g>
-        ))}
-        {/* doors end */}
-        <rect x="300" y="96" width="74" height="106" fill="#0F1B26" opacity="0.06" />
-        <line x1="300" y1="96" x2="300" y2="202" stroke="#0F1B26" strokeOpacity="0.18" strokeWidth="2" />
-        {[318, 344].map((x) => (
-          <g key={x}>
-            <rect x={x} y="100" width="5" height="98" rx="2.5" fill={C.navy} opacity="0.5" />
-            <rect x={x - 3} y="140" width="11" height="14" rx="3" fill={C.navy} opacity="0.68" />
+        )}
+        {sealed && (
+          <g>
+            <line x1="45" y1="10" x2="45" y2="34" stroke={C.tealHeavy} strokeWidth="1.5" />
+            <rect x="47.5" y="16" width="3" height="4" rx="1.5" fill="none" stroke={C.negative} strokeWidth="1.4" />
+            <circle cx="49" cy="23" r="4.2" fill={C.negative} />
           </g>
-        ))}
-        {/* seal check on the door */}
-        <circle cx="331" cy="118" r="12" fill="#ffffff" />
-        <path d="M325 118 l4 4 l8 -8" fill="none" stroke={C.positive} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-        {corners.map(([x, y], i) => <rect key={i} x={x} y={y} width="18" height="18" rx="3" fill={C.brandNavy} />)}
-        <text x="66" y="126" fontFamily="ui-monospace, monospace" fontSize="15" fontWeight="700" fill="#ffffff" opacity="0.92">CONU 420481</text>
-        <text x="66" y="150" fontFamily="ui-monospace, monospace" fontSize="11" fontWeight="700" fill="#ffffff" opacity="0.7">22G1 · TSR</text>
-      </g>
-
-      {/* floating proof chip */}
-      <g filter="url(#cc-sh)">
-        <rect x="236" y="28" width="152" height="46" rx="12" fill="#ffffff" />
-        <circle cx="260" cy="51" r="12" fill={C.positive} />
-        <path d="M254 51 l4 4 l8 -8" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-        <text x="280" y="47" fontFamily={FONT.sans} fontSize="12" fontWeight="700" fill={C.navy}>촬영 완료</text>
-        <text x="280" y="64" fontFamily={FONT.sans} fontSize="12" fontWeight="800" fill={C.teal}>8 / 8 · VERIFIED</text>
-      </g>
-    </svg>
+        )}
+      </svg>
+      <span style={sx.stLabel}>{label}</span>
+    </div>
   );
 }
 
@@ -179,7 +189,19 @@ const sx = {
   lead: { fontSize: 'clamp(15px,3.6vw,16px)', lineHeight: 1.6, color: C.text, margin: '16px 0 0', maxWidth: 460 } as const,
   ctaRow: { display: 'flex', gap: 12, marginTop: 26, flexWrap: 'wrap' as const } as const,
   ctaBtn: { padding: '12px 22px', fontSize: 15 } as const,
-  heroArt: { flex: '1 1 300px', minWidth: 260, maxWidth: 460, margin: '0 auto' } as const,
+
+  proofCard: { flex: '1 1 320px', minWidth: 288, maxWidth: 420, margin: '0 auto', background: C.brandNavy, borderRadius: R.xl, boxShadow: SH.dark, overflow: 'hidden' } as const,
+  proofHead: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '18px 20px' } as const,
+  proofKicker: { fontSize: 11, letterSpacing: '.08em', color: C.onDarkDim } as const,
+  proofTitle: { fontSize: 18, fontWeight: 800, color: C.onDark, marginTop: 4 } as const,
+  verified: { border: `2px solid ${C.tealBright}`, color: C.tealBright, borderRadius: 8, padding: '5px 9px', fontSize: 11, fontWeight: 800 } as const,
+  proofBody: { background: C.white, margin: 10, borderRadius: R.lg, padding: 16 } as const,
+  proofTiles: { display: 'flex', gap: 8 } as const,
+  proofTile: { flex: 1, background: C.brandNavy, borderRadius: 10, padding: '10px 12px' } as const,
+  stateRow: { display: 'flex', gap: 6, margin: '14px 0 4px' } as const,
+  stTile: { flex: 1, textAlign: 'center' as const } as const,
+  stLabel: { display: 'block', fontSize: 9.5, fontWeight: 700, color: C.text, marginTop: 4, whiteSpace: 'nowrap' as const } as const,
+  proofFoot: { display: 'flex', justifyContent: 'space-between', fontSize: 11, color: C.text, paddingTop: 12, marginTop: 8, borderTop: `1px solid ${C.line}` } as const,
 
   section: { padding: 'clamp(22px,5vw,30px) 0' } as const,
   secHead: { fontSize: 'clamp(19px,5vw,22px)', fontWeight: 800, color: C.navy, letterSpacing: '-0.01em', marginBottom: 18 } as const,
