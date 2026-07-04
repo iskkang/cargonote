@@ -9,6 +9,7 @@ import { buildViewerManifest } from '../domain/viewer';
 import { Card, Button, Badge, Skeleton } from '../ui/kit';
 import { ShareLinkBar } from '../ui/ShareLinkBar';
 import { useConfirm, useToast } from '../ui/overlays';
+import { analyzeContainer, type AiContainerResult } from './ai';
 import { useT } from './i18n';
 import { C, FONT } from '../ui/tokens';
 
@@ -32,6 +33,7 @@ export function ReviewPanel({
   const [loadError, setLoadError] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const [lightbox, setLightbox] = useState<string | null>(null);
+  const [ai, setAi] = useState<Record<string, AiContainerResult | 'loading' | 'error'>>({});
 
   useEffect(() => {
     let cancelled = false;
@@ -109,6 +111,18 @@ export function ReviewPanel({
     toast(t.review.revoked, 'positive');
   }
 
+  async function runAi(containerId: string, containerNo: string, photos: { displayPath: string | null }[]) {
+    const withUrl = photos.map((p) => p.displayPath && urls[p.displayPath]).find(Boolean) as string | undefined;
+    if (!withUrl) { setAi((a) => ({ ...a, [containerId]: 'error' })); return; }
+    setAi((a) => ({ ...a, [containerId]: 'loading' }));
+    try {
+      const r = await analyzeContainer({ imageUrl: withUrl, expectedContainerNo: containerNo });
+      setAi((a) => ({ ...a, [containerId]: r }));
+    } catch {
+      setAi((a) => ({ ...a, [containerId]: 'error' }));
+    }
+  }
+
   // ---- Published report screen ----
   if (viewerLink && showReport) {
     return (
@@ -169,7 +183,14 @@ export function ReviewPanel({
         <div>
           {review.containers.map(({ container, photos }) => (
             <div key={container.id} style={{ marginBottom: 18 }}>
-              <div style={sx.plate}>{container.containerNo}</div>
+              <div style={sx.plateRow}>
+                <div style={sx.plate}>{container.containerNo}</div>
+                <Button variant="ghost" onClick={() => runAi(container.id, container.containerNo, photos)}
+                  disabled={ai[container.id] === 'loading'} style={{ padding: '4px 10px', fontSize: 12 }}>
+                  {ai[container.id] === 'loading' ? t.review.aiRunning : `✨ ${t.review.aiCheck}`}
+                </Button>
+              </div>
+              <AiLine result={ai[container.id]} t={t} />
               <div style={sx.grid}>
                 {slots.map((slot, i) => {
                   const photo = photos.find((p) => p.slotKey === slot.key);
@@ -264,11 +285,29 @@ function SumRow({ label, value, dot }: { label: string; value: string; dot: stri
     </div>
   );
 }
+function AiLine({ result, t }: { result: AiContainerResult | 'loading' | 'error' | undefined; t: ReturnType<typeof useT> }) {
+  if (!result || result === 'loading') return null;
+  if (result === 'error') return <div style={sx.aiRow}><Badge tone="caution">{t.review.aiFail}</Badge></div>;
+  const r = result;
+  const tone: 'positive' | 'caution' | 'negative' = r.containerMatch === false ? 'negative' : r.containerNo ? (r.iso6346Valid ? 'positive' : 'caution') : 'caution';
+  return (
+    <div style={sx.aiRow}>
+      <span style={{ fontSize: 11, color: C.muted, fontWeight: 800, letterSpacing: '.06em' }}>AI</span>
+      {r.containerNo
+        ? <Badge tone={tone}>{r.containerNo}{r.containerMatch === false ? ` · ${t.review.aiMismatch}` : r.containerMatch ? ` · ${t.review.aiMatch}` : ''}</Badge>
+        : <Badge tone="caution">{t.review.aiUnread}</Badge>}
+      {r.sealNo && <span style={sx.aiSeal}>{t.review.aiSeal} {r.sealNo}</span>}
+    </div>
+  );
+}
 
 const sx = {
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 } as const,
   split: { display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 260px', gap: 20, alignItems: 'start' } as const,
-  plate: { fontFamily: FONT.sans, fontWeight: 800, fontSize: 17, letterSpacing: '.06em', color: C.navy, marginBottom: 10 } as const,
+  plate: { fontFamily: FONT.sans, fontWeight: 800, fontSize: 17, letterSpacing: '.06em', color: C.navy } as const,
+  plateRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 10 } as const,
+  aiRow: { display: 'flex', alignItems: 'center', gap: 8, margin: '-2px 0 10px' } as const,
+  aiSeal: { fontFamily: FONT.sans, fontSize: 12, color: C.text } as const,
   grid: { display: 'flex', flexWrap: 'wrap' as const, gap: 10 } as const,
   pcard: { width: 120 } as const,
   pthumb: { width: 120, height: 90, objectFit: 'cover' as const, borderRadius: 8, background: C.surfaceAlt, display: 'block' } as const,
