@@ -8,7 +8,9 @@ export const PALETTE = ['#01888F', '#E0A100', '#22507A', '#16A9B0', '#015056', '
 
 export interface Box { line: number; l: number; w: number; h: number; stackable: boolean; color: string }
 export interface Placement { line: number; color: string; x: number; y: number; z: number; dx: number; dy: number; dz: number }
-export interface PackResult { placements: Placement[]; packed: number; total: number; truncated: boolean }
+export interface PackResult { placements: Placement[]; packed: number; total: number; unplaced: Box[] }
+export interface PackedContainer { placements: Placement[]; count: number; fillPct: number }
+export interface MultiPack { containers: PackedContainer[]; leftover: number; total: number; truncated: boolean }
 
 const EPS = 0.01;
 
@@ -43,6 +45,7 @@ export function packContainer(boxes: Box[], container: { L: number; W: number; H
   const sorted = [...boxes].sort((a, b) => (b.l * b.w * b.h) - (a.l * a.w * a.h));
   const free: Free[] = [{ x: 0, y: 0, z: 0, dx: container.L, dy: container.W, dz: container.H }];
   const placements: Placement[] = [];
+  const unplaced: Box[] = [];
 
   for (const box of sorted) {
     free.sort((a, b) => a.z - b.z || a.y - b.y || a.x - b.x); // fill bottom-back-left first
@@ -62,10 +65,24 @@ export function packContainer(boxes: Box[], container: { L: number; W: number; H
       }
       if (done) { placed = true; break; }
     }
-    if (!placed) { /* leftover — not placed in this container */ }
+    if (!placed) unplaced.push(box);
   }
 
-  return { placements, packed: placements.length, total: boxes.length, truncated: false };
+  return { placements, packed: placements.length, total: boxes.length, unplaced };
+}
+
+/** Fill successive containers of one type until all boxes are placed (or a box can't fit any). */
+export function packMulti(boxes: Box[], container: { L: number; W: number; H: number; cbm: number }, maxN = 24): MultiPack {
+  let remaining = boxes;
+  const containers: PackedContainer[] = [];
+  while (remaining.length && containers.length < maxN) {
+    const res = packContainer(remaining, container);
+    if (res.placements.length === 0) break; // remaining boxes are oversize — can't fit any container
+    const vol = res.placements.reduce((s, p) => s + p.dx * p.dy * p.dz, 0) / 1e6;
+    containers.push({ placements: res.placements, count: res.placements.length, fillPct: Math.min(100, (vol / container.cbm) * 100) });
+    remaining = res.unplaced;
+  }
+  return { containers, leftover: remaining.length, total: boxes.length, truncated: false };
 }
 
 /** Rotate an arrangement 90°·r about the container's vertical axis (for 4 view angles). */

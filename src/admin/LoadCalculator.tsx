@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import { computeStuffing, CONTAINERS, type CargoLine, type ContainerId } from '../domain/stuffing';
-import { expandBoxes, packContainer, PALETTE } from '../domain/pack';
+import { expandBoxes, packMulti, PALETTE } from '../domain/pack';
 import { PackView3DGL } from './PackView3DGL';
 import { parseCargoFile } from './parseCargo';
 import { Button, Badge, inputStyle } from '../ui/kit';
@@ -17,6 +17,7 @@ export function LoadCalculator() {
   const [utilPct, setUtilPct] = useState(85);
   const [pickId, setPickId] = useState<ContainerId | null>(null);
   const [hl, setHl] = useState<number | null>(null);
+  const [contIdx, setContIdx] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const set = (key: number, patch: Partial<Row>) => setRows((rs) => rs.map((r) => (r.key === key ? { ...r, ...patch } : r)));
@@ -40,9 +41,12 @@ export function LoadCalculator() {
   const selSpec = CONTAINERS.find((c) => c.id === selId)!;
   const pack = useMemo(() => {
     const { boxes, truncated } = expandBoxes(rows);
-    const cont = { L: selSpec.intL * 100, W: selSpec.intW * 100, H: selSpec.intH * 100 };
-    return { ...packContainer(boxes, cont), truncated, cont };
+    const cont = { L: selSpec.intL * 100, W: selSpec.intW * 100, H: selSpec.intH * 100, cbm: selSpec.cbm };
+    const m = packMulti(boxes, cont, 24);
+    return { ...m, truncated: truncated || m.truncated, cont };
   }, [rows, selId, selSpec]);
+  const vi = pack.containers.length ? Math.min(contIdx, pack.containers.length - 1) : 0;
+  const cur = pack.containers[vi];
 
   return (
     <div>
@@ -117,12 +121,11 @@ export function LoadCalculator() {
                   {best && <Badge tone="positive">{t.load.recommended}</Badge>}
                   {!p.fits && <Badge tone="negative">{t.load.notFit}</Badge>}
                 </div>
-                <div style={sx.needed}>{p.containersNeeded}<span style={sx.neededUnit}>{t.load.unit || '×'}</span> <span style={sx.neededLabel}>{t.load.needed}</span></div>
-                <div style={sx.track}><div style={{ ...sx.trackFill, width: `${p.fillPct}%`, background: best ? C.positive : C.teal }} /></div>
-                <div style={sx.metaRow}><span>{t.load.fill}</span><span style={sx.metaVal}>{Math.round(p.fillPct)}%</span></div>
+                <div style={sx.needed}>{pack.containers.length}<span style={sx.neededUnit}>{t.load.unit || '×'}</span> <span style={sx.neededLabel}>{t.load.needed}</span></div>
                 <div style={sx.metaRow}><span style={{ color: C.muted }}>{p.binding === 'volume' ? t.load.bindVol : t.load.bindWt}</span>
                   {p.maxUnitsSingle != null && <span style={sx.metaVal}>{t.load.maxUnits} {p.maxUnitsSingle}</span>}
                 </div>
+                {pack.leftover > 0 && <div style={sx.metaRow}><span style={{ color: C.negative, fontWeight: 700 }}>{t.load.unplaced} {pack.leftover}{t.load.unit}</span></div>}
               </div>
             );
           })()}
@@ -132,6 +135,16 @@ export function LoadCalculator() {
             <div style={sx.view3dHead}>
               <span style={sx.view3dTitle}>{t.load.view3d} · {selSpec.label}</span>
             </div>
+            {pack.containers.length > 1 && (
+              <div style={sx.contTabs}>
+                {pack.containers.map((cc, i) => (
+                  <button key={i} type="button" onClick={() => setContIdx(i)}
+                    style={{ ...sx.contTab, ...(vi === i ? sx.contTabActive : {}) }}>
+                    #{i + 1} · {Math.round(cc.fillPct)}%
+                  </button>
+                ))}
+              </div>
+            )}
             <div style={sx.legend}>
               {rows.map((r, i) => (r.l > 0 && r.w > 0 && r.h > 0 ? (
                 <span key={r.key} onMouseEnter={() => setHl(i)} onMouseLeave={() => setHl(null)}
@@ -141,11 +154,15 @@ export function LoadCalculator() {
               ) : null))}
             </div>
             <div style={sx.stage}>
-              <PackView3DGL placements={pack.placements} L={pack.cont.L} W={pack.cont.W} H={pack.cont.H} highlight={hl} />
+              {cur
+                ? <PackView3DGL placements={cur.placements} L={pack.cont.L} W={pack.cont.W} H={pack.cont.H} highlight={hl} />
+                : <div style={{ padding: 30, textAlign: 'center', color: C.muted, fontSize: 13, fontFamily: FONT.sans }}>{t.load.notFit}</div>}
             </div>
             <div style={sx.view3dFoot}>
-              <b style={{ color: C.navy }}>{selSpec.label}</b> · {t.load.packed} {pack.packed} / {pack.total}
-              {pack.truncated ? ` · ${t.load.cap}` : ''}
+              {cur ? (
+                <><b style={{ color: C.navy }}>#{vi + 1} / {pack.containers.length}</b> · {t.load.packed} {cur.count} · {Math.round(cur.fillPct)}%
+                  {pack.leftover > 0 ? ` · ${t.load.unplaced} ${pack.leftover}` : ''}{pack.truncated ? ` · ${t.load.cap}` : ''}</>
+              ) : t.load.notFit}
             </div>
           </div>
         </>
@@ -210,6 +227,9 @@ const sx = {
   seg: { fontFamily: FONT.sans, fontSize: 12, fontWeight: 700, padding: '6px 11px', borderRadius: 999, border: `1px solid ${C.line}`, background: C.white, color: C.text, cursor: 'pointer' } as const,
   segActive: { background: C.navy, color: C.white, border: `1px solid ${C.navy}` } as const,
   rotBtn: { fontFamily: FONT.sans, fontSize: 12, fontWeight: 700, padding: '6px 12px', borderRadius: 999, border: `1px solid ${C.teal}`, background: C.tealTint, color: C.tealStrong, cursor: 'pointer' } as const,
+  contTabs: { display: 'flex', gap: 6, flexWrap: 'wrap' as const, padding: '10px 14px 0' } as const,
+  contTab: { fontFamily: FONT.sans, fontSize: 12, fontWeight: 700, padding: '5px 11px', borderRadius: 8, border: `1px solid ${C.line}`, background: C.white, color: C.text, cursor: 'pointer' } as const,
+  contTabActive: { background: C.teal, color: C.white, border: `1px solid ${C.teal}` } as const,
   stage: { background: `linear-gradient(180deg,#F4F7F9,${C.white})`, padding: 12 } as const,
   view3dFoot: { fontFamily: FONT.sans, fontSize: 13, color: C.text, padding: '10px 14px', borderTop: `1px solid ${C.line}` } as const,
 };
