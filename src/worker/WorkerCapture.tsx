@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import type { WorkerClient } from './workerClient';
 import { getWorkerClient } from '../admin/repoFactory';
@@ -10,8 +10,11 @@ import { makeVariants } from '../lib/image';
 import { sha256Hex } from '../lib/hash';
 import { supabase } from '../lib/supabase';
 import { uploadSlotPhoto } from './uploadPhoto';
+import { enqueueShot, pendingShots, markShotUploaded } from './offlineQueue';
 import { PageShell, Brand, Card, Badge, Button } from '../ui/kit';
 import { C, FONT } from '../ui/tokens';
+
+const rid = () => (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`);
 
 /** ISO 6346 = 4 letters + 6 digits + 1 check digit. Split the check digit for emphasis. */
 function splitPlate(no: string): { body: string; check: string | null } {
@@ -31,6 +34,8 @@ export function WorkerCapture({ client = getWorkerClient() }: { client?: WorkerC
   const [submitted, setSubmitted] = useState(false);
   const [closeHint, setCloseHint] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [online, setOnline] = useState(typeof navigator === 'undefined' ? true : navigator.onLine);
+  const [pending, setPending] = useState(0);
 
   useEffect(() => {
     client.bootstrap(token ?? '').then((r) => {
@@ -45,6 +50,17 @@ export function WorkerCapture({ client = getWorkerClient() }: { client?: WorkerC
     setCapturedBy((prev) => ({ ...prev, [containerId]: photos.filter((p) => p.slotKey).map((p) => p.slotKey as string) }));
   }
   useEffect(() => { if (state) state.containers.forEach((c) => void refresh(c.id)); }, [state]);
+
+  // Offline drain: retry queued shots when connectivity returns (and once on load).
+  const drainRef = useRef<() => void>(() => {});
+  useEffect(() => {
+    const on = () => { setOnline(true); drainRef.current(); };
+    const off = () => setOnline(false);
+    window.addEventListener('online', on);
+    window.addEventListener('offline', off);
+    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); };
+  }, []);
+  useEffect(() => { if (state) drainRef.current(); }, [state]);
 
   if (notFound) return (
     <PageShell tone="dark" style={sx.page}>
@@ -68,6 +84,27 @@ export function WorkerCapture({ client = getWorkerClient() }: { client?: WorkerC
   const incomplete = containers.filter((c) => containerMissing(c).length > 0);
   const multi = containers.length > 1;
 
+  async function updatePending() { try { setPending((await pendingShots()).length); } catch { setPending(0); } }
+
+  async function drain() {
+    const items = await pendingShots().catch(() => null);
+    if (!items) return;
+    for (const it of items) {
+      try {
+        await uploadSlotPhoto(it.blob, { slotKey: it.slotKey, containerId: it.containerId }, {
+          makeVariants, sha256Hex,
+          storage: { upload: (path, body, opts) => supabase.storage.from('captures').upload(path, body, opts) },
+          insertPhoto: (p) => client.insertPhoto(it.token, p),
+          now: () => new Date().toISOString(),
+        });
+        await markShotUploaded(it.id);
+      } catch { /* still offline — keep it pending */ }
+    }
+    if (state) for (const c of state.containers) await refresh(c.id);
+    await updatePending();
+  }
+  drainRef.current = drain;
+
   async function shoot(slotKey: string, photo: Blob) {
     setError(null);
     try {
@@ -79,8 +116,15 @@ export function WorkerCapture({ client = getWorkerClient() }: { client?: WorkerC
       });
       await refresh(container.id);
     } catch (e) {
-      console.error('upload failed', e);
-      setError(`업로드 실패 — ${e instanceof Error ? e.message : String(e)}`);
+      // Offline or upload failed → queue it; it uploads automatically when back online.
+      try {
+        await enqueueShot({ id: rid(), token: token ?? '', containerId: container.id, slotKey, blob: photo, capturedAt: new Date().toISOString(), status: 'pending' });
+        setCapturedBy((prev) => ({ ...prev, [container.id]: Array.from(new Set([...(prev[container.id] ?? []), slotKey])) }));
+        await updatePending();
+      } catch {
+        console.error('upload failed', e);
+        setError(`업로드 실패 — ${e instanceof Error ? e.message : String(e)}`);
+      }
     }
   }
 
@@ -151,6 +195,13 @@ export function WorkerCapture({ client = getWorkerClient() }: { client?: WorkerC
           {multi && <div style={sx.tabsWrap}>{tabs}<div style={sx.activePlate}>{plate.body}{plate.check ? plate.check : ''}</div></div>}
 
           {error && <Card dark style={sx.errorCard}><span style={{ color: C.negative, fontWeight: 600, fontSize: 13, fontFamily: FONT.sans }}>{error}</span></Card>}
+
+          {(pending > 0 || !online) && (
+            <div style={sx.syncRow}>
+              <span style={{ ...sx.syncDot, background: online ? C.caution : C.negative }} />
+              {online ? `전송 대기 ${pending}장 · 자동 전송 중…` : `오프라인 · 전송 대기 ${pending}장 (온라인 시 자동 전송)`}
+            </div>
+          )}
 
           {groups.map((g) => {
             const gDone = g.slots.filter((s) => captured.includes(s.key)).length;
@@ -273,6 +324,8 @@ const sx = {
   infoValue: { fontSize: 14, color: C.onDark, fontWeight: 600 } as const,
   warnCard: { marginBottom: 12, padding: '12px 14px', borderLeft: `4px solid ${C.caution}` } as const,
   errorCard: { marginTop: 12, padding: '10px 14px', borderLeft: `4px solid ${C.negative}` } as const,
+  syncRow: { display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, padding: '9px 12px', borderRadius: 10, background: 'rgba(159,178,194,0.1)', fontFamily: FONT.sans, fontSize: 12.5, color: C.onDarkDim } as const,
+  syncDot: { width: 8, height: 8, borderRadius: 999, flexShrink: 0 } as const,
   sectionHead: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '6px 0 8px' } as const,
   sectionTitle: { fontWeight: 700, color: C.onDark, fontFamily: FONT.sans } as const,
   countDim: { fontSize: 12, color: C.onDarkDim, fontFamily: FONT.sans } as const,
