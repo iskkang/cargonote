@@ -31,3 +31,11 @@ test('리포트 nav shows the published-reports list', async () => {
   fireEvent.click(screen.getByRole('button', { name: /리포트/ }));
   expect(await screen.findByText(/발행된 리포트가 없습니다/)).toBeInTheDocument(); // seed has none published
 });
+
+test('language switch translates the console', async () => {
+  render(<AdminConsole />);
+  expect(await screen.findByRole('heading', { name: '대시보드' })).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'EN' }));
+  expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeInTheDocument();
+  expect(screen.getByText(/Needs check/)).toBeInTheDocument();
+});

@@ -9,54 +9,52 @@ import { ReportsList } from './ReportsList';
 import { Dashboard } from './Dashboard';
 import { AdminSidebar, type AdminView } from './AdminSidebar';
 import { WorkOrderPreview, type WorkOrderPreviewData } from './WorkOrderPreview';
+import { AdminLangProvider, useT } from './i18n';
 import { defaultAuthDeps } from '../auth/session';
-import { Card, Button } from '../ui/kit';
+import { Card, Button, Brand } from '../ui/kit';
+import { ConfirmProvider, ToastProvider } from '../ui/overlays';
 import { C, FONT } from '../ui/tokens';
 
-const TITLES: Record<AdminView, string> = {
-  home: '대시보드', new: '새 작업 만들기', board: '작업 현황', customers: '거래처 관리', reports: '리포트',
-};
-const SUBS: Record<AdminView, string> = {
-  home: '오늘의 작업 현황을 한눈에.',
-  new: '촬영 항목과 담당자를 정의하면 작업자에게 보낼 링크가 만들어집니다.',
-  board: '컨테이너·작업일로 검색하고, 상태별로 검수하세요.',
-  customers: '작업을 지시할 거래처를 추가·수정합니다.',
-  reports: '발행된 증빙 리포트 목록입니다.',
-};
-
-export function AdminConsole({ repo = getAdminRepo() }: { repo?: AdminRepo } = {}) {
+function AdminConsoleInner({ repo }: { repo: AdminRepo }) {
+  const t = useT();
   const [view, setView] = useState<AdminView>('home');
   const [refreshKey, setRefreshKey] = useState(0);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [reportId, setReportId] = useState<string | null>(null);
   const [preview, setPreview] = useState<WorkOrderPreviewData | null>(null);
   const [email, setEmail] = useState<string | null>(null);
+  const [navOpen, setNavOpen] = useState(false);
 
   useEffect(() => {
     defaultAuthDeps.getSession().then((s) => setEmail(s?.user?.email ?? null)).catch(() => {});
   }, []);
 
-  function select(v: AdminView) { setView(v); setSelectedId(null); setReportId(null); }
+  function select(v: AdminView) { setView(v); setSelectedId(null); setReportId(null); setNavOpen(false); }
+
+  const inDetail = (view === 'board' && !!selectedId) || (view === 'reports' && !!reportId);
+  const title = inDetail ? (view === 'board' ? t.titles.review : t.titles.report) : t.titles[view];
+  const showNew = (view === 'home' || view === 'board') && !inDetail;
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: `linear-gradient(180deg,${C.page1},${C.page2})`, fontFamily: FONT.sans }}>
-      <AdminSidebar view={view} onSelect={select} email={email} onSignOut={() => defaultAuthDeps.signOut()} />
+    <div className="cn-admin-shell" style={{ background: `linear-gradient(180deg,${C.page1},${C.page2})`, fontFamily: FONT.sans }}>
+      <AdminSidebar view={view} onSelect={select} email={email} onSignOut={() => defaultAuthDeps.signOut()} open={navOpen} onClose={() => setNavOpen(false)} />
+      <div className={`cn-scrim${navOpen ? ' cn-open' : ''}`} onClick={() => setNavOpen(false)} />
+
       <div style={{ flex: 1, minWidth: 0, overflow: 'auto' }}>
-        <main style={{ maxWidth: 1040, margin: '0 auto', padding: '24px 32px 40px' }}>
-          {(() => {
-            const inDetail = (view === 'board' && !!selectedId) || (view === 'reports' && !!reportId);
-            const title = inDetail ? (view === 'board' ? '작업 검수' : '증빙 리포트') : TITLES[view];
-            const showNew = (view === 'home' || view === 'board') && !inDetail;
-            return (
-              <header style={sx.appbar}>
-                <div style={{ minWidth: 0 }}>
-                  <h1 style={{ fontSize: 22, color: C.navy, margin: 0 }}>{title}</h1>
-                  {!inDetail && SUBS[view] && <p style={sx.sub}>{SUBS[view]}</p>}
-                </div>
-                {showNew && <Button onClick={() => select('new')}>＋ 새 작업</Button>}
-              </header>
-            );
-          })()}
+        <div className="cn-topbar">
+          <button type="button" aria-label={t.menu} onClick={() => setNavOpen(true)} style={sx.hamb}>☰</button>
+          <Brand />
+          <span style={{ width: 30 }} />
+        </div>
+
+        <main className="cn-main" style={{ maxWidth: 1040, margin: '0 auto', padding: '24px 32px 40px' }}>
+          <header style={sx.appbar}>
+            <div style={{ minWidth: 0 }}>
+              <h1 style={{ fontSize: 22, color: C.navy, margin: 0 }}>{title}</h1>
+              {!inDetail && t.subs[view as keyof typeof t.subs] && <p style={sx.sub}>{t.subs[view as keyof typeof t.subs]}</p>}
+            </div>
+            {showNew && <Button onClick={() => select('new')}>{t.newJob}</Button>}
+          </header>
 
           {view === 'home' && (
             <Dashboard repo={repo}
@@ -66,28 +64,26 @@ export function AdminConsole({ repo = getAdminRepo() }: { repo?: AdminRepo } = {
           )}
 
           {view === 'new' && (
-            <>
-              <div style={sx.split}>
-                <Card><CreateWorkOrder repo={repo} onPreviewChange={setPreview}
-                  onManageCustomers={() => setView('customers')}
-                  onDone={() => setView('board')}
-                  onCreated={() => setRefreshKey((k) => k + 1)} /></Card>
-                <WorkOrderPreview data={preview ?? { customerName: '', route: null, carrier: null, containerNos: [], requiredCount: 0 }} />
-              </div>
-            </>
+            <div className="cn-split">
+              <Card><CreateWorkOrder repo={repo} onPreviewChange={setPreview}
+                onManageCustomers={() => setView('customers')}
+                onDone={() => setView('board')}
+                onCreated={() => setRefreshKey((k) => k + 1)} /></Card>
+              <WorkOrderPreview data={preview ?? { customerName: '', route: null, carrier: null, containerNos: [], requiredCount: 0 }} />
+            </div>
           )}
 
           {view === 'board' && (selectedId
             ? <ReviewPanel workOrderId={selectedId} repo={repo} onBack={() => { setSelectedId(null); setRefreshKey((k) => k + 1); }} />
-            : <div style={{ marginTop: 16 }}><WorkOrderBoard key={refreshKey} repo={repo} onSelect={setSelectedId} /></div>
+            : <div style={{ marginTop: 4 }}><WorkOrderBoard key={refreshKey} repo={repo} onSelect={setSelectedId} /></div>
           )}
 
-          {view === 'customers' && <div style={{ marginTop: 8 }}><CustomerManager repo={repo} /></div>}
+          {view === 'customers' && <div style={{ marginTop: 4 }}><CustomerManager repo={repo} /></div>}
 
           {view === 'reports' && (
-            <div style={{ marginTop: 12 }}>
+            <div style={{ marginTop: 4 }}>
               {reportId
-                ? <ReviewPanel workOrderId={reportId} repo={repo} startAsReport backLabel="리포트" onBack={() => setReportId(null)} />
+                ? <ReviewPanel workOrderId={reportId} repo={repo} startAsReport backLabel={t.nav.reports} onBack={() => setReportId(null)} />
                 : <ReportsList repo={repo} onSelect={setReportId} />}
             </div>
           )}
@@ -97,8 +93,20 @@ export function AdminConsole({ repo = getAdminRepo() }: { repo?: AdminRepo } = {
   );
 }
 
+export function AdminConsole({ repo = getAdminRepo() }: { repo?: AdminRepo } = {}) {
+  return (
+    <AdminLangProvider>
+      <ConfirmProvider>
+        <ToastProvider>
+          <AdminConsoleInner repo={repo} />
+        </ToastProvider>
+      </ConfirmProvider>
+    </AdminLangProvider>
+  );
+}
+
 const sx = {
   appbar: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, marginBottom: 20, flexWrap: 'wrap' as const } as const,
   sub: { color: C.text, fontSize: 14, margin: '4px 0 0' } as const,
-  split: { display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,360px)', gap: 20, alignItems: 'start' } as const,
+  hamb: { border: 0, background: 'transparent', fontSize: 22, lineHeight: 1, color: C.navy, cursor: 'pointer', padding: 4 } as const,
 };

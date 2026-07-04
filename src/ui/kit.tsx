@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { C, R, SH, FONT } from './tokens';
 
 type Tone = 'positive' | 'caution' | 'negative' | 'neutral';
@@ -54,7 +54,42 @@ export function Button({ children, variant = 'primary', type = 'button', disable
   const skin: CSSProperties = variant === 'primary'
     ? { background: C.teal, color: C.white, boxShadow: SH.primary }
     : { background: 'transparent', color: C.text, border: `1px solid ${C.line}` };
-  return <button type={type} disabled={disabled} onClick={onClick} style={{ ...base, ...skin, ...style }}>{children}</button>;
+  return <button type={type} disabled={disabled} onClick={onClick} className={`cn-btn cn-btn-${variant}`} style={{ ...base, ...skin, ...style }}>{children}</button>;
+}
+
+export function Select({ value, onChange, options, ariaLabel }:
+  { value: string; onChange: (v: string) => void; options: { value: string; label: string }[]; ariaLabel?: string }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, [open]);
+  const current = options.find((o) => o.value === value);
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button type="button" aria-label={ariaLabel} aria-haspopup="listbox" aria-expanded={open} onClick={() => setOpen((o) => !o)}
+        style={{ ...inputStyle, display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', textAlign: 'left' }}>
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{current?.label ?? ''}</span>
+        <span style={{ color: C.muted, marginLeft: 8, fontSize: 11 }}>▾</span>
+      </button>
+      {open && (
+        <ul role="listbox" style={selMenu}>
+          {options.map((o) => (
+            <li key={o.value} role="option" aria-selected={o.value === value}
+              onClick={() => { onChange(o.value); setOpen(false); }}
+              style={{ ...selItem, ...(o.value === value ? selItemActive : {}) }}>{o.label}</li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+export function Skeleton({ height = 16, width = '100%', style }: { height?: number | string; width?: number | string; style?: CSSProperties }) {
+  return <div className="cn-skel" style={{ height, width, borderRadius: 8, ...style }} />;
 }
 
 export function Badge({ children, tone = 'neutral', style }: { children: ReactNode; tone?: Tone; style?: CSSProperties }) {
@@ -92,3 +127,10 @@ export const inputStyle: CSSProperties = {
   width: '100%', boxSizing: 'border-box', padding: '9px 11px', borderRadius: R.md,
   border: `1px solid ${C.line}`, background: C.white, color: C.textStrong, fontSize: 14, fontFamily: FONT.sans,
 };
+
+const selMenu: CSSProperties = {
+  position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 30, listStyle: 'none', margin: 0, padding: 4,
+  background: C.white, border: `1px solid ${C.line}`, borderRadius: R.md, boxShadow: SH.hover, maxHeight: 240, overflowY: 'auto',
+};
+const selItem: CSSProperties = { padding: '9px 11px', borderRadius: 8, fontSize: 14, color: C.textStrong, fontFamily: FONT.sans, cursor: 'pointer' };
+const selItemActive: CSSProperties = { background: C.tealTint, color: C.tealStrong, fontWeight: 700 };

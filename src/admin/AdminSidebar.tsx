@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Brand, Button } from '../ui/kit';
 import { C, FONT } from '../ui/tokens';
+import { useT, useLang, ADMIN_LANGS } from './i18n';
 
 export type AdminView = 'home' | 'new' | 'board' | 'customers' | 'reports';
 
@@ -22,81 +23,61 @@ const ICONS: Record<AdminView, ReactNode> = {
   reports: <Ico d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8M8 17h8M8 9h2" />,
 };
 
-const ITEMS: { key: AdminView; label: string; disabled?: boolean }[] = [
-  { key: 'home', label: '대시보드' },
-  { key: 'new', label: '새 작업' },
-  { key: 'board', label: '작업 현황' },
-  { key: 'customers', label: '거래처' },
-  { key: 'reports', label: '리포트' },
-];
+const ORDER: AdminView[] = ['home', 'new', 'board', 'customers', 'reports'];
 
 export function AdminSidebar({
-  view, onSelect, email, onSignOut,
+  view, onSelect, email, onSignOut, open, onClose,
 }: {
-  view: AdminView;
-  onSelect: (v: AdminView) => void;
-  email?: string | null;
-  onSignOut: () => void;
+  view: AdminView; onSelect: (v: AdminView) => void; email?: string | null; onSignOut: () => void; open?: boolean; onClose?: () => void;
 }) {
+  const t = useT();
+  const { lang, setLang } = useLang();
   return (
-    <aside style={sx.aside}>
+    <aside className={`cn-sidebar${open ? ' cn-open' : ''}`} style={sx.aside}>
       <div style={{ padding: '18px 16px 8px' }}>
         <Brand dark />
       </div>
       <nav style={{ padding: '10px 10px', flex: 1 }}>
-        {ITEMS.map((it) => {
-          const active = view === it.key;
+        {ORDER.map((key) => {
+          const active = view === key;
           return (
-            <button
-              key={it.key}
-              type="button"
-              disabled={it.disabled}
-              aria-current={active ? 'page' : undefined}
-              onClick={() => !it.disabled && onSelect(it.key)}
-              style={{
-                ...sx.item,
-                background: active ? C.teal : 'transparent',
-                color: it.disabled ? C.onDarkDim : active ? C.white : C.onDark,
-                cursor: it.disabled ? 'default' : 'pointer',
-                opacity: it.disabled ? 0.55 : 1,
-              }}
-            >
-              <span style={{ display: 'flex', alignItems: 'center', gap: 11 }}>{ICONS[it.key]}{it.label}</span>
-              {it.disabled && <span style={sx.soon}>준비중</span>}
+            <button key={key} type="button" aria-current={active ? 'page' : undefined}
+              onClick={() => { onSelect(key); onClose?.(); }}
+              style={{ ...sx.item, background: active ? C.teal : 'transparent', color: active ? C.white : C.onDark, cursor: 'pointer' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 11 }}>{ICONS[key]}{t.nav[key]}</span>
             </button>
           );
         })}
       </nav>
       <div style={sx.footer}>
+        <div style={sx.langBar}>
+          {ADMIN_LANGS.map((l) => (
+            <button key={l.code} type="button" onClick={() => setLang(l.code)}
+              style={{ ...sx.langBtn, ...(lang === l.code ? sx.langActive : {}) }}>{l.label}</button>
+          ))}
+        </div>
         {email && (
           <div style={sx.profile}>
             <span style={sx.avatar}>{email[0]?.toUpperCase() ?? '?'}</span>
             <span style={{ minWidth: 0 }}>
               <div style={sx.profileEmail} title={email}>{email}</div>
-              <div style={sx.profileRole}>사무실 관리자</div>
+              <div style={sx.profileRole}>{t.role}</div>
             </span>
           </div>
         )}
-        <Button variant="ghost" onClick={onSignOut} style={{ width: '100%', color: C.onDarkDim, borderColor: 'rgba(159,178,194,.3)' }}>로그아웃</Button>
+        <Button variant="ghost" onClick={onSignOut} style={{ width: '100%', color: C.onDarkDim, borderColor: 'rgba(159,178,194,.3)' }}>{t.signOut}</Button>
       </div>
     </aside>
   );
 }
 
 const sx = {
-  aside: {
-    width: 232, flexShrink: 0, minHeight: '100vh',
-    background: C.navy, color: C.onDark,
-    display: 'flex', flexDirection: 'column',
-    fontFamily: FONT.sans,
-  } as const,
-  item: {
-    width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    border: 0, borderRadius: 10, padding: '11px 14px', marginBottom: 4,
-    fontFamily: FONT.sans, fontWeight: 600, fontSize: 14, textAlign: 'left' as const,
-  } as const,
-  soon: { fontSize: 10, fontWeight: 700, color: C.onDarkDim, border: `1px solid ${C.onDarkDim}`, borderRadius: 999, padding: '1px 7px' } as const,
+  aside: { width: 232, flexShrink: 0, minHeight: '100vh', background: C.navy, color: C.onDark, display: 'flex', flexDirection: 'column', fontFamily: FONT.sans } as const,
+  item: { width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: 0, borderRadius: 10, padding: '11px 14px', marginBottom: 4, fontFamily: FONT.sans, fontWeight: 600, fontSize: 14, textAlign: 'left' as const } as const,
   footer: { padding: '14px 16px', borderTop: '1px solid rgba(159,178,194,.18)' } as const,
+  langBar: { display: 'flex', gap: 3, background: 'rgba(255,255,255,.06)', borderRadius: 999, padding: 3, marginBottom: 14 } as const,
+  langBtn: { flex: 1, fontFamily: FONT.sans, fontSize: 11, fontWeight: 700, padding: '5px 0', borderRadius: 999, border: 0, background: 'transparent', color: C.onDarkDim, cursor: 'pointer' } as const,
+  langActive: { background: C.teal, color: C.white } as const,
   profile: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 } as const,
   avatar: { width: 34, height: 34, borderRadius: 999, background: C.teal, color: C.white, fontWeight: 800, fontSize: 15, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 } as const,
   profileEmail: { fontSize: 12, color: C.onDark, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const } as const,

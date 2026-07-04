@@ -1,4 +1,5 @@
 import { Card } from '../ui/kit';
+import { useT } from './i18n';
 import { C, FONT } from '../ui/tokens';
 
 export interface WorkOrderPreviewData {
@@ -10,22 +11,23 @@ export interface WorkOrderPreviewData {
 }
 
 export function WorkOrderPreview({ data }: { data: WorkOrderPreviewData }) {
+  const t = useT();
   const firstNo = data.containerNos[0] || 'CONTAINER No.';
   const extra = data.containerNos.length > 1 ? ` 외 ${data.containerNos.length - 1}` : '';
   return (
     <Card dark style={{ padding: 0, overflow: 'hidden' }}>
-      <div style={sx.header}>작업자에게 전달될 링크 미리보기</div>
+      <div style={sx.header}>{t.preview.head}</div>
       <div style={{ padding: 18 }}>
         <div style={sx.plate}>
           <div style={sx.plateLabel}>CONTAINER No.</div>
           <div style={sx.plateNo}>{firstNo}{extra}</div>
         </div>
-        <Row label="작업 유형" value={data.route ? `${data.route} 적입 검수` : '—'} />
-        <Row label="거래처" value={data.customerName || '—'} />
-        <Row label="캐리어" value={data.carrier || '—'} />
+        <Row label={t.preview.type} value={data.route ? t.preview.inspect(data.route) : '—'} />
+        <Row label={t.preview.customer} value={data.customerName || '—'} />
+        <Row label={t.preview.carrier} value={data.carrier || '—'} />
         <div style={sx.divider} />
-        <Row label="필요 사진" value={`${data.requiredCount}장`} strong />
-        <div style={sx.hint}>작업자는 이 링크만 누르면 앱 설치 없이 바로 촬영을 시작합니다.</div>
+        <Row label={t.preview.needPhotos} value={`${data.requiredCount}${t.preview.unit}`} strong />
+        <div style={sx.hint}>{t.preview.hint}</div>
       </div>
     </Card>
   );

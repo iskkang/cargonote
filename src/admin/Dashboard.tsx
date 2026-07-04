@@ -1,23 +1,19 @@
 import { useEffect, useState } from 'react';
 import type { AdminRepo, WorkOrderSummary } from './repo';
 import { boardStatus, type StatusKey, type StatusTone } from './WorkOrderBoard';
-import { Badge, Button, EmptyState } from '../ui/kit';
+import { Badge, Button, EmptyState, Skeleton } from '../ui/kit';
+import { useT } from './i18n';
 import { C, FONT } from '../ui/tokens';
 
-const KPIS: { key: StatusKey; label: string; tone: StatusTone }[] = [
-  { key: '확인필요', label: '확인 필요', tone: 'caution' },
-  { key: '진행중', label: '진행 중', tone: 'neutral' },
-  { key: '완료', label: '완료', tone: 'positive' },
-  { key: '데미지', label: '데미지', tone: 'negative' },
+const KPI_META: { key: StatusKey; tone: StatusTone }[] = [
+  { key: '확인필요', tone: 'caution' }, { key: '진행중', tone: 'neutral' }, { key: '완료', tone: 'positive' }, { key: '데미지', tone: 'negative' },
 ];
-
-const TONE_COLOR: Record<StatusTone, string> = {
-  caution: C.caution, neutral: C.muted, positive: C.positive, negative: C.negative,
-};
+const TONE_COLOR: Record<StatusTone, string> = { caution: C.caution, neutral: C.muted, positive: C.positive, negative: C.negative };
 
 export function Dashboard({ repo, onNew, onOpenBoard, onOpenReview }: {
   repo: AdminRepo; onNew: () => void; onOpenBoard: () => void; onOpenReview: (id: string) => void;
 }) {
+  const t = useT();
   const [rows, setRows] = useState<WorkOrderSummary[] | null>(null);
 
   useEffect(() => {
@@ -26,41 +22,50 @@ export function Dashboard({ repo, onNew, onOpenBoard, onOpenReview }: {
     return () => { cancelled = true; };
   }, [repo]);
 
-  if (rows === null) return <div style={sx.loading}>로딩 중…</div>;
+  const kpiLabel: Record<StatusKey, string> = {
+    확인필요: t.dash.needCheck, 진행중: t.dash.inProgress, 완료: t.dash.done, 데미지: t.dash.damage, 대기: t.board.status.대기,
+  };
 
-  const counts = KPIS.reduce((a, k) => { a[k.key] = rows.filter((r) => boardStatus(r).label === k.key).length; return a; }, {} as Record<string, number>);
+  if (rows === null) return (
+    <div style={{ marginTop: 4 }}>
+      <div style={sx.kpiRow}>{KPI_META.map((k) => <Skeleton key={k.key} height={92} style={{ flex: '1 1 150px', minWidth: 130 }} />)}</div>
+      <Skeleton height={220} style={{ borderRadius: 16 }} />
+    </div>
+  );
+
+  const counts = KPI_META.reduce((a, k) => { a[k.key] = rows.filter((r) => boardStatus(r).label === k.key).length; return a; }, {} as Record<string, number>);
   const recent = rows.slice(-6).reverse();
 
   return (
     <div style={{ marginTop: 4 }}>
       <div style={sx.kpiRow}>
-        {KPIS.map((k) => (
+        {KPI_META.map((k) => (
           <button key={k.key} type="button" onClick={onOpenBoard} className="lp-card" style={sx.kpi}>
             <span style={{ ...sx.kpiDot, background: TONE_COLOR[k.tone] }} />
             <span style={sx.kpiNum}>{counts[k.key]}</span>
-            <span style={sx.kpiLabel}>{k.label}</span>
+            <span style={sx.kpiLabel}>{kpiLabel[k.key]}</span>
           </button>
         ))}
       </div>
 
-      <div style={sx.grid}>
+      <div className="cn-dashgrid">
         <div style={sx.recentCard}>
           <div style={sx.cardHead}>
-            <span style={sx.cardTitle}>최근 작업</span>
-            <Button variant="ghost" onClick={onOpenBoard} style={{ padding: '5px 11px', fontSize: 12 }}>전체 보기</Button>
+            <span style={sx.cardTitle}>{t.dash.recent}</span>
+            <Button variant="ghost" onClick={onOpenBoard} style={{ padding: '5px 11px', fontSize: 12 }}>{t.dash.viewAll}</Button>
           </div>
           {recent.length === 0 ? (
-            <EmptyState title="아직 작업이 없습니다" hint="첫 작업을 만들어 링크를 발급하세요." action={<Button onClick={onNew}>＋ 새 작업</Button>} />
+            <EmptyState title={t.dash.empty} hint={t.dash.emptyHint} action={<Button onClick={onNew}>{t.newJob}</Button>} />
           ) : (
             <div>
               {recent.map((s) => {
                 const b = boardStatus(s);
                 return (
-                  <button key={s.order.id} type="button" onClick={() => onOpenReview(s.order.id)} style={sx.recentRow}>
+                  <button key={s.order.id} type="button" onClick={() => onOpenReview(s.order.id)} className="cn-row" style={sx.recentRow}>
                     <span style={sx.rcCont}>{s.containerNo}</span>
                     <span style={sx.rcCust}>{s.customerName}</span>
                     <span style={sx.rcDate}>{s.order.workDate || '—'}</span>
-                    <Badge tone={b.tone}>{b.label}</Badge>
+                    <Badge tone={b.tone}>{t.board.status[b.label]}</Badge>
                   </button>
                 );
               })}
@@ -70,14 +75,14 @@ export function Dashboard({ repo, onNew, onOpenBoard, onOpenReview }: {
 
         <div style={sx.sideCol}>
           <div style={sx.quickCard}>
-            <div style={sx.quickTitle}>빠른 시작</div>
-            <div style={sx.quickSub}>촬영 항목과 담당자를 정하면 작업자 링크가 만들어집니다.</div>
-            <Button onClick={onNew} style={{ width: '100%', marginTop: 14 }}>＋ 새 작업 만들기</Button>
-            <Button variant="ghost" onClick={onOpenBoard} style={{ width: '100%', marginTop: 8 }}>작업 현황 보기</Button>
+            <div style={sx.quickTitle}>{t.dash.quickStart}</div>
+            <div style={sx.quickSub}>{t.dash.quickSub}</div>
+            <Button onClick={onNew} style={{ width: '100%', marginTop: 14 }}>{t.dash.newJobFull}</Button>
+            <Button variant="ghost" onClick={onOpenBoard} style={{ width: '100%', marginTop: 8 }}>{t.dash.viewBoard}</Button>
           </div>
           <div style={sx.totalCard}>
             <span style={sx.totalNum}>{rows.length}</span>
-            <span style={sx.totalLabel}>전체 작업</span>
+            <span style={sx.totalLabel}>{t.dash.total}</span>
           </div>
         </div>
       </div>

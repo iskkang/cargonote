@@ -30,3 +30,41 @@ h1 { font-size: 20px; margin: 0; }   /* color inherited from the screen containe
 /* Landing: subtle lift on interactive cards */
 .lp-card { transition: transform .16s ease, box-shadow .16s ease; }
 .lp-card:hover { transform: translateY(-3px); box-shadow: 0 14px 28px -14px rgba(15,27,38,.3); }
+
+/* Buttons: hover/active feedback */
+.cn-btn { transition: filter .14s ease, background-color .14s ease, transform .06s ease; }
+.cn-btn:not(:disabled):hover { filter: brightness(1.06); }
+.cn-btn-ghost:not(:disabled):hover { background: #EEF2F5; }
+.cn-btn:not(:disabled):active { transform: translateY(1px); }
+
+/* Table/list rows: hover highlight */
+.cn-row { transition: background-color .12s ease; }
+.cn-row:hover { background: #F5F8FA; }
+
+/* Skeleton shimmer */
+.cn-skel { background: linear-gradient(90deg, #E7EDF1 25%, #F1F5F7 37%, #E7EDF1 63%); background-size: 400% 100%; animation: cn-shimmer 1.3s ease infinite; }
+@keyframes cn-shimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+
+/* ---- Admin responsive ---- */
+.cn-admin-shell { display: flex; min-height: 100vh; }
+.cn-topbar { display: none; }
+.cn-scrim { display: none; }
+.cn-split { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,360px); gap: 20px; align-items: start; }
+.cn-dashgrid { display: grid; grid-template-columns: minmax(0,1fr) 260px; gap: 16px; align-items: start; }
+.cn-board-cards { display: none; }
+
+@media (max-width: 860px) {
+  .cn-split { grid-template-columns: 1fr; }
+  .cn-dashgrid { grid-template-columns: 1fr; }
+}
+@media (max-width: 760px) {
+  /* sidebar becomes an off-canvas drawer */
+  .cn-sidebar { position: fixed; top: 0; bottom: 0; left: 0; z-index: 70; transform: translateX(-100%); transition: transform .22s ease; }
+  .cn-sidebar.cn-open { transform: translateX(0); box-shadow: 0 20px 50px -10px rgba(15,27,38,.55); }
+  .cn-topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; background: #fff; border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 40; }
+  .cn-scrim.cn-open { display: block; position: fixed; inset: 0; background: rgba(15,27,38,.4); z-index: 60; }
+  .cn-main { padding: 18px 16px 40px !important; }
+  /* board: hide the table, show stacked cards */
+  .cn-board-table { display: none; }
+  .cn-board-cards { display: flex; flex-direction: column; gap: 10px; }
+}

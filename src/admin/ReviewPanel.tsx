@@ -6,18 +6,21 @@ import { checklistStatus } from '../domain/checklist';
 import { DAMAGE_SLOT } from '../domain/review';
 import { createThumbUrls, createSignedViewerUrls } from './thumbs';
 import { buildViewerManifest } from '../domain/viewer';
-import { Card, Button, Badge } from '../ui/kit';
+import { Card, Button, Badge, Skeleton } from '../ui/kit';
 import { ShareLinkBar } from '../ui/ShareLinkBar';
+import { useT } from './i18n';
 import { C, FONT } from '../ui/tokens';
 
 export function ReviewPanel({
-  workOrderId, repo, onBack, backLabel = '작업 현황', startAsReport = false,
+  workOrderId, repo, onBack, backLabel: backLabelProp, startAsReport = false,
   thumbUrls = (paths) => createThumbUrls(paths), signViewer = (paths) => createSignedViewerUrls(paths),
 }: {
   workOrderId: string; repo: AdminRepo; onBack: () => void; backLabel?: string; startAsReport?: boolean;
   thumbUrls?: (paths: string[]) => Promise<Record<string, string>>;
   signViewer?: (paths: string[]) => Promise<Record<string, string>>;
 }) {
+  const t = useT();
+  const backLabel = backLabelProp ?? t.review.back;
   const [review, setReview] = useState<WorkOrderReview | null>(null);
   const [urls, setUrls] = useState<Record<string, string>>({});
   const [publishedToken, setPublishedToken] = useState<string | null>(null);
@@ -57,13 +60,16 @@ export function ReviewPanel({
       <div style={sx.header}>
         <Button variant="ghost" onClick={onBack}>← {backLabel}</Button>
       </div>
-      <div style={{ color: C.text, fontSize: 14, marginBottom: 12 }}>불러오지 못했습니다. 네트워크를 확인하고 다시 시도하세요.</div>
-      <Button onClick={() => setReloadKey((k) => k + 1)}>다시 시도</Button>
+      <div style={{ color: C.text, fontSize: 14, marginBottom: 12 }}>{t.review.loadErr}</div>
+      <Button onClick={() => setReloadKey((k) => k + 1)}>{t.review.retry}</Button>
     </section>
   );
   if (!review) return (
-    <section style={{ fontFamily: FONT.sans, padding: 20 }}>
-      <span style={{ color: C.text, fontSize: 13 }}>로딩 중…</span>
+    <section style={{ fontFamily: FONT.sans }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <Skeleton height={40} width={220} />
+        <Skeleton height={220} style={{ borderRadius: 12 }} />
+      </div>
     </section>
   );
 
@@ -98,27 +104,27 @@ export function ReviewPanel({
       <section style={{ fontFamily: FONT.sans }}>
         <div style={sx.header}>
           <Button variant="ghost" onClick={startAsReport ? onBack : () => setShowReport(false)}>
-            {startAsReport ? `← ${backLabel}` : '← 검수 화면'}
+            {startAsReport ? `← ${backLabel}` : `← ${t.review.reviewBack}`}
           </Button>
-          <span style={{ fontSize: 13, color: C.text }}>리포트 발행 완료</span>
+          <span style={{ fontSize: 13, color: C.text }}>{t.review.published}</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
-          <Button onClick={() => window.print()}>PDF 다운로드</Button>
+          <Button onClick={() => window.print()}>{t.review.pdf}</Button>
         </div>
         <Card style={{ padding: 0, overflow: 'hidden', maxWidth: 720 }}>
           <div style={sx.reportHead}>
             <div>
-              <div style={sx.reportKicker}>CONCHECK 증빙 리포트</div>
-              <div style={sx.reportTitle}>{review.template.route} 검수 · {firstContainer?.containerNo}</div>
+              <div style={sx.reportKicker}>{t.review.kicker}</div>
+              <div style={sx.reportTitle}>{review.template.route} · {firstContainer?.containerNo}</div>
             </div>
-            <span style={sx.verified}>VERIFIED<br /><span style={{ fontSize: 9, fontWeight: 600 }}>촬영→검증</span></span>
+            <span style={sx.verified}>{t.review.verified}<br /><span style={{ fontSize: 9, fontWeight: 600 }}>{t.review.verifiedSub}</span></span>
           </div>
           <div style={{ padding: 18 }}>
             <div style={sx.tiles}>
-              <Tile label="완료율" value={`${pct}%`} accent={C.positive} />
-              <Tile label="사진" value={`${cap}/${req}`} />
-              <Tile label="데미지" value={`${damageCount}`} accent={damageCount ? C.negative : undefined} />
-              <Tile label="Seal No." value={firstContainer?.sealNo || '—'} />
+              <Tile label={t.review.rateT} value={`${pct}%`} accent={C.positive} />
+              <Tile label={t.review.photos} value={`${cap}/${req}`} />
+              <Tile label={t.review.damageT} value={`${damageCount}`} accent={damageCount ? C.negative : undefined} />
+              <Tile label={t.review.seal} value={firstContainer?.sealNo || '—'} />
             </div>
             {thumbList.length > 0 && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, margin: '14px 0' }}>
@@ -126,14 +132,14 @@ export function ReviewPanel({
               </div>
             )}
             <div style={sx.chainRow}>
-              <span style={{ fontSize: 12, color: C.text }}>발행 · {review.customer?.name ?? ''}</span>
-              <span style={{ fontSize: 12, color: C.teal, fontWeight: 600 }}>🔒 발행본 고정</span>
+              <span style={{ fontSize: 12, color: C.text }}>{t.review.publishedBy} · {review.customer?.name ?? ''}</span>
+              <span style={{ fontSize: 12, color: C.teal, fontWeight: 600 }}>{t.review.locked}</span>
             </div>
           </div>
         </Card>
         <Card style={{ marginTop: 12, maxWidth: 720 }}>
-          <div style={{ fontSize: 12, color: C.text, marginBottom: 6 }}>수신자에게 링크 보내기</div>
-          <ShareLinkBar url={viewerLink} title="적입 검수 완료 · 증빙 리포트" testId="viewer-link" />
+          <div style={{ fontSize: 12, color: C.text, marginBottom: 6 }}>{t.review.shareViewer}</div>
+          <ShareLinkBar url={viewerLink} title={t.review.published} testId="viewer-link" />
         </Card>
       </section>
     );
@@ -163,11 +169,11 @@ export function ReviewPanel({
                       <div style={{ position: 'relative' }}>
                         {url
                           ? <img src={url} alt={slot.label} style={{ ...sx.pthumb, cursor: 'zoom-in' }} onClick={() => large && setLightbox(large)} />
-                          : <div style={{ ...sx.pthumb, ...sx.pmiss }}>미촬영</div>}
+                          : <div style={{ ...sx.pthumb, ...sx.pmiss }}>{t.review.notCaptured}</div>}
                         <span style={sx.pnum}>{String(i + 1).padStart(2, '0')}</span>
                       </div>
                       <div style={sx.plabel}>{slot.label}</div>
-                      <Badge tone={done ? 'positive' : 'negative'}>{done ? '촬영됨' : '누락'}</Badge>
+                      <Badge tone={done ? 'positive' : 'negative'}>{done ? t.review.captured2 : t.review.missing2}</Badge>
                     </div>
                   );
                 })}
@@ -177,7 +183,7 @@ export function ReviewPanel({
 
           {damagePhotos.length > 0 && (
             <div style={{ marginTop: 6 }}>
-              <div style={{ ...sx.plate, color: C.negative }}>데미지 사진 · {damageCount}장</div>
+              <div style={{ ...sx.plate, color: C.negative }}>{t.review.damageSec(damageCount)}</div>
               <div style={sx.grid}>
                 {damagePhotos.map((p, i) => {
                   const url = p.thumbPath ? urls[p.thumbPath] : undefined;
@@ -185,9 +191,9 @@ export function ReviewPanel({
                   return (
                     <div key={i} style={sx.pcard}>
                       {url
-                        ? <img src={url} alt="데미지" style={{ ...sx.pthumb, cursor: 'zoom-in' }} onClick={() => large && setLightbox(large)} />
-                        : <div style={{ ...sx.pthumb, ...sx.pmiss }}>이미지</div>}
-                      <div style={{ marginTop: 6 }}><Badge tone="negative">데미지</Badge></div>
+                        ? <img src={url} alt={t.review.damageT} style={{ ...sx.pthumb, cursor: 'zoom-in' }} onClick={() => large && setLightbox(large)} />
+                        : <div style={{ ...sx.pthumb, ...sx.pmiss }}>{t.review.image}</div>}
+                      <div style={{ marginTop: 6 }}><Badge tone="negative">{t.review.damageT}</Badge></div>
                     </div>
                   );
                 })}
@@ -197,19 +203,19 @@ export function ReviewPanel({
         </div>
 
         <Card style={{ alignSelf: 'flex-start' }}>
-          <div style={{ fontWeight: 700, color: C.navy, marginBottom: 12 }}>검수 요약</div>
-          <div style={sx.bigPct}>{pct}<span style={{ fontSize: 18 }}>%</span> <span style={{ fontSize: 13, color: C.text, fontWeight: 600 }}>완료율</span></div>
+          <div style={{ fontWeight: 700, color: C.navy, marginBottom: 12 }}>{t.review.summary}</div>
+          <div style={sx.bigPct}>{pct}<span style={{ fontSize: 18 }}>%</span> <span style={{ fontSize: 13, color: C.text, fontWeight: 600 }}>{t.review.rate}</span></div>
           <div style={sx.pctTrack}><div style={{ ...sx.pctFill, width: `${pct}%` }} /></div>
-          <SumRow label="촬영 완료" value={`${cap}장`} dot={C.positive} />
-          <SumRow label="누락" value={`${missing}장`} dot={missing ? C.negative : C.muted} />
-          <SumRow label="데미지" value={`${damageCount}장`} dot={damageCount ? C.negative : C.muted} />
+          <SumRow label={t.review.captured} value={`${cap}${t.review.unit}`} dot={C.positive} />
+          <SumRow label={t.review.missing} value={`${missing}${t.review.unit}`} dot={missing ? C.negative : C.muted} />
+          <SumRow label={t.review.damage} value={`${damageCount}${t.review.unit}`} dot={damageCount ? C.negative : C.muted} />
           {publishedToken ? (
             <Button onClick={() => setShowReport(true)} style={{ width: '100%', marginTop: 14 }}>
-              발행된 리포트 보기
+              {t.review.viewReport}
             </Button>
           ) : (
             <Button onClick={publish} disabled={publishing} style={{ width: '100%', marginTop: 14 }}>
-              {publishing ? '발행 중…' : '리포트 발행'}
+              {publishing ? t.review.publishing : t.review.publish}
             </Button>
           )}
         </Card>
@@ -217,8 +223,8 @@ export function ReviewPanel({
 
       {lightbox && (
         <div style={sx.lbOverlay} role="dialog" aria-modal="true" onClick={() => setLightbox(null)}>
-          <img src={lightbox} alt="확대 이미지" style={sx.lbImg} onClick={(e) => e.stopPropagation()} />
-          <button type="button" onClick={() => setLightbox(null)} style={sx.lbClose} aria-label="닫기">✕</button>
+          <img src={lightbox} alt={t.review.zoomAlt} style={sx.lbImg} onClick={(e) => e.stopPropagation()} />
+          <button type="button" onClick={() => setLightbox(null)} style={sx.lbClose} aria-label={t.common.close}>✕</button>
         </div>
       )}
     </section>
