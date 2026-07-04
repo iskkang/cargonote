@@ -34,7 +34,7 @@ const ko = {
   create: {
     customer: '거래처', type: '작업 유형', container: '컨테이너 번호', containerPh: 'TCLU1234567 (쉼표로 여러 개)',
     containerHint: '촬영할 컨테이너 번호를 1개 이상 입력하세요.', needPhotos: '필요 사진', unit: '장',
-    workDate: '작업일', assigneeName: '담당자 이름', assigneeContact: '담당자 연락처', submit: '링크·QR 발급하기',
+    workDate: '작업일', assigneeName: '담당자 이름', assigneeContact: '담당자 연락처', assigneeEmail: '담당자 이메일', submit: '링크·QR 발급하기',
     noCustomer: '먼저 거래처를 등록하세요.', manageCustomers: '거래처 관리로 이동',
     successTitle: '링크가 발급되었습니다', successSub: '작업자에게 카카오톡·문자로 보내거나 QR을 보여주세요.',
     containerNo: 'CONTAINER No.', scan: '현장에서 스캔', sendWorker: '작업자에게 링크 보내기', oneMore: '새 작업 하나 더', toBoard: '작업 현황으로 →', issued: '링크가 발급되었습니다.',
@@ -87,7 +87,7 @@ const en: typeof ko = {
   create: {
     customer: 'Customer', type: 'Job type', container: 'Container no.', containerPh: 'TCLU1234567 (comma-separated)',
     containerHint: 'Enter at least one container number to capture.', needPhotos: 'Required photos', unit: '',
-    workDate: 'Work date', assigneeName: 'Assignee name', assigneeContact: 'Assignee contact', submit: 'Issue link & QR',
+    workDate: 'Work date', assigneeName: 'Assignee name', assigneeContact: 'Assignee contact', assigneeEmail: 'Assignee email', submit: 'Issue link & QR',
     noCustomer: 'Add a customer first.', manageCustomers: 'Go to customers',
     successTitle: 'Link issued', successSub: 'Send it to the worker via chat/SMS, or show the QR.',
     containerNo: 'CONTAINER No.', scan: 'Scan on site', sendWorker: 'Send the link to the worker', oneMore: 'New job', toBoard: 'To jobs →', issued: 'Link issued.',
@@ -140,7 +140,7 @@ const zh: typeof ko = {
   create: {
     customer: '客户', type: '任务类型', container: '集装箱号', containerPh: 'TCLU1234567（逗号分隔多个）',
     containerHint: '请输入至少一个要拍摄的集装箱号。', needPhotos: '必拍照片', unit: '张',
-    workDate: '作业日期', assigneeName: '负责人姓名', assigneeContact: '负责人联系方式', submit: '生成链接·二维码',
+    workDate: '作业日期', assigneeName: '负责人姓名', assigneeContact: '负责人联系方式', assigneeEmail: '负责人邮箱', submit: '生成链接·二维码',
     noCustomer: '请先登记客户。', manageCustomers: '前往客户管理',
     successTitle: '链接已生成', successSub: '通过聊天/短信发送给作业员，或出示二维码。',
     containerNo: 'CONTAINER No.', scan: '现场扫码', sendWorker: '把链接发给作业员', oneMore: '再建一个', toBoard: '前往任务 →', issued: '链接已生成。',
@@ -193,7 +193,7 @@ const ru: typeof ko = {
   create: {
     customer: 'Клиент', type: 'Тип задачи', container: '№ контейнера', containerPh: 'TCLU1234567 (через запятую)',
     containerHint: 'Введите хотя бы один номер контейнера.', needPhotos: 'Обязательные фото', unit: '',
-    workDate: 'Дата работ', assigneeName: 'Имя исполнителя', assigneeContact: 'Контакт исполнителя', submit: 'Создать ссылку и QR',
+    workDate: 'Дата работ', assigneeName: 'Имя исполнителя', assigneeContact: 'Контакт исполнителя', assigneeEmail: 'Email исполнителя', submit: 'Создать ссылку и QR',
     noCustomer: 'Сначала добавьте клиента.', manageCustomers: 'К клиентам',
     successTitle: 'Ссылка создана', successSub: 'Отправьте исполнителю в чат/SMS или покажите QR.',
     containerNo: 'CONTAINER No.', scan: 'Скан на объекте', sendWorker: 'Отправить ссылку исполнителю', oneMore: 'Ещё задача', toBoard: 'К задачам →', issued: 'Ссылка создана.',

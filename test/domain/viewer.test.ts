@@ -11,7 +11,7 @@ const template = {
 } as WorkTypeTemplate;
 
 const review: WorkOrderReview = {
-  order: { id: 'wo1', customerId: 'c1', templateId: 't', workDate: null, status: 'submitted', assigneeName: null, assigneeContact: null, shipperLabel: null },
+  order: { id: 'wo1', customerId: 'c1', templateId: 't', workDate: null, status: 'submitted', assigneeName: null, assigneeContact: null, assigneeEmail: null, shipperLabel: null },
   template,
   customer: { id: 'c1', name: '칭다오 파트너', contactName: null, phone: null, email: null, contact: null, notes: null },
   containers: [{ container: { id: 'k1', workOrderId: 'wo1', containerNo: 'ABCD1234567', sealNo: null, workerMemo: null }, photos: [ph('seal', 'seal-t.webp', 'seal-d.webp')] }],

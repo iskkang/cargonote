@@ -17,7 +17,7 @@ export function rowToWorkOrder(r: Row): WorkOrder {
   return {
     id: str(r.id), customerId: str(r.customer_id), templateId: str(r.template_id),
     workDate: strOrNull(r.work_date), status: str(r.status) as WorkOrderStatus,
-    assigneeName: strOrNull(r.assignee_name), assigneeContact: strOrNull(r.assignee_contact),
+    assigneeName: strOrNull(r.assignee_name), assigneeContact: strOrNull(r.assignee_contact), assigneeEmail: strOrNull(r.assignee_email),
     shipperLabel: strOrNull(r.shipper_label),
   };
 }

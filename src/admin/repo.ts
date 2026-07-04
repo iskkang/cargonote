@@ -6,7 +6,7 @@ import type { ViewerManifest } from '../domain/viewer';
 
 export interface NewWorkOrder {
   customerId: string; templateId: string; containerNos: string[];
-  workDate: string | null; assigneeName: string; assigneeContact: string;
+  workDate: string | null; assigneeName: string; assigneeContact: string; assigneeEmail?: string | null;
 }
 export interface NewPhoto {
   containerId: string; slotKey: string; displayPath: string; thumbPath: string;
@@ -66,8 +66,8 @@ export function createInMemoryAdminRepo(): AdminRepo {
     },
   ];
   const orders: WorkOrder[] = [
-    { id: 'wo-1', customerId: 'cust-mtl', templateId: 'tpl-tsr', workDate: '2026-07-01', status: 'submitted', assigneeName: '김작업', assigneeContact: '010-1111', shipperLabel: null },
-    { id: 'wo-2', customerId: 'cust-cn', templateId: 'tpl-tcr', workDate: '2026-07-02', status: 'sent', assigneeName: '이현장', assigneeContact: '010-2222', shipperLabel: null },
+    { id: 'wo-1', customerId: 'cust-mtl', templateId: 'tpl-tsr', workDate: '2026-07-01', status: 'submitted', assigneeName: '김작업', assigneeContact: '010-1111', assigneeEmail: null, shipperLabel: null },
+    { id: 'wo-2', customerId: 'cust-cn', templateId: 'tpl-tcr', workDate: '2026-07-02', status: 'sent', assigneeName: '이현장', assigneeContact: '010-2222', assigneeEmail: null, shipperLabel: null },
   ];
   const containers: Container[] = [
     { id: 'ctn-1', workOrderId: 'wo-2', containerNo: 'FBLU4204812', sealNo: null, workerMemo: null },
@@ -124,7 +124,7 @@ export function createInMemoryAdminRepo(): AdminRepo {
       const order: WorkOrder = {
         id: `wo-${++seq}`, customerId: input.customerId, templateId: input.templateId,
         workDate: input.workDate, status: 'sent', assigneeName: input.assigneeName,
-        assigneeContact: input.assigneeContact, shipperLabel: null,
+        assigneeContact: input.assigneeContact, assigneeEmail: input.assigneeEmail ?? null, shipperLabel: null,
       };
       orders.push(order);
       input.containerNos.forEach((no, i) =>

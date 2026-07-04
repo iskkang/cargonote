@@ -23,13 +23,25 @@ export function CreateWorkOrder({ repo, onCreated, onManageCustomers, onPreviewC
   const [workDate, setWorkDate] = useState('');
   const [assigneeName, setAssigneeName] = useState('');
   const [assigneeContact, setAssigneeContact] = useState('');
+  const [assigneeEmail, setAssigneeEmail] = useState('');
   const [created, setCreated] = useState<{ containerNo: string; customer: string; route: string | null; requiredCount: number; link: string } | null>(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    repo.listCustomers().then((c) => { setCustomers(c); setCustomerId(c[0]?.id ?? ''); setReady(true); });
+    repo.listCustomers().then((c) => { setCustomers(c); setCustomerId(c[0]?.id ?? ''); prefill(c[0]); setReady(true); });
     repo.listTemplates().then((tp) => { setTemplates(tp); setTemplateId(tp[0]?.id ?? ''); });
   }, [repo]);
+
+  // Selecting a customer pulls its registered contact into the assignee fields.
+  function prefill(c?: Customer) {
+    setAssigneeName(c?.contactName ?? '');
+    setAssigneeContact(c?.phone ?? '');
+    setAssigneeEmail(c?.email ?? '');
+  }
+  function pickCustomer(id: string) {
+    setCustomerId(id);
+    prefill(customers.find((x) => x.id === id));
+  }
 
   useEffect(() => {
     if (!onPreviewChange) return;
@@ -48,12 +60,12 @@ export function CreateWorkOrder({ repo, onCreated, onManageCustomers, onPreviewC
   const selectedTpl = templates.find((tp) => tp.id === templateId);
   const requiredSlots = selectedTpl ? selectedTpl.requiredPhotos.filter((s) => s.required) : [];
 
-  function reset() { setCreated(null); setContainerNo(''); setAssigneeName(''); setAssigneeContact(''); setWorkDate(''); }
+  function reset() { setCreated(null); setContainerNo(''); prefill(customers.find((x) => x.id === customerId)); setWorkDate(''); }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!canSubmit) return;
-    const { workerToken } = await repo.createWorkOrder({ customerId, templateId, containerNos, workDate: workDate || null, assigneeName, assigneeContact });
+    const { workerToken } = await repo.createWorkOrder({ customerId, templateId, containerNos, workDate: workDate || null, assigneeName, assigneeContact, assigneeEmail: assigneeEmail || null });
     const tpl = templates.find((tp) => tp.id === templateId);
     setCreated({
       containerNo: containerNos[0] + (containerNos.length > 1 ? ` 외 ${containerNos.length - 1}` : ''),
@@ -105,7 +117,7 @@ export function CreateWorkOrder({ repo, onCreated, onManageCustomers, onPreviewC
         </div>
       ) : (
         <Field label={t.create.customer}>
-          <Select value={customerId} onChange={setCustomerId} ariaLabel={t.create.customer}
+          <Select value={customerId} onChange={pickCustomer} ariaLabel={t.create.customer}
             options={customers.map((c) => ({ value: c.id, label: c.name }))} />
         </Field>
       )}
@@ -136,6 +148,7 @@ export function CreateWorkOrder({ repo, onCreated, onManageCustomers, onPreviewC
       <Field label={t.create.workDate}><input type="date" style={inputStyle} value={workDate} onChange={(e) => setWorkDate(e.target.value)} /></Field>
       <Field label={t.create.assigneeName}><input style={inputStyle} value={assigneeName} onChange={(e) => setAssigneeName(e.target.value)} /></Field>
       <Field label={t.create.assigneeContact}><input style={inputStyle} value={assigneeContact} onChange={(e) => setAssigneeContact(e.target.value)} /></Field>
+      <Field label={t.create.assigneeEmail}><input type="email" style={inputStyle} value={assigneeEmail} onChange={(e) => setAssigneeEmail(e.target.value)} /></Field>
       <Button type="submit" disabled={ready && !canSubmit}>{t.create.submit}</Button>
     </form>
   );

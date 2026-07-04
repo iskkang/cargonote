@@ -3,11 +3,11 @@ import { rowToContainer, rowToCustomer, rowToPhoto, rowToWorkOrder } from '../..
 test('rowToWorkOrder maps snake_case columns to camelCase domain', () => {
   const wo = rowToWorkOrder({
     id: 'wo1', customer_id: 'c1', template_id: 't1', work_date: '2026-07-02',
-    status: 'sent', assignee_name: '김', assignee_contact: '010', shipper_label: null,
+    status: 'sent', assignee_name: '김', assignee_contact: '010', assignee_email: 'a@b.c', shipper_label: null,
   });
   expect(wo).toEqual({
     id: 'wo1', customerId: 'c1', templateId: 't1', workDate: '2026-07-02',
-    status: 'sent', assigneeName: '김', assigneeContact: '010', shipperLabel: null,
+    status: 'sent', assigneeName: '김', assigneeContact: '010', assigneeEmail: 'a@b.c', shipperLabel: null,
   });
 });
 
