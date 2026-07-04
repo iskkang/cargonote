@@ -33,3 +33,11 @@ test('language toggle switches the copy', () => {
   expect(screen.getByText(/done in one link/)).toBeInTheDocument();
   expect(screen.getByText(/Worker · Field/)).toBeInTheDocument();
 });
+
+test('shows product screens, a home logo, and a toggling FAQ', () => {
+  renderLanding();
+  expect(screen.getByText(/관리자 대시보드/)).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: '홈으로' })).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: /수신자도 로그인이 필요한가요/ }));
+  expect(screen.getByText(/발행된 링크 하나로/)).toBeInTheDocument();
+});

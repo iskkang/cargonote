@@ -10,6 +10,7 @@ export const LANGS: { code: Lang; label: string }[] = [
 export interface Role { tag: string; title: string; desc: string; points: string[] }
 export interface Feature { k: string; v: string }
 export interface Compare { head: string; sub: string; beforeLabel: string; before: string[]; afterLabel: string; after: string[] }
+export interface Qa { q: string; a: string }
 export interface Dict {
   login: string; kicker: string; h1a: string; h1b: string; lead: string;
   start: string; how: string; trust: string[];
@@ -17,8 +18,10 @@ export interface Dict {
   rolesHead: string; rolesSub: string; roles: Role[];
   stepsHead: string; steps: string[];
   featuresHead: string; features: Feature[];
+  shotsHead: string; shotsSub: string; shots: string[];
+  faqHead: string; faqSub: string; faq: Qa[];
   ctaTitle: string; ctaSub: string; ctaBtn: string; footer: string;
-  proofDone: string;
+  proofDone: string; home: string;
 }
 
 export const T: Record<Lang, Dict> = {
@@ -49,6 +52,17 @@ export const T: Record<Lang, Dict> = {
       { k: '다국어 열람', v: '수신 국가 언어로 리포트 확인' },
       { k: '데미지 증빙', v: '손상 화물을 현장에서 별도 촬영' },
     ],
+    shotsHead: '실제 화면 미리보기', shotsSub: '관리자·현장·수신자, 각자 딱 맞는 화면.',
+    shots: ['관리자 대시보드', '현장 사진 검수', '수신자 증빙 갤러리'],
+    faqHead: '자주 묻는 질문', faqSub: '도입 전에 많이 물어보시는 내용입니다.',
+    faq: [
+      { q: '앱을 설치해야 하나요?', a: '아니요. 작업자는 문자로 받은 링크를 열면 바로 촬영 화면이 뜹니다. 수신자도 링크만으로 열람합니다. 설치·로그인 모두 필요 없습니다.' },
+      { q: '수신자도 로그인이 필요한가요?', a: '필요 없습니다. 발행된 링크 하나로 사진과 증빙을 바로 봅니다. 링크는 언제든 사무실에서 회수할 수 있습니다.' },
+      { q: '사진이 원본 그대로임을 어떻게 보장하나요?', a: '발행 시점의 사진과 정보를 스냅샷으로 고정하고, 각 사진에 촬영 시각과 해시를 함께 기록합니다. 발행 후에는 그 버전이 그대로 유지됩니다.' },
+      { q: '어떤 언어로 볼 수 있나요?', a: '수신자 갤러리와 이 소개 페이지는 한국어·영어·중국어·러시아어를 지원합니다. 도착지 담당자가 자기 언어로 확인할 수 있습니다.' },
+      { q: '손상된 화물은 어떻게 처리하나요?', a: '작업자가 촬영 중 손상 화물을 별도로 찍어 보낼 수 있고, 관리자 화면과 리포트에 데미지로 따로 표시됩니다.' },
+    ],
+    home: '홈으로',
     ctaTitle: '지금 첫 작업을 만들어 보세요', ctaSub: '계정으로 로그인하면 바로 시작할 수 있습니다.',
     ctaBtn: '관리자 로그인', footer: 'ConCheck — 컨테이너 작업 증빙 자동화', proofDone: '촬영 완료',
   },
@@ -79,6 +93,17 @@ export const T: Record<Lang, Dict> = {
       { k: 'Multi-language', v: "Reports read in the recipient's language" },
       { k: 'Damage proof', v: 'Capture damaged cargo on site' },
     ],
+    shotsHead: 'A look at the real screens', shotsSub: 'Field, office and customer — each the right view.',
+    shots: ['Admin dashboard', 'On-site photo review', 'Recipient proof gallery'],
+    faqHead: 'Frequently asked', faqSub: 'What teams ask most before adopting.',
+    faq: [
+      { q: 'Do I need to install an app?', a: 'No. The worker opens the link from a text and the capture screen appears. Recipients view by link too. No install, no login.' },
+      { q: 'Does the recipient need to log in?', a: 'No. A single published link shows the photos and proof. The office can revoke the link at any time.' },
+      { q: 'How do you guarantee the photos are unaltered?', a: 'At publish time the photos and details are locked as a snapshot, and each photo stores its capture time and a hash. After publishing, that version stays fixed.' },
+      { q: 'Which languages are supported?', a: 'The recipient gallery and this page support Korean, English, Chinese and Russian, so the destination contact reads it in their language.' },
+      { q: 'How is damaged cargo handled?', a: 'The worker can shoot damaged cargo separately during capture, and it is flagged as damage in the admin screens and the report.' },
+    ],
+    home: 'Home',
     ctaTitle: 'Create your first job now', ctaSub: 'Log in with your account to get started.',
     ctaBtn: 'Admin login', footer: 'ConCheck — Container work proof automation', proofDone: 'All captured',
   },
@@ -109,6 +134,17 @@ export const T: Record<Lang, Dict> = {
       { k: '多语言', v: '以收件人语言查看报告' },
       { k: '破损存证', v: '在现场单独拍摄破损货物' },
     ],
+    shotsHead: '真实界面预览', shotsSub: '现场、办公室与客户，各有专属界面。',
+    shots: ['管理员仪表盘', '现场照片审核', '收件人存证相册'],
+    faqHead: '常见问题', faqSub: '客户在采用前最常问的问题。',
+    faq: [
+      { q: '需要安装应用吗？', a: '不需要。作业员打开短信里的链接即出现拍摄界面，收件人也通过链接查看。无需安装、无需登录。' },
+      { q: '收件人需要登录吗？', a: '不需要。一条已发布的链接即可查看照片与存证。办公室可随时回收链接。' },
+      { q: '如何保证照片未被篡改？', a: '发布时将照片与信息固定为快照，并为每张照片记录拍摄时间与哈希。发布后该版本保持不变。' },
+      { q: '支持哪些语言？', a: '收件人相册与本页面支持中文、英文、韩文、俄文，目的地负责人可用自己的语言查看。' },
+      { q: '破损货物如何处理？', a: '作业员可在拍摄时单独拍摄破损货物，并在管理界面与报告中标记为破损。' },
+    ],
+    home: '首页',
     ctaTitle: '立即创建第一个任务', ctaSub: '使用账户登录即可开始。',
     ctaBtn: '管理员登录', footer: 'ConCheck —— 集装箱作业存证自动化', proofDone: '拍摄完成',
   },
@@ -139,6 +175,17 @@ export const T: Record<Lang, Dict> = {
       { k: 'Много языков', v: 'Отчёты на языке получателя' },
       { k: 'Повреждения', v: 'Съёмка повреждённого груза на месте' },
     ],
+    shotsHead: 'Реальные экраны', shotsSub: 'Объект, офис и клиент — у каждого свой экран.',
+    shots: ['Панель администратора', 'Проверка фото на объекте', 'Галерея-подтверждение для получателя'],
+    faqHead: 'Частые вопросы', faqSub: 'Что чаще всего спрашивают перед внедрением.',
+    faq: [
+      { q: 'Нужно ли устанавливать приложение?', a: 'Нет. Исполнитель открывает ссылку из SMS — и сразу экран съёмки. Получатель тоже смотрит по ссылке. Без установки и входа.' },
+      { q: 'Нужен ли вход получателю?', a: 'Нет. Одна опубликованная ссылка показывает фото и подтверждение. Офис может отозвать ссылку в любой момент.' },
+      { q: 'Как вы гарантируете, что фото не изменены?', a: 'При публикации фото и данные фиксируются снимком, а к каждому фото сохраняются время съёмки и хеш. После публикации версия остаётся неизменной.' },
+      { q: 'Какие языки поддерживаются?', a: 'Галерея получателя и эта страница поддерживают корейский, английский, китайский и русский — контакт в пункте назначения читает на своём языке.' },
+      { q: 'Как обрабатывается повреждённый груз?', a: 'Исполнитель может отдельно снять повреждённый груз при съёмке — он отмечается как повреждение в экранах администратора и в отчёте.' },
+    ],
+    home: 'Главная',
     ctaTitle: 'Создайте первую задачу сейчас', ctaSub: 'Войдите в аккаунт, чтобы начать.',
     ctaBtn: 'Вход для администратора', footer: 'ConCheck — автоматизация фотофиксации работ с контейнерами', proofDone: 'Съёмка завершена',
   },

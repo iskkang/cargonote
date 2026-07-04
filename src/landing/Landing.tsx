@@ -3,20 +3,23 @@ import { useNavigate } from 'react-router-dom';
 import { PageShell, Brand, Button } from '../ui/kit';
 import { C, R, SH, FONT } from '../ui/tokens';
 import { T, LANGS, type Lang } from './i18n';
+import { Shots } from './Shots';
 
 export function Landing() {
   const nav = useNavigate();
   const [lang, setLang] = useState<Lang>('ko');
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
   const t = T[lang];
   const goLogin = () => nav('/admin');
   const goHow = () => document.getElementById('how')?.scrollIntoView({ behavior: 'smooth' });
+  const goHome = () => { nav('/'); window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
   return (
     <PageShell>
       <div style={sx.wrap}>
         {/* Top nav */}
         <nav style={sx.nav}>
-          <Brand />
+          <button type="button" onClick={goHome} aria-label={t.home} style={sx.brandBtn}><Brand /></button>
           <div style={sx.navRight}>
             <div style={sx.langBar}>
               {LANGS.map((l) => (
@@ -119,6 +122,33 @@ export function Landing() {
           </div>
         </section>
 
+        {/* Product screens */}
+        <section style={sx.section}>
+          <div style={sx.secHead}>{t.shotsHead}</div>
+          <div style={sx.secSub}>{t.shotsSub}</div>
+          <Shots captions={t.shots} />
+        </section>
+
+        {/* FAQ */}
+        <section style={sx.section}>
+          <div style={sx.secHead}>{t.faqHead}</div>
+          <div style={sx.secSub}>{t.faqSub}</div>
+          <div style={sx.faqList}>
+            {t.faq.map((item, i) => {
+              const open = openFaq === i;
+              return (
+                <div key={i} style={sx.faqItem}>
+                  <button type="button" onClick={() => setOpenFaq(open ? null : i)} aria-expanded={open} style={sx.faqQ}>
+                    <span>{item.q}</span>
+                    <span style={{ ...sx.faqChevron, transform: open ? 'rotate(180deg)' : 'none' }}>▾</span>
+                  </button>
+                  {open && <div style={sx.faqA}>{item.a}</div>}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
         {/* Bottom CTA */}
         <section style={sx.cta}>
           <div style={sx.glow3} />
@@ -195,6 +225,7 @@ function ContainerArt({ doneLabel }: { doneLabel: string }) {
 const sx = {
   wrap: { maxWidth: 1060, margin: '0 auto', padding: '18px clamp(16px,4vw,24px) 40px' } as const,
   nav: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, paddingBottom: 14 } as const,
+  brandBtn: { border: 0, background: 'transparent', padding: 0, cursor: 'pointer', display: 'inline-flex' } as const,
   navRight: { display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' as const } as const,
   langBar: { display: 'inline-flex', gap: 3, background: C.white, border: `1px solid ${C.line}`, borderRadius: 999, padding: 3 } as const,
   langBtn: { fontFamily: FONT.sans, fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 999, border: 0, background: 'transparent', color: C.text, cursor: 'pointer' } as const,
@@ -222,6 +253,12 @@ const sx = {
   section: { padding: 'clamp(24px,5vw,34px) 0' } as const,
   secHead: { fontSize: 'clamp(20px,5vw,24px)', fontWeight: 800, color: C.navy, letterSpacing: '-0.01em', marginBottom: 4 } as const,
   secSub: { fontSize: 14, color: C.text, marginBottom: 20 } as const,
+
+  faqList: { display: 'flex', flexDirection: 'column' as const, gap: 10, maxWidth: 760 } as const,
+  faqItem: { background: C.white, border: `1px solid ${C.line}`, borderRadius: R.lg, boxShadow: SH.card, overflow: 'hidden' } as const,
+  faqQ: { width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, border: 0, background: 'transparent', cursor: 'pointer', textAlign: 'left' as const, fontFamily: FONT.sans, fontSize: 15, fontWeight: 700, color: C.navy, padding: '15px 18px' } as const,
+  faqChevron: { color: C.teal, fontSize: 13, transition: 'transform .15s ease', flexShrink: 0 } as const,
+  faqA: { fontSize: 14, lineHeight: 1.65, color: C.text, padding: '0 18px 16px' } as const,
 
   cmpGrid: { display: 'flex', gap: 16, flexWrap: 'wrap' as const } as const,
   beforeCard: { flex: '1 1 300px', minWidth: 260, background: C.surfaceAlt, border: `1px solid ${C.line}`, borderRadius: R.xl, padding: 22 } as const,
