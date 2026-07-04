@@ -222,9 +222,14 @@ export function ReviewPanel({
           <SumRow label={t.review.missing} value={`${missing}${t.review.unit}`} dot={missing ? C.negative : C.muted} />
           <SumRow label={t.review.damage} value={`${damageCount}${t.review.unit}`} dot={damageCount ? C.negative : C.muted} />
           {publishedToken ? (
-            <Button onClick={() => setShowReport(true)} style={{ width: '100%', marginTop: 14 }}>
-              {t.review.viewReport}
-            </Button>
+            <>
+              <Button onClick={() => setShowReport(true)} style={{ width: '100%', marginTop: 14 }}>
+                {t.review.viewReport}
+              </Button>
+              <Button variant="ghost" onClick={revoke} style={{ width: '100%', marginTop: 8 }}>
+                {t.review.revoke}
+              </Button>
+            </>
           ) : (
             <Button onClick={publish} disabled={publishing} style={{ width: '100%', marginTop: 14 }}>
               {publishing ? t.review.publishing : t.review.publish}
