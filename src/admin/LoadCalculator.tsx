@@ -15,7 +15,6 @@ export function LoadCalculator() {
   const t = useT();
   const [rows, setRows] = useState<Row[]>([blank()]);
   const [utilPct, setUtilPct] = useState(85);
-  const [freight, setFreight] = useState<Partial<Record<ContainerId, number>>>({});
   const [pickId, setPickId] = useState<ContainerId | null>(null);
   const [hl, setHl] = useState<number | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -32,8 +31,8 @@ export function LoadCalculator() {
   }
 
   const result = useMemo(
-    () => computeStuffing(rows, { utilization: utilPct / 100, freight }),
-    [rows, utilPct, freight],
+    () => computeStuffing(rows, { utilization: utilPct / 100 }),
+    [rows, utilPct],
   );
   const hasCargo = result.totalQty > 0;
 
@@ -97,43 +96,41 @@ export function LoadCalculator() {
             <Tot label={t.load.totalCbm} value={`${result.totalCbm.toFixed(2)} CBM`} />
             <Tot label={t.load.totalWeight} value={`${Math.round(result.totalWeight).toLocaleString()} kg`} />
           </div>
-          <div style={sx.cards}>
-            {result.perContainer.map((p) => {
-              const best = result.recommendedId === p.spec.id;
+          <div style={sx.typeRow}>
+            {CONTAINERS.map((cc) => {
+              const best = result.recommendedId === cc.id;
               return (
-                <div key={p.spec.id} style={{ ...sx.cCard, ...(best ? sx.cCardBest : {}) }}>
-                  <div style={sx.cCardHead}>
-                    <span style={sx.cCardTitle}>{p.spec.label}</span>
-                    {best && <Badge tone="positive">{t.load.recommended}</Badge>}
-                    {!p.fits && <Badge tone="negative">{t.load.notFit}</Badge>}
-                  </div>
-                  <div style={sx.needed}>{p.containersNeeded}<span style={sx.neededUnit}>{t.load.unit || '×'}</span> <span style={sx.neededLabel}>{t.load.needed}</span></div>
-                  <div style={sx.track}><div style={{ ...sx.trackFill, width: `${p.fillPct}%`, background: best ? C.positive : C.teal }} /></div>
-                  <div style={sx.metaRow}><span>{t.load.fill}</span><span style={sx.metaVal}>{Math.round(p.fillPct)}%</span></div>
-                  <div style={sx.metaRow}><span style={{ color: C.muted }}>{p.binding === 'volume' ? t.load.bindVol : t.load.bindWt}</span>
-                    {p.maxUnitsSingle != null && <span style={sx.metaVal}>{t.load.maxUnits} {p.maxUnitsSingle}</span>}
-                  </div>
-                  <label style={sx.freight}>{t.load.freight}
-                    <input type="number" min={0} value={freight[p.spec.id] ?? ''} placeholder="—"
-                      onChange={(e) => setFreight((f) => ({ ...f, [p.spec.id]: e.target.value === '' ? undefined : Number(e.target.value) }))}
-                      style={{ ...inputStyle, marginTop: 4 }} />
-                  </label>
-                  {p.cost != null && <div style={sx.cost}>= {p.cost.toLocaleString()}</div>}
-                </div>
+                <button key={cc.id} type="button" onClick={() => setPickId(cc.id)}
+                  style={{ ...sx.typeBtn, ...(selId === cc.id ? sx.typeBtnActive : {}) }}>
+                  {cc.label}{best ? ` · ${t.load.recommended}` : ''}
+                </button>
               );
             })}
           </div>
+          {(() => {
+            const p = result.perContainer.find((c) => c.spec.id === selId)!;
+            const best = result.recommendedId === p.spec.id;
+            return (
+              <div style={{ ...sx.cCard, ...(best ? sx.cCardBest : {}), maxWidth: 340 }}>
+                <div style={sx.cCardHead}>
+                  <span style={sx.cCardTitle}>{p.spec.label}</span>
+                  {best && <Badge tone="positive">{t.load.recommended}</Badge>}
+                  {!p.fits && <Badge tone="negative">{t.load.notFit}</Badge>}
+                </div>
+                <div style={sx.needed}>{p.containersNeeded}<span style={sx.neededUnit}>{t.load.unit || '×'}</span> <span style={sx.neededLabel}>{t.load.needed}</span></div>
+                <div style={sx.track}><div style={{ ...sx.trackFill, width: `${p.fillPct}%`, background: best ? C.positive : C.teal }} /></div>
+                <div style={sx.metaRow}><span>{t.load.fill}</span><span style={sx.metaVal}>{Math.round(p.fillPct)}%</span></div>
+                <div style={sx.metaRow}><span style={{ color: C.muted }}>{p.binding === 'volume' ? t.load.bindVol : t.load.bindWt}</span>
+                  {p.maxUnitsSingle != null && <span style={sx.metaVal}>{t.load.maxUnits} {p.maxUnitsSingle}</span>}
+                </div>
+              </div>
+            );
+          })()}
           <div style={sx.disclaimer}>ⓘ {t.load.disclaimer} ({t.load.util} {utilPct}%)</div>
 
           <div style={sx.view3d}>
             <div style={sx.view3dHead}>
-              <span style={sx.view3dTitle}>{t.load.view3d}</span>
-              <div style={sx.view3dCtrl}>
-                {CONTAINERS.map((cc) => (
-                  <button key={cc.id} type="button" onClick={() => setPickId(cc.id)}
-                    style={{ ...sx.seg, ...(selId === cc.id ? sx.segActive : {}) }}>{cc.label}</button>
-                ))}
-              </div>
+              <span style={sx.view3dTitle}>{t.load.view3d} · {selSpec.label}</span>
             </div>
             <div style={sx.legend}>
               {rows.map((r, i) => (r.l > 0 && r.w > 0 && r.h > 0 ? (
@@ -188,6 +185,9 @@ const sx = {
   totLabel: { fontSize: 11, color: C.muted } as const,
   totValue: { fontSize: 17, fontWeight: 800, color: C.navy, marginTop: 3 } as const,
   cards: { display: 'flex', gap: 12, flexWrap: 'wrap' as const } as const,
+  typeRow: { display: 'flex', gap: 8, flexWrap: 'wrap' as const, marginBottom: 12 } as const,
+  typeBtn: { fontFamily: FONT.sans, fontSize: 13.5, fontWeight: 700, padding: '9px 16px', borderRadius: R.md, border: `1px solid ${C.line}`, background: C.white, color: C.text, cursor: 'pointer' } as const,
+  typeBtnActive: { background: C.navy, color: C.white, border: `1px solid ${C.navy}` } as const,
   cCard: { flex: '1 1 200px', minWidth: 180, background: C.white, border: `1px solid ${C.line}`, borderRadius: R.xl, padding: 16 } as const,
   cCardBest: { border: `2px solid ${C.teal}`, boxShadow: '0 12px 26px -14px rgba(1,136,143,.4)' } as const,
   cCardHead: { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 } as const,
