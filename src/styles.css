@@ -27,3 +27,6 @@ h1 { font-size: 20px; margin: 0; }   /* color inherited from the screen containe
   .lp-hero .lp-cta { justify-content: center; }
   .lp-hero .lp-lead { margin-left: auto; margin-right: auto; }
 }
+/* Landing: subtle lift on interactive cards */
+.lp-card { transition: transform .16s ease, box-shadow .16s ease; }
+.lp-card:hover { transform: translateY(-3px); box-shadow: 0 14px 28px -14px rgba(15,27,38,.3); }

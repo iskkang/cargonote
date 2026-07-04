@@ -26,3 +26,10 @@ test('login button navigates to /admin', () => {
   fireEvent.click(screen.getAllByRole('button', { name: /관리자 로그인/ })[0]);
   expect(screen.getByText('ADMIN CONSOLE')).toBeInTheDocument();
 });
+
+test('language toggle switches the copy', () => {
+  renderLanding();
+  fireEvent.click(screen.getByRole('button', { name: 'EN' }));
+  expect(screen.getByText(/done in one link/)).toBeInTheDocument();
+  expect(screen.getByText(/Worker · Field/)).toBeInTheDocument();
+});
