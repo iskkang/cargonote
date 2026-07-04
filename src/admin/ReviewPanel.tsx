@@ -8,6 +8,7 @@ import { createThumbUrls, createSignedViewerUrls } from './thumbs';
 import { buildViewerManifest } from '../domain/viewer';
 import { Card, Button, Badge, Skeleton } from '../ui/kit';
 import { ShareLinkBar } from '../ui/ShareLinkBar';
+import { useConfirm, useToast } from '../ui/overlays';
 import { useT } from './i18n';
 import { C, FONT } from '../ui/tokens';
 
@@ -20,6 +21,8 @@ export function ReviewPanel({
   signViewer?: (paths: string[]) => Promise<Record<string, string>>;
 }) {
   const t = useT();
+  const confirm = useConfirm();
+  const toast = useToast();
   const backLabel = backLabelProp ?? t.review.back;
   const [review, setReview] = useState<WorkOrderReview | null>(null);
   const [urls, setUrls] = useState<Record<string, string>>({});
@@ -98,6 +101,14 @@ export function ReviewPanel({
     } finally { setPublishing(false); }
   }
 
+  async function revoke() {
+    const ok = await confirm({ title: t.review.revokeTitle, message: t.review.revokeMsg, confirmLabel: t.review.revoke, danger: true });
+    if (!ok) return;
+    await repo.revokePublication(workOrderId);
+    setPublishedToken(null); setShowReport(false);
+    toast(t.review.revoked, 'positive');
+  }
+
   // ---- Published report screen ----
   if (viewerLink && showReport) {
     return (
@@ -108,7 +119,8 @@ export function ReviewPanel({
           </Button>
           <span style={{ fontSize: 13, color: C.text }}>{t.review.published}</span>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginBottom: 12 }}>
+          <Button variant="ghost" onClick={revoke}>{t.review.revoke}</Button>
           <Button onClick={() => window.print()}>{t.review.pdf}</Button>
         </div>
         <Card style={{ padding: 0, overflow: 'hidden', maxWidth: 720 }}>

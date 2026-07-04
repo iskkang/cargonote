@@ -38,6 +38,7 @@ export interface AdminRepo {
   listPhotos(containerId: string): Promise<Photo[]>;
   getWorkOrderReview(id: string): Promise<WorkOrderReview | null>;
   publish(id: string, manifest: ViewerManifest): Promise<{ viewerToken: string }>;
+  revokePublication(id: string): Promise<void>;
   getViewerToken(id: string): Promise<string | null>;
   getViewerManifest(token: string): Promise<ViewerManifest | null>;
 }
@@ -76,6 +77,7 @@ export function createInMemoryAdminRepo(): AdminRepo {
   const photos: Photo[] = [];
   let pseq = 0;
   const viewerTokens = new Map<string, string>();
+  const revokedTokens = new Set<string>();
   const publications: { workOrderId: string; viewerToken: string; manifest: ViewerManifest }[] = [];
   return {
     async listCustomers() { return [...customers]; },
@@ -175,13 +177,23 @@ export function createInMemoryAdminRepo(): AdminRepo {
       order.status = 'published';
       const viewerToken = viewerTokens.get(id) ?? randomToken();
       viewerTokens.set(id, viewerToken);
+      revokedTokens.delete(viewerToken);
       publications.push({ workOrderId: id, viewerToken, manifest });
       return { viewerToken };
     },
+    async revokePublication(id) {
+      const order = orders.find((o) => o.id === id);
+      if (!order) return;
+      const tok = viewerTokens.get(id);
+      if (tok) revokedTokens.add(tok);
+      order.status = 'sent';
+    },
     async getViewerToken(id) {
-      return viewerTokens.get(id) ?? null;
+      const tok = viewerTokens.get(id);
+      return tok && !revokedTokens.has(tok) ? tok : null;
     },
     async getViewerManifest(token) {
+      if (revokedTokens.has(token)) return null;
       const pub = [...publications].reverse().find((p) => p.viewerToken === token);
       return pub ? pub.manifest : null;
     },

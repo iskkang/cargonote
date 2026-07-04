@@ -130,6 +130,7 @@ export function createSupabaseAdminRepo(db: DbPort): AdminRepo {
       let viewerToken: string;
       if (existing) {
         viewerToken = String(existing.token);
+        await db.update('share_links', { col: 'token', val: viewerToken }, { revoked: false });
       } else {
         viewerToken = randomToken();
         await db.insert('share_links', { work_order_id: id, token: viewerToken, kind: 'viewer' });
@@ -137,6 +138,12 @@ export function createSupabaseAdminRepo(db: DbPort): AdminRepo {
       await db.insert('publications', { work_order_id: id, viewer_token: viewerToken, photo_manifest: manifest });
       await db.update('work_orders', { col: 'id', val: id }, { status: 'published' });
       return { viewerToken };
+    },
+    async revokePublication(id: string) {
+      const links = await db.select('share_links', { col: 'work_order_id', val: id });
+      const viewer = links.find((l) => l.kind === 'viewer');
+      if (viewer) await db.update('share_links', { col: 'token', val: String(viewer.token) }, { revoked: true });
+      await db.update('work_orders', { col: 'id', val: id }, { status: 'sent' });
     },
     async getViewerToken(id: string) {
       const links = await db.select('share_links', { col: 'work_order_id', val: id });
