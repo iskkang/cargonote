@@ -5,7 +5,8 @@
 //
 // Deploy:  supabase functions deploy analyze-container
 // Secret:  supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
-// Model:   optional  supabase secrets set ANTHROPIC_MODEL=claude-haiku-4-5   (cheaper)
+// Model:   defaults to claude-haiku-4-5 (cheap vision OCR).
+//          Override:  supabase secrets set ANTHROPIC_MODEL=claude-opus-4-8
 //
 // Request  (POST, JSON):
 //   { imageUrl?: string, imageBase64?: string, mediaType?: string, expectedContainerNo?: string }
@@ -14,7 +15,7 @@
 
 import Anthropic from "npm:@anthropic-ai/sdk";
 
-const MODEL = Deno.env.get("ANTHROPIC_MODEL") ?? "claude-opus-4-8";
+const MODEL = Deno.env.get("ANTHROPIC_MODEL") ?? "claude-haiku-4-5";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
