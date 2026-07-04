@@ -9,3 +9,5 @@ vite.config.js
 
 # local design prototype dump (duplicate of design-reference/, 29MB)
 prd/
+
+supabase/.temp/
