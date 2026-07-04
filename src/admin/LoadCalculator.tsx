@@ -91,6 +91,8 @@ export function LoadCalculator({ onCreateJob }: { onCreateJob?: (p: LoadPlan) =>
           <span style={sx.cWt}>{t.load.weight}</span>
           <span style={sx.cChk}>{t.load.stack}</span>
           <span style={sx.cChk}>{t.load.lay}</span>
+          <span style={sx.cLim} title={t.load.maxWHint}>{t.load.maxW}</span>
+          <span style={sx.cLim} title={t.load.maxHHint}>{t.load.maxH}</span>
           <span style={sx.cDel} />
         </div>
         {rows.map((r, i) => (
@@ -112,6 +114,10 @@ export function LoadCalculator({ onCreateJob }: { onCreateJob?: (p: LoadPlan) =>
             <label style={{ ...sx.cChk, display: 'flex', alignItems: 'center', justifyContent: 'center' }} title={t.load.lay}>
               <input type="checkbox" checked={r.layDown ?? true} onChange={(e) => set(r.key, { layDown: e.target.checked })} />
             </label>
+            <input style={{ ...inputStyle, ...sx.cLim }} type="number" min={0} placeholder="∞" title={t.load.maxWHint}
+              value={r.maxStackWeight || ''} onChange={(e) => set(r.key, { maxStackWeight: num(e.target.value) })} />
+            <input style={{ ...inputStyle, ...sx.cLim }} type="number" min={0} placeholder="∞" title={t.load.maxHHint}
+              value={r.maxStackHeight || ''} onChange={(e) => set(r.key, { maxStackHeight: num(e.target.value) })} />
             <button type="button" aria-label={t.load.remove} onClick={() => setRows((rs) => (rs.length > 1 ? rs.filter((x) => x.key !== r.key) : rs))} style={sx.del}>✕</button>
           </div>
         ))}
@@ -235,8 +241,8 @@ function Tot({ label, value }: { label: string; value: string }) {
 
 const sx = {
   tableWrap: { background: C.white, border: `1px solid ${C.line}`, borderRadius: R.lg, padding: 10, overflowX: 'auto' as const } as const,
-  head: { display: 'flex', gap: 8, alignItems: 'center', padding: '4px 6px 8px', fontFamily: FONT.sans, fontSize: 12, fontWeight: 700, color: C.muted, minWidth: 660 } as const,
-  row: { display: 'flex', gap: 8, alignItems: 'center', padding: '4px 6px', minWidth: 660, borderRadius: 8 } as const,
+  head: { display: 'flex', gap: 8, alignItems: 'center', padding: '4px 6px 8px', fontFamily: FONT.sans, fontSize: 12, fontWeight: 700, color: C.muted, minWidth: 800 } as const,
+  row: { display: 'flex', gap: 8, alignItems: 'center', padding: '4px 6px', minWidth: 800, borderRadius: 8 } as const,
   rowHl: { background: C.tealTint } as const,
   cColor: { width: 30, flexShrink: 0 } as const,
   colorInput: { width: 30, height: 30, padding: 0, border: `1px solid ${C.line}`, borderRadius: 6, background: C.white, cursor: 'pointer', flexShrink: 0 } as const,
@@ -246,6 +252,7 @@ const sx = {
   dim: { width: 58, padding: '9px 6px', textAlign: 'center' as const } as const,
   cWt: { width: 90, flexShrink: 0 } as const,
   cChk: { width: 44, flexShrink: 0, textAlign: 'center' as const } as const,
+  cLim: { width: 62, flexShrink: 0, textAlign: 'center' as const, padding: '9px 6px' } as const,
   cDel: { width: 26, flexShrink: 0 } as const,
   del: { width: 26, height: 26, border: 0, background: 'transparent', color: C.muted, cursor: 'pointer', fontSize: 13, flexShrink: 0 } as const,
   controls: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, margin: '12px 0 20px', flexWrap: 'wrap' as const } as const,

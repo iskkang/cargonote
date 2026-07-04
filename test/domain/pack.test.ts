@@ -58,6 +58,22 @@ test('layDown:false keeps a too-tall box upright (cannot be tilted to fit)', () 
   expect(packContainer(tilt.boxes, cont).packed).toBe(1);
 });
 
+test('maxStackWeight stops a heavy box resting on a fragile one', () => {
+  const cont = { L: 100, W: 100, H: 300 }; // 1×1 footprint — the only way to fit 2 is to stack
+  const fragile = expandBoxes([cargo({ qty: 2, l: 100, w: 100, h: 100, weight: 10, maxStackWeight: 5 })]);
+  expect(packContainer(fragile.boxes, cont).packed).toBe(1);
+  const sturdy = expandBoxes([cargo({ qty: 2, l: 100, w: 100, h: 100, weight: 10 })]);
+  expect(packContainer(sturdy.boxes, cont).packed).toBe(2);
+});
+
+test('maxStackHeight limits how tall a stack on a box may grow', () => {
+  const cont = { L: 100, W: 100, H: 300 };
+  const capped = expandBoxes([cargo({ qty: 2, l: 100, w: 100, h: 100, weight: 1, maxStackHeight: 50 })]);
+  expect(packContainer(capped.boxes, cont).packed).toBe(1); // a 100-tall box exceeds the 50cm top allowance
+  const open = expandBoxes([cargo({ qty: 2, l: 100, w: 100, h: 100, weight: 1 })]);
+  expect(packContainer(open.boxes, cont).packed).toBe(2);
+});
+
 test('rotate keeps count and swaps container L/W on odd turns', () => {
   const { boxes } = expandBoxes([cargo()]);
   const res = packContainer(boxes, { L: 200, W: 200, H: 200 });

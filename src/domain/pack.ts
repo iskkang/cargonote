@@ -6,7 +6,7 @@ import type { CargoLine } from './stuffing';
 
 export const PALETTE = ['#01888F', '#E0A100', '#22507A', '#16A9B0', '#015056', '#1B3E5C', '#8895A2'];
 
-export interface Box { line: number; l: number; w: number; h: number; stackable: boolean; layDown: boolean; weight: number; color: string }
+export interface Box { line: number; l: number; w: number; h: number; stackable: boolean; layDown: boolean; weight: number; maxStackWeight: number; maxStackHeight: number; color: string }
 export interface Placement { line: number; color: string; weight: number; x: number; y: number; z: number; dx: number; dy: number; dz: number }
 export interface PackResult { placements: Placement[]; packed: number; total: number; unplaced: Box[] }
 export interface PackedContainer { placements: Placement[]; count: number; fillPct: number }
@@ -22,9 +22,11 @@ export function expandBoxes(cargo: CargoLine[], cap = 240): { boxes: Box[]; trun
     if (c.qty <= 0 || c.l <= 0 || c.w <= 0 || c.h <= 0) return;
     const color = c.color ?? PALETTE[i % PALETTE.length];
     const layDown = c.layDown ?? true;
+    const maxStackWeight = c.maxStackWeight || Infinity;
+    const maxStackHeight = c.maxStackHeight || Infinity;
     for (let k = 0; k < c.qty; k++) {
       if (boxes.length >= cap) { truncated = true; return; }
-      boxes.push({ line: i, l: c.l, w: c.w, h: c.h, stackable: c.stackable, layDown, weight: c.weight, color });
+      boxes.push({ line: i, l: c.l, w: c.w, h: c.h, stackable: c.stackable, layDown, weight: c.weight, maxStackWeight, maxStackHeight, color });
     }
   });
   return { boxes, truncated };
@@ -40,13 +42,15 @@ function orientations(b: Box): [number, number, number][] {
   return out.sort((a, c) => a[2] - c[2]); // flattest first → prefers lay-down / stacking
 }
 
-interface Free { x: number; y: number; z: number; dx: number; dy: number; dz: number; layer: number }
+// wBudget: weight still allowed to rest in this space (min over the supporting column).
+// hCapZ: highest absolute top-z a box in this space may reach (min over the column's height limits).
+interface Free { x: number; y: number; z: number; dx: number; dy: number; dz: number; layer: number; wBudget: number; hCapZ: number }
 
-/** maxLayers: cap on stacked layers (0/undefined = unlimited). */
+/** maxLayers: cap on stacked layers (0/undefined = unlimited). Per-cargo weight/height stacking limits come from the boxes. */
 export function packContainer(boxes: Box[], container: { L: number; W: number; H: number }, opts?: { maxLayers?: number }): PackResult {
   const maxLayers = opts?.maxLayers ?? 0;
   const sorted = [...boxes].sort((a, b) => (b.l * b.w * b.h) - (a.l * a.w * a.h));
-  const free: Free[] = [{ x: 0, y: 0, z: 0, dx: container.L, dy: container.W, dz: container.H, layer: 0 }];
+  const free: Free[] = [{ x: 0, y: 0, z: 0, dx: container.L, dy: container.W, dz: container.H, layer: 0, wBudget: Infinity, hCapZ: Infinity }];
   const placements: Placement[] = [];
   const unplaced: Box[] = [];
 
@@ -56,13 +60,22 @@ export function packContainer(boxes: Box[], container: { L: number; W: number; H
     for (const fs of free) {
       let done = false;
       for (const [dx, dy, dz] of orientations(box)) {
-        if (dx <= fs.dx + EPS && dy <= fs.dy + EPS && dz <= fs.dz + EPS) {
+        const fitsGeom = dx <= fs.dx + EPS && dy <= fs.dy + EPS && dz <= fs.dz + EPS;
+        const bearsWeight = box.weight <= fs.wBudget + EPS;          // column below can support this box
+        const underHeightCap = fs.z + dz <= fs.hCapZ + EPS;          // stack-height limit of the column below
+        if (fitsGeom && bearsWeight && underHeightCap) {
           placements.push({ line: box.line, color: box.color, weight: box.weight, x: fs.x, y: fs.y, z: fs.z, dx, dy, dz });
           const splits: Free[] = [];
-          if (fs.dx - dx > EPS) splits.push({ x: fs.x + dx, y: fs.y, z: fs.z, dx: fs.dx - dx, dy: fs.dy, dz: fs.dz, layer: fs.layer });
-          if (fs.dy - dy > EPS) splits.push({ x: fs.x, y: fs.y + dy, z: fs.z, dx, dy: fs.dy - dy, dz: fs.dz, layer: fs.layer });
+          if (fs.dx - dx > EPS) splits.push({ x: fs.x + dx, y: fs.y, z: fs.z, dx: fs.dx - dx, dy: fs.dy, dz: fs.dz, layer: fs.layer, wBudget: fs.wBudget, hCapZ: fs.hCapZ });
+          if (fs.dy - dy > EPS) splits.push({ x: fs.x, y: fs.y + dy, z: fs.z, dx, dy: fs.dy - dy, dz: fs.dz, layer: fs.layer, wBudget: fs.wBudget, hCapZ: fs.hCapZ });
           const layerOk = maxLayers <= 0 || fs.layer + 1 < maxLayers;
-          if (box.stackable && layerOk && fs.dz - dz > EPS) splits.push({ x: fs.x, y: fs.y, z: fs.z + dz, dx, dy, dz: fs.dz - dz, layer: fs.layer + 1 });
+          if (box.stackable && layerOk && fs.dz - dz > EPS) {
+            splits.push({
+              x: fs.x, y: fs.y, z: fs.z + dz, dx, dy, dz: fs.dz - dz, layer: fs.layer + 1,
+              wBudget: Math.min(fs.wBudget - box.weight, box.maxStackWeight), // both the column and this box limit what goes above
+              hCapZ: Math.min(fs.hCapZ, fs.z + dz + box.maxStackHeight),
+            });
+          }
           free.splice(free.indexOf(fs), 1, ...splits);
           done = true; break;
         }

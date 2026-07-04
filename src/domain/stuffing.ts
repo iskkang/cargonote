@@ -10,6 +10,8 @@ export interface CargoLine {
   stackable: boolean;
   color?: string;                   // hex, for the 3D/legend
   layDown?: boolean;                // may be tilted onto its side (default true)
+  maxStackWeight?: number;          // kg that may rest on top of one unit (0/undefined = unlimited)
+  maxStackHeight?: number;          // cm of cargo that may be stacked on top (0/undefined = unlimited)
 }
 
 export interface ContainerSpec {
