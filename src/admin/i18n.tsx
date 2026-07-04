@@ -6,7 +6,8 @@ export const ADMIN_LANGS: { code: AdminLang; label: string }[] = [
 ];
 
 const ko = {
-  nav: { home: '대시보드', new: '새 작업', board: '작업 현황', customers: '거래처', reports: '리포트' },
+  nav: { home: '대시보드', new: '새 작업', board: '작업 현황', customers: '거래처', reports: '리포트', load: '적재 계산' },
+  load: { title: '적재 계산', sub: '화물 리스트로 20/40/40HQ 적재율과 필요 컨테이너 수를 추정합니다.', addRow: '＋ 화물 추가', name: '품명', qty: '수량', dimsCm: '치수 L·W·H (cm)', weight: '중량(kg)', stack: '적재', util: '가정 적재율', results: '적재 추정', totalCbm: '총 부피', totalWeight: '총 중량', totalQty: '총 수량', needed: '필요 컨테이너', fill: '적재율', bindVol: '부피 제약', bindWt: '중량 제약', maxUnits: '1대 최대', unit: '대', recommended: '추천', notFit: '치수 초과', freight: '운임(대당·선택)', empty: '화물을 추가하면 결과가 나옵니다.', disclaimer: '부피·중량 기반 추정치입니다. 실제 적재율은 화물 모양·스택 제약에 좌우됩니다.', remove: '삭제' },
   role: '사무실 관리자', signOut: '로그아웃', menu: '메뉴',
   titles: { home: '대시보드', new: '새 작업 만들기', board: '작업 현황', customers: '거래처 관리', reports: '리포트', review: '작업 검수', report: '증빙 리포트' },
   subs: {
@@ -60,7 +61,8 @@ const ko = {
 };
 
 const en: typeof ko = {
-  nav: { home: 'Dashboard', new: 'New job', board: 'Jobs', customers: 'Customers', reports: 'Reports' },
+  nav: { home: 'Dashboard', new: 'New job', board: 'Jobs', customers: 'Customers', reports: 'Reports', load: 'Load calc' },
+  load: { title: 'Load calculator', sub: 'Estimate 20/40/40HQ fill and containers needed from a cargo list.', addRow: '＋ Add cargo', name: 'Item', qty: 'Qty', dimsCm: 'Size L·W·H (cm)', weight: 'Weight (kg)', stack: 'Stack', util: 'Assumed fill', results: 'Estimate', totalCbm: 'Total volume', totalWeight: 'Total weight', totalQty: 'Total qty', needed: 'Containers', fill: 'Fill', bindVol: 'volume-bound', bindWt: 'weight-bound', maxUnits: 'Max / unit', unit: '', recommended: 'Best', notFit: 'oversize', freight: 'Freight (per box, opt.)', empty: 'Add cargo to see results.', disclaimer: 'A volume/weight estimate. Real fill depends on cargo shape and stacking.', remove: 'Remove' },
   role: 'Office admin', signOut: 'Sign out', menu: 'Menu',
   titles: { home: 'Dashboard', new: 'Create a job', board: 'Jobs', customers: 'Customers', reports: 'Reports', review: 'Job review', report: 'Proof report' },
   subs: {
@@ -114,7 +116,8 @@ const en: typeof ko = {
 };
 
 const zh: typeof ko = {
-  nav: { home: '仪表盘', new: '新建任务', board: '任务列表', customers: '客户', reports: '报告' },
+  nav: { home: '仪表盘', new: '新建任务', board: '任务列表', customers: '客户', reports: '报告', load: '装箱计算' },
+  load: { title: '装箱计算', sub: '根据货物清单估算 20/40/40HQ 的装载率与所需箱数。', addRow: '＋ 添加货物', name: '品名', qty: '数量', dimsCm: '尺寸 L·W·H (cm)', weight: '重量(kg)', stack: '可堆叠', util: '假设装载率', results: '装箱估算', totalCbm: '总体积', totalWeight: '总重量', totalQty: '总数量', needed: '所需箱数', fill: '装载率', bindVol: '体积受限', bindWt: '重量受限', maxUnits: '单箱最多', unit: '箱', recommended: '推荐', notFit: '尺寸超限', freight: '运费(每箱·可选)', empty: '添加货物后显示结果。', disclaimer: '基于体积与重量的估算值。实际装载率取决于货物形状与堆叠。', remove: '删除' },
   role: '办公室管理员', signOut: '退出登录', menu: '菜单',
   titles: { home: '仪表盘', new: '新建任务', board: '任务列表', customers: '客户管理', reports: '报告', review: '任务审核', report: '存证报告' },
   subs: {
@@ -168,7 +171,8 @@ const zh: typeof ko = {
 };
 
 const ru: typeof ko = {
-  nav: { home: 'Панель', new: 'Новая задача', board: 'Задачи', customers: 'Клиенты', reports: 'Отчёты' },
+  nav: { home: 'Панель', new: 'Новая задача', board: 'Задачи', customers: 'Клиенты', reports: 'Отчёты', load: 'Загрузка' },
+  load: { title: 'Калькулятор загрузки', sub: 'Оценка заполнения 20/40/40HQ и числа контейнеров по списку груза.', addRow: '＋ Добавить груз', name: 'Наим.', qty: 'Кол-во', dimsCm: 'Размер Д·Ш·В (см)', weight: 'Вес (кг)', stack: 'Штаб.', util: 'Заполнение', results: 'Оценка', totalCbm: 'Объём', totalWeight: 'Вес', totalQty: 'Всего', needed: 'Контейнеров', fill: 'Заполнение', bindVol: 'по объёму', bindWt: 'по весу', maxUnits: 'Макс/шт', unit: '', recommended: 'Лучший', notFit: 'не влезает', freight: 'Фрахт (за конт., опц.)', empty: 'Добавьте груз, чтобы увидеть результат.', disclaimer: 'Оценка по объёму и весу. Реальное заполнение зависит от формы груза и штабелирования.', remove: 'Удалить' },
   role: 'Офис-администратор', signOut: 'Выйти', menu: 'Меню',
   titles: { home: 'Панель', new: 'Создать задачу', board: 'Задачи', customers: 'Клиенты', reports: 'Отчёты', review: 'Проверка задачи', report: 'Отчёт-подтверждение' },
   subs: {

@@ -7,6 +7,7 @@ import { ReviewPanel } from './ReviewPanel';
 import { CustomerManager } from './CustomerManager';
 import { ReportsList } from './ReportsList';
 import { Dashboard } from './Dashboard';
+import { LoadCalculator } from './LoadCalculator';
 import { AdminSidebar, type AdminView } from './AdminSidebar';
 import { WorkOrderPreview, type WorkOrderPreviewData } from './WorkOrderPreview';
 import { AdminLangProvider, useT } from './i18n';
@@ -32,7 +33,10 @@ function AdminConsoleInner({ repo }: { repo: AdminRepo }) {
   function select(v: AdminView) { setView(v); setSelectedId(null); setReportId(null); setNavOpen(false); }
 
   const inDetail = (view === 'board' && !!selectedId) || (view === 'reports' && !!reportId);
-  const title = inDetail ? (view === 'board' ? t.titles.review : t.titles.report) : t.titles[view];
+  const title = inDetail ? (view === 'board' ? t.titles.review : t.titles.report)
+    : view === 'load' ? t.load.title
+    : t.titles[view as 'home' | 'new' | 'board' | 'customers' | 'reports'];
+  const sub = inDetail ? '' : view === 'load' ? t.load.sub : (t.subs[view as keyof typeof t.subs] ?? '');
   const showNew = (view === 'home' || view === 'board') && !inDetail;
 
   return (
@@ -51,7 +55,7 @@ function AdminConsoleInner({ repo }: { repo: AdminRepo }) {
           <header style={sx.appbar}>
             <div style={{ minWidth: 0 }}>
               <h1 style={{ fontSize: 22, color: C.navy, margin: 0 }}>{title}</h1>
-              {!inDetail && t.subs[view as keyof typeof t.subs] && <p style={sx.sub}>{t.subs[view as keyof typeof t.subs]}</p>}
+              {sub && <p style={sx.sub}>{sub}</p>}
             </div>
             {showNew && <Button onClick={() => select('new')}>{t.newJob}</Button>}
           </header>
@@ -77,6 +81,8 @@ function AdminConsoleInner({ repo }: { repo: AdminRepo }) {
             ? <ReviewPanel workOrderId={selectedId} repo={repo} onBack={() => { setSelectedId(null); setRefreshKey((k) => k + 1); }} />
             : <div style={{ marginTop: 4 }}><WorkOrderBoard key={refreshKey} repo={repo} onSelect={setSelectedId} /></div>
           )}
+
+          {view === 'load' && <div style={{ marginTop: 4 }}><LoadCalculator /></div>}
 
           {view === 'customers' && <div style={{ marginTop: 4 }}><CustomerManager repo={repo} /></div>}
 

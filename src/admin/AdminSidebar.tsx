@@ -3,7 +3,7 @@ import { Brand, Button } from '../ui/kit';
 import { C, FONT } from '../ui/tokens';
 import { useT, useLang, ADMIN_LANGS } from './i18n';
 
-export type AdminView = 'home' | 'new' | 'board' | 'customers' | 'reports';
+export type AdminView = 'home' | 'new' | 'board' | 'load' | 'customers' | 'reports';
 
 const Ico = ({ d }: { d: string }) => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
@@ -19,11 +19,12 @@ const ICONS: Record<AdminView, ReactNode> = {
       <rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" />
     </svg>
   ),
+  load: <Ico d="M12 2 3 7v10l9 5 9-5V7l-9-5zM3 7l9 5 9-5M12 12v10" />,
   customers: <Ico d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />,
   reports: <Ico d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8M8 17h8M8 9h2" />,
 };
 
-const ORDER: AdminView[] = ['home', 'new', 'board', 'customers', 'reports'];
+const ORDER: AdminView[] = ['home', 'new', 'board', 'load', 'customers', 'reports'];
 
 export function AdminSidebar({
   view, onSelect, email, onSignOut, open, onClose,
