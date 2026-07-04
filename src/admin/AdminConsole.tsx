@@ -6,18 +6,26 @@ import { CreateWorkOrder } from './CreateWorkOrder';
 import { ReviewPanel } from './ReviewPanel';
 import { CustomerManager } from './CustomerManager';
 import { ReportsList } from './ReportsList';
+import { Dashboard } from './Dashboard';
 import { AdminSidebar, type AdminView } from './AdminSidebar';
 import { WorkOrderPreview, type WorkOrderPreviewData } from './WorkOrderPreview';
 import { defaultAuthDeps } from '../auth/session';
-import { Card } from '../ui/kit';
+import { Card, Button } from '../ui/kit';
 import { C, FONT } from '../ui/tokens';
 
 const TITLES: Record<AdminView, string> = {
-  new: '새 작업 만들기', board: '작업 현황', customers: '거래처 관리', reports: '리포트',
+  home: '대시보드', new: '새 작업 만들기', board: '작업 현황', customers: '거래처 관리', reports: '리포트',
+};
+const SUBS: Record<AdminView, string> = {
+  home: '오늘의 작업 현황을 한눈에.',
+  new: '촬영 항목과 담당자를 정의하면 작업자에게 보낼 링크가 만들어집니다.',
+  board: '컨테이너·작업일로 검색하고, 상태별로 검수하세요.',
+  customers: '작업을 지시할 거래처를 추가·수정합니다.',
+  reports: '발행된 증빙 리포트 목록입니다.',
 };
 
 export function AdminConsole({ repo = getAdminRepo() }: { repo?: AdminRepo } = {}) {
-  const [view, setView] = useState<AdminView>('new');
+  const [view, setView] = useState<AdminView>('home');
   const [refreshKey, setRefreshKey] = useState(0);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [reportId, setReportId] = useState<string | null>(null);
@@ -34,16 +42,31 @@ export function AdminConsole({ repo = getAdminRepo() }: { repo?: AdminRepo } = {
     <div style={{ display: 'flex', minHeight: '100vh', background: `linear-gradient(180deg,${C.page1},${C.page2})`, fontFamily: FONT.sans }}>
       <AdminSidebar view={view} onSelect={select} email={email} onSignOut={() => defaultAuthDeps.signOut()} />
       <div style={{ flex: 1, minWidth: 0, overflow: 'auto' }}>
-        <main style={{ maxWidth: 1040, margin: '0 auto', padding: '28px 32px' }}>
-          <h1 style={{ fontSize: 22, color: C.navy, marginBottom: 4 }}>
-            {selectedId && view === 'board' ? '작업 검수'
-              : reportId && view === 'reports' ? '증빙 리포트'
-              : TITLES[view]}
-          </h1>
+        <main style={{ maxWidth: 1040, margin: '0 auto', padding: '24px 32px 40px' }}>
+          {(() => {
+            const inDetail = (view === 'board' && !!selectedId) || (view === 'reports' && !!reportId);
+            const title = inDetail ? (view === 'board' ? '작업 검수' : '증빙 리포트') : TITLES[view];
+            const showNew = (view === 'home' || view === 'board') && !inDetail;
+            return (
+              <header style={sx.appbar}>
+                <div style={{ minWidth: 0 }}>
+                  <h1 style={{ fontSize: 22, color: C.navy, margin: 0 }}>{title}</h1>
+                  {!inDetail && SUBS[view] && <p style={sx.sub}>{SUBS[view]}</p>}
+                </div>
+                {showNew && <Button onClick={() => select('new')}>＋ 새 작업</Button>}
+              </header>
+            );
+          })()}
+
+          {view === 'home' && (
+            <Dashboard repo={repo}
+              onNew={() => select('new')}
+              onOpenBoard={() => select('board')}
+              onOpenReview={(id) => { setView('board'); setSelectedId(id); setReportId(null); }} />
+          )}
 
           {view === 'new' && (
             <>
-              <p style={sx.sub}>촬영 항목과 담당자를 정의하면 작업자에게 보낼 링크가 만들어집니다.</p>
               <div style={sx.split}>
                 <Card><CreateWorkOrder repo={repo} onPreviewChange={setPreview}
                   onManageCustomers={() => setView('customers')}
@@ -75,6 +98,7 @@ export function AdminConsole({ repo = getAdminRepo() }: { repo?: AdminRepo } = {
 }
 
 const sx = {
-  sub: { color: C.text, fontSize: 14, marginTop: 0, marginBottom: 18 } as const,
+  appbar: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, marginBottom: 20, flexWrap: 'wrap' as const } as const,
+  sub: { color: C.text, fontSize: 14, margin: '4px 0 0' } as const,
   split: { display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,360px)', gap: 20, alignItems: 'start' } as const,
 };

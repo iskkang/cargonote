@@ -47,7 +47,6 @@ export function CustomerManager({ repo }: { repo: AdminRepo }) {
 
   return (
     <div>
-      <h2 style={{ fontSize: 17, color: C.navy, margin: '4px 0 14px' }}>거래처 관리</h2>
       {error && <div style={{ color: C.negative, fontSize: 13, marginBottom: 12 }}>{error}</div>}
       {list.length === 0 ? (
         <EmptyState title="등록된 거래처가 없습니다" hint="아래에서 첫 거래처를 추가하세요." />

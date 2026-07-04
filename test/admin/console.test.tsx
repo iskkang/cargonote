@@ -1,8 +1,15 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { AdminConsole } from '../../src/admin/AdminConsole';
 
-test('defaults to the new-work view with the create form + link preview', async () => {
+test('defaults to the dashboard overview', async () => {
   render(<AdminConsole />);
+  expect(await screen.findByRole('heading', { name: '대시보드' })).toBeInTheDocument();
+  expect(screen.getByText(/확인 필요/)).toBeInTheDocument();
+});
+
+test('새 작업 nav shows the create form + link preview', async () => {
+  render(<AdminConsole />);
+  fireEvent.click(screen.getByRole('button', { name: /^새 작업$/ }));
   expect(await screen.findByRole('button', { name: /발급하기/ })).toBeInTheDocument();
   expect(screen.getByText(/작업자에게 전달될 링크 미리보기/)).toBeInTheDocument();
 });

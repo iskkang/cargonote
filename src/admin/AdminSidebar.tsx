@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { Brand, Button } from '../ui/kit';
 import { C, FONT } from '../ui/tokens';
 
-export type AdminView = 'new' | 'board' | 'customers' | 'reports';
+export type AdminView = 'home' | 'new' | 'board' | 'customers' | 'reports';
 
 const Ico = ({ d }: { d: string }) => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
@@ -10,6 +10,7 @@ const Ico = ({ d }: { d: string }) => (
   </svg>
 );
 const ICONS: Record<AdminView, ReactNode> = {
+  home: <Ico d="M3 9.5 12 3l9 6.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" />,
   new: <Ico d="M12 5v14M5 12h14" />,
   board: (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" style={{ flexShrink: 0 }}>
@@ -22,6 +23,7 @@ const ICONS: Record<AdminView, ReactNode> = {
 };
 
 const ITEMS: { key: AdminView; label: string; disabled?: boolean }[] = [
+  { key: 'home', label: '대시보드' },
   { key: 'new', label: '새 작업' },
   { key: 'board', label: '작업 현황' },
   { key: 'customers', label: '거래처' },

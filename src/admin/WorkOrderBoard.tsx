@@ -4,9 +4,10 @@ import { Badge, EmptyState, Button, Field, inputStyle } from '../ui/kit';
 import { C, FONT } from '../ui/tokens';
 
 type Edit = { id: string; assigneeName: string; assigneeContact: string; workDate: string };
-type StatusKey = '대기' | '진행중' | '확인필요' | '완료' | '데미지';
+export type StatusKey = '대기' | '진행중' | '확인필요' | '완료' | '데미지';
+export type StatusTone = 'neutral' | 'caution' | 'positive' | 'negative';
 
-function boardStatus(s: WorkOrderSummary): { label: StatusKey; tone: 'neutral' | 'caution' | 'positive' | 'negative' } {
+export function boardStatus(s: WorkOrderSummary): { label: StatusKey; tone: StatusTone } {
   if (s.damageCount > 0) return { label: '데미지', tone: 'negative' };
   if (s.order.status === 'published') return { label: '완료', tone: 'positive' };
   if (s.requiredCount > 0 && s.capturedCount >= s.requiredCount) return { label: '확인필요', tone: 'caution' };
