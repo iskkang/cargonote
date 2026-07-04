@@ -3,9 +3,9 @@ import { PageShell, Brand, Button } from '../ui/kit';
 import { C, R, SH, FONT } from '../ui/tokens';
 
 const ROLES = [
-  { h: 'H1', tag: '작업자 · 현장', title: '설치 없이 사진만 찍는다', desc: '문자로 받은 링크를 열면 촬영 화면. 앱 설치도 로그인도 없이, 안내 순서대로 찍어 전송.', points: ['무설치 링크 촬영', '단계별 촬영 안내', '데미지 화물 별도 기록'] },
-  { h: 'H2', tag: '관리자 · 사무실', title: '상태를 한눈에 통제한다', desc: '작업 생성부터 링크·QR 발급, 사진 검수, 리포트 발행까지 한 화면에서.', points: ['컨테이너별 검수', '완료율·누락·데미지 표시', '발행본 고정'] },
-  { h: 'H3', tag: '수신자 · 해외', title: '로그인 없이 증빙을 본다', desc: '받은 링크 하나로 컨테이너 사진과 증빙을 열람. 도착지 언어로.', points: ['무로그인 갤러리', '4개 언어(한·영·중·러)', '사진 일괄 다운로드'] },
+  { tag: '작업자 · 현장', title: '설치 없이 사진만 찍는다', desc: '문자로 받은 링크를 열면 촬영 화면. 앱 설치도 로그인도 없이, 안내 순서대로 찍어 전송.', points: ['무설치 링크 촬영', '단계별 촬영 안내', '데미지 화물 별도 기록'] },
+  { tag: '관리자 · 사무실', title: '상태를 한눈에 통제한다', desc: '작업 생성부터 링크·QR 발급, 사진 검수, 리포트 발행까지 한 화면에서.', points: ['컨테이너별 검수', '완료율·누락·데미지 표시', '발행본 고정'] },
+  { tag: '수신자 · 해외', title: '로그인 없이 증빙을 본다', desc: '받은 링크 하나로 컨테이너 사진과 증빙을 열람. 도착지 언어로.', points: ['무로그인 갤러리', '4개 언어(한·영·중·러)', '사진 일괄 다운로드'] },
 ];
 
 const STEPS = ['작업 생성', '링크·QR 발급', '현장 촬영', '사진 검수', '발행 · 열람'];
@@ -79,9 +79,9 @@ export function Landing() {
           <div style={sx.secHead}>세 사람, 하나의 흐름</div>
           <div style={sx.roleGrid}>
             {ROLES.map((r) => (
-              <div key={r.h} style={sx.roleCard}>
+              <div key={r.tag} style={sx.roleCard}>
                 <div style={sx.roleTagRow}>
-                  <span style={sx.roleH}>{r.h}</span>
+                  <span style={sx.dot} />
                   <span style={sx.roleTag}>{r.tag}</span>
                 </div>
                 <div style={sx.roleTitle}>{r.title}</div>
@@ -174,9 +174,8 @@ const sx = {
 
   roleGrid: { display: 'flex', gap: 16, flexWrap: 'wrap' as const } as const,
   roleCard: { flex: '1 1 260px', minWidth: 240, background: C.white, border: `1px solid ${C.line}`, borderRadius: R.xl, boxShadow: SH.card, padding: 20 } as const,
-  roleTagRow: { display: 'flex', alignItems: 'center', gap: 9, marginBottom: 10 } as const,
-  roleH: { fontWeight: 800, fontSize: 13, color: C.teal } as const,
-  roleTag: { fontSize: 11, fontWeight: 700, color: C.text, letterSpacing: '.04em' } as const,
+  roleTagRow: { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 } as const,
+  roleTag: { fontSize: 12, fontWeight: 700, color: C.teal, letterSpacing: '.04em' } as const,
   roleTitle: { fontSize: 17, fontWeight: 700, color: C.navy, lineHeight: 1.35 } as const,
   roleDesc: { fontSize: 13.5, lineHeight: 1.6, color: C.text, margin: '8px 0 14px' } as const,
   roleList: { listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column' as const, gap: 7 } as const,
