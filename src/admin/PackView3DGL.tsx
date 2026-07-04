@@ -1,0 +1,92 @@
+import { useEffect, useRef } from 'react';
+import type { Placement } from '../domain/pack';
+
+/** Three.js orbit/zoom viewer for a packed container. three is loaded lazily. */
+export function PackView3DGL({ placements, L, W, H, highlight }: {
+  placements: Placement[]; L: number; W: number; H: number; highlight: number | null;
+}) {
+  const mount = useRef<HTMLDivElement>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const ref = useRef<any>({});
+  const hlRef = useRef(highlight);
+  hlRef.current = highlight;
+
+  const applyHighlight = () => {
+    const r = ref.current;
+    if (!r.boxes) return;
+    const hl = hlRef.current;
+    for (const b of r.boxes) {
+      const on = hl == null || b.line === hl;
+      b.mat.opacity = on ? 1 : 0.1; b.mat.transparent = !on;
+      b.edge.opacity = on ? 0.25 : 0.04;
+    }
+  };
+
+  const build = () => {
+    const r = ref.current;
+    if (!r.THREE) return;
+    const THREE = r.THREE, s = 0.01; // cm → m
+    while (r.group.children.length) {
+      const c = r.group.children.pop();
+      c.geometry?.dispose?.(); c.material?.dispose?.();
+      r.group.remove(c);
+    }
+    r.boxes = [];
+    const cg = new THREE.BoxGeometry(L * s, H * s, W * s);
+    const cont = new THREE.LineSegments(new THREE.EdgesGeometry(cg), new THREE.LineBasicMaterial({ color: 0xc8d2db }));
+    cont.position.set(L * s / 2, H * s / 2, W * s / 2); r.group.add(cont); cg.dispose();
+    for (const p of placements) {
+      const g = new THREE.BoxGeometry(p.dx * s, p.dz * s, p.dy * s); // our z (up) → three Y
+      const mat = new THREE.MeshLambertMaterial({ color: new THREE.Color(p.color) });
+      const m = new THREE.Mesh(g, mat);
+      m.position.set((p.x + p.dx / 2) * s, (p.z + p.dz / 2) * s, (p.y + p.dy / 2) * s);
+      const em = new THREE.LineBasicMaterial({ color: 0x0f1b26, transparent: true, opacity: 0.25 });
+      m.add(new THREE.LineSegments(new THREE.EdgesGeometry(g), em));
+      r.group.add(m); r.boxes.push({ line: p.line, mat, edge: em });
+    }
+    r.group.position.set(-L * s / 2, -H * s / 2, -W * s / 2);
+    const maxDim = Math.max(L, W, H) * s;
+    r.cam.position.set(maxDim * 0.95, maxDim * 0.85, maxDim * 1.25);
+    r.controls.target.set(0, 0, 0); r.controls.update();
+    applyHighlight();
+  };
+
+  // init once
+  useEffect(() => {
+    let disposed = false; let raf = 0;
+    (async () => {
+      const THREE = await import('three');
+      const { OrbitControls } = await import('three/examples/jsm/controls/OrbitControls.js');
+      const el = mount.current;
+      if (disposed || !el) return;
+      const w = el.clientWidth || 480, h = 340;
+      const scene = new THREE.Scene(); scene.background = new THREE.Color('#F4F7F9');
+      const cam = new THREE.PerspectiveCamera(45, w / h, 0.05, 1000);
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(w, h); renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      el.appendChild(renderer.domElement);
+      scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+      const dir = new THREE.DirectionalLight(0xffffff, 0.55); dir.position.set(4, 9, 6); scene.add(dir);
+      const controls = new OrbitControls(cam, renderer.domElement); controls.enablePan = false; controls.minDistance = 0.5;
+      const group = new THREE.Group(); scene.add(group);
+      const onResize = () => { const ww = el.clientWidth || w; renderer.setSize(ww, h); cam.aspect = ww / h; cam.updateProjectionMatrix(); };
+      window.addEventListener('resize', onResize);
+      ref.current = { THREE, scene, cam, renderer, controls, group, boxes: [], el, onResize };
+      build();
+      const loop = () => { raf = requestAnimationFrame(loop); controls.update(); renderer.render(scene, cam); };
+      loop();
+    })();
+    return () => {
+      disposed = true; cancelAnimationFrame(raf);
+      const r = ref.current;
+      if (r.onResize) window.removeEventListener('resize', r.onResize);
+      if (r.renderer) { try { r.el?.removeChild(r.renderer.domElement); } catch { /* gone */ } r.renderer.dispose(); }
+      ref.current = {};
+    };
+  }, []);
+
+  useEffect(() => { build(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [placements, L, W, H]);
+  useEffect(() => { applyHighlight(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [highlight]);
+
+  return <div ref={mount} style={{ width: '100%', height: 340, cursor: 'grab' }} />;
+}

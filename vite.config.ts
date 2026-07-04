@@ -7,7 +7,12 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      workbox: { skipWaiting: true, clientsClaim: true, cleanupOutdatedCaches: true },
+      workbox: {
+        skipWaiting: true, clientsClaim: true, cleanupOutdatedCaches: true,
+        // three.js and xlsx are lazy-loaded only in the admin load calculator —
+        // keep them out of the mobile worker/viewer precache.
+        globIgnores: ['**/three.module-*.js', '**/xlsx-*.js'],
+      },
       manifest: {
         name: 'ConCheck', short_name: 'ConCheck',
         theme_color: '#0F1B26', background_color: '#0F1B26', display: 'standalone',

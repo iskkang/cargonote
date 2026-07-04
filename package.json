@@ -16,7 +16,9 @@
     "qrcode.react": "^4.2.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^6.26.0"
+    "react-router-dom": "^6.26.0",
+    "three": "^0.185.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.2.0",
@@ -24,6 +26,7 @@
     "@testing-library/react": "^16.0.1",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
+    "@types/three": "^0.185.0",
     "@vitejs/plugin-react": "^4.3.1",
     "fake-indexeddb": "^6.0.0",
     "jsdom": "^25.0.0",

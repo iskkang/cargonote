@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { computeStuffing, CONTAINERS, type CargoLine, type ContainerId } from '../domain/stuffing';
-import { expandBoxes, packContainer, rotate } from '../domain/pack';
-import { PackView3D } from './PackView3D';
+import { expandBoxes, packContainer, PALETTE } from '../domain/pack';
+import { PackView3DGL } from './PackView3DGL';
+import { parseCargoFile } from './parseCargo';
 import { Button, Badge, inputStyle } from '../ui/kit';
 import { useT } from './i18n';
 import { C, FONT, R } from '../ui/tokens';
@@ -16,10 +17,19 @@ export function LoadCalculator() {
   const [utilPct, setUtilPct] = useState(85);
   const [freight, setFreight] = useState<Partial<Record<ContainerId, number>>>({});
   const [pickId, setPickId] = useState<ContainerId | null>(null);
-  const [rot, setRot] = useState(0);
+  const [hl, setHl] = useState<number | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const set = (key: number, patch: Partial<Row>) => setRows((rs) => rs.map((r) => (r.key === key ? { ...r, ...patch } : r)));
   const num = (v: string) => (v === '' ? 0 : Math.max(0, Number(v) || 0));
+
+  async function onUpload(file: File) {
+    try {
+      const parsed = await parseCargoFile(file);
+      if (parsed.length) setRows(parsed.map((c) => ({ ...c, key: seq++ })));
+    } catch { /* ignore malformed file */ }
+    if (fileRef.current) fileRef.current.value = '';
+  }
 
   const result = useMemo(
     () => computeStuffing(rows, { utilization: utilPct / 100, freight }),
@@ -34,7 +44,6 @@ export function LoadCalculator() {
     const cont = { L: selSpec.intL * 100, W: selSpec.intW * 100, H: selSpec.intH * 100 };
     return { ...packContainer(boxes, cont), truncated, cont };
   }, [rows, selId, selSpec]);
-  const rotated = rotate(pack.placements, pack.cont.L, pack.cont.W, rot);
 
   return (
     <div>
@@ -47,8 +56,9 @@ export function LoadCalculator() {
           <span style={sx.cStack}>{t.load.stack}</span>
           <span style={sx.cDel} />
         </div>
-        {rows.map((r) => (
-          <div key={r.key} style={sx.row}>
+        {rows.map((r, i) => (
+          <div key={r.key} style={{ ...sx.row, ...(hl === i ? sx.rowHl : {}) }}
+            onMouseEnter={() => setHl(i)} onMouseLeave={() => setHl(null)}>
             <input style={{ ...inputStyle, ...sx.cName }} value={r.name} placeholder="—" onChange={(e) => set(r.key, { name: e.target.value })} />
             <input style={{ ...inputStyle, ...sx.cQty }} type="number" min={0} value={r.qty || ''} onChange={(e) => set(r.key, { qty: num(e.target.value) })} />
             <span style={{ ...sx.cDims, display: 'flex', gap: 4 }}>
@@ -66,7 +76,12 @@ export function LoadCalculator() {
       </div>
 
       <div style={sx.controls}>
-        <Button variant="ghost" onClick={() => setRows((rs) => [...rs, blank()])}>{t.load.addRow}</Button>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <Button variant="ghost" onClick={() => setRows((rs) => [...rs, blank()])}>{t.load.addRow}</Button>
+          <label style={sx.upload} title={t.load.uploadHint}>⬆ {t.load.upload}
+            <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) onUpload(f); }} />
+          </label>
+        </div>
         <label style={sx.util}>{t.load.util}
           <input type="number" min={50} max={100} value={utilPct} onChange={(e) => setUtilPct(Math.min(100, Math.max(50, Number(e.target.value) || 85)))} style={{ ...inputStyle, width: 64 }} />%
         </label>
@@ -118,11 +133,18 @@ export function LoadCalculator() {
                   <button key={cc.id} type="button" onClick={() => setPickId(cc.id)}
                     style={{ ...sx.seg, ...(selId === cc.id ? sx.segActive : {}) }}>{cc.label}</button>
                 ))}
-                <button type="button" onClick={() => setRot((r) => (r + 1) % 4)} style={sx.rotBtn}>⟳ {t.load.rotate}</button>
               </div>
             </div>
+            <div style={sx.legend}>
+              {rows.map((r, i) => (r.l > 0 && r.w > 0 && r.h > 0 ? (
+                <span key={r.key} onMouseEnter={() => setHl(i)} onMouseLeave={() => setHl(null)}
+                  style={{ ...sx.legendChip, ...(hl === i ? sx.legendActive : {}) }}>
+                  <span style={{ ...sx.swatch, background: PALETTE[i % PALETTE.length] }} />{r.name || '-'} ×{r.qty}
+                </span>
+              ) : null))}
+            </div>
             <div style={sx.stage}>
-              <PackView3D placements={rotated.placements} L={rotated.L} W={rotated.W} H={pack.cont.H} />
+              <PackView3DGL placements={pack.placements} L={pack.cont.L} W={pack.cont.W} H={pack.cont.H} highlight={hl} />
             </div>
             <div style={sx.view3dFoot}>
               <b style={{ color: C.navy }}>{selSpec.label}</b> · {t.load.packed} {pack.packed} / {pack.total}
@@ -142,7 +164,8 @@ function Tot({ label, value }: { label: string; value: string }) {
 const sx = {
   tableWrap: { background: C.white, border: `1px solid ${C.line}`, borderRadius: R.lg, padding: 10, overflowX: 'auto' as const } as const,
   head: { display: 'flex', gap: 8, alignItems: 'center', padding: '4px 6px 8px', fontFamily: FONT.sans, fontSize: 12, fontWeight: 700, color: C.muted, minWidth: 560 } as const,
-  row: { display: 'flex', gap: 8, alignItems: 'center', padding: '4px 6px', minWidth: 560 } as const,
+  row: { display: 'flex', gap: 8, alignItems: 'center', padding: '4px 6px', minWidth: 560, borderRadius: 8 } as const,
+  rowHl: { background: C.tealTint } as const,
   cName: { flex: '1.4 1 120px', minWidth: 90 } as const,
   cQty: { width: 64, flexShrink: 0 } as const,
   cDims: { width: 190, flexShrink: 0 } as const,
@@ -153,6 +176,11 @@ const sx = {
   del: { width: 26, height: 26, border: 0, background: 'transparent', color: C.muted, cursor: 'pointer', fontSize: 13, flexShrink: 0 } as const,
   controls: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, margin: '12px 0 20px', flexWrap: 'wrap' as const } as const,
   util: { display: 'flex', alignItems: 'center', gap: 8, fontFamily: FONT.sans, fontSize: 13, color: C.text } as const,
+  upload: { fontFamily: FONT.sans, fontWeight: 600, fontSize: 14, color: C.text, background: 'transparent', border: `1px solid ${C.line}`, borderRadius: R.md, padding: '9px 16px', cursor: 'pointer' } as const,
+  legend: { display: 'flex', flexWrap: 'wrap' as const, gap: 6, padding: '10px 14px 0' } as const,
+  legendChip: { display: 'inline-flex', alignItems: 'center', gap: 7, fontFamily: FONT.sans, fontSize: 12, fontWeight: 600, color: C.text, background: C.surfaceAlt, borderRadius: 999, padding: '4px 11px', cursor: 'default' } as const,
+  legendActive: { background: C.navy, color: C.white } as const,
+  swatch: { width: 11, height: 11, borderRadius: 3, flexShrink: 0 } as const,
   resultsHead: { fontFamily: FONT.sans, fontSize: 16, fontWeight: 800, color: C.navy, marginBottom: 12 } as const,
   empty: { fontFamily: FONT.sans, fontSize: 13, color: C.muted, padding: '20px 0' } as const,
   totals: { display: 'flex', gap: 10, flexWrap: 'wrap' as const, marginBottom: 14 } as const,
