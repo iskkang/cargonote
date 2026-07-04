@@ -23,9 +23,10 @@ type Step = 'intro' | 'capture' | 'submit';
 
 export function WorkerCapture({ client = getWorkerClient() }: { client?: WorkerClient } = {}) {
   const { token } = useParams();
-  const [state, setState] = useState<{ order: WorkOrder; template: WorkTypeTemplate; container: Container } | null>(null);
+  const [state, setState] = useState<{ order: WorkOrder; template: WorkTypeTemplate; containers: Container[] } | null>(null);
+  const [activeId, setActiveId] = useState<string>('');
   const [notFound, setNotFound] = useState(false);
-  const [captured, setCaptured] = useState<string[]>([]);
+  const [capturedBy, setCapturedBy] = useState<Record<string, string[]>>({});
   const [step, setStep] = useState<Step>('intro');
   const [submitted, setSubmitted] = useState(false);
   const [closeHint, setCloseHint] = useState(false);
@@ -34,15 +35,16 @@ export function WorkerCapture({ client = getWorkerClient() }: { client?: WorkerC
   useEffect(() => {
     client.bootstrap(token ?? '').then((r) => {
       if (!r || r.containers.length === 0) { setNotFound(true); return; }
-      setState({ order: r.order, template: r.template, container: r.containers[0] });
+      setState({ order: r.order, template: r.template, containers: r.containers });
+      setActiveId(r.containers[0].id);
     }).catch(() => setNotFound(true));
   }, [client, token]);
 
   async function refresh(containerId: string) {
     const photos = await client.listPhotos(token ?? '', containerId);
-    setCaptured(photos.filter((p) => p.slotKey).map((p) => p.slotKey as string));
+    setCapturedBy((prev) => ({ ...prev, [containerId]: photos.filter((p) => p.slotKey).map((p) => p.slotKey as string) }));
   }
-  useEffect(() => { if (state) void refresh(state.container.id); }, [state]);
+  useEffect(() => { if (state) state.containers.forEach((c) => void refresh(c.id)); }, [state]);
 
   if (notFound) return (
     <PageShell tone="dark" style={sx.page}>
@@ -51,6 +53,9 @@ export function WorkerCapture({ client = getWorkerClient() }: { client?: WorkerC
   );
   if (!state) return <PageShell tone="dark" style={sx.page}>{null}</PageShell>;
 
+  const containers = state.containers;
+  const container = containers.find((c) => c.id === activeId) ?? containers[0];
+  const captured = capturedBy[container.id] ?? [];
   const slots = state.template.requiredPhotos.filter((s) => s.required);
   const groups = groupByPhase(slots);
   const status = checklistStatus(captured, state.template);
@@ -58,30 +63,52 @@ export function WorkerCapture({ client = getWorkerClient() }: { client?: WorkerC
   const done = status.satisfied.length;
   const missingSlots = slots.filter((s) => !captured.includes(s.key));
   const damageShots = captured.filter((k) => k === DAMAGE_SLOT).length;
-  const plate = splitPlate(state.container.containerNo);
+  const plate = splitPlate(container.containerNo);
+  const containerMissing = (c: Container) => slots.filter((s) => !(capturedBy[c.id] ?? []).includes(s.key));
+  const incomplete = containers.filter((c) => containerMissing(c).length > 0);
+  const multi = containers.length > 1;
 
   async function shoot(slotKey: string, photo: Blob) {
     setError(null);
     try {
-      await uploadSlotPhoto(photo, { slotKey, containerId: state!.container.id }, {
+      await uploadSlotPhoto(photo, { slotKey, containerId: container.id }, {
         makeVariants, sha256Hex,
         storage: { upload: (path, body, opts) => supabase.storage.from('captures').upload(path, body, opts) },
         insertPhoto: (p) => client.insertPhoto(token ?? '', p),
         now: () => new Date().toISOString(),
       });
-      await refresh(state!.container.id);
+      await refresh(container.id);
     } catch (e) {
       console.error('upload failed', e);
       setError(`업로드 실패 — ${e instanceof Error ? e.message : String(e)}`);
     }
   }
 
+  const tabs = multi && (
+    <div style={sx.tabs}>
+      {containers.map((c) => {
+        const cd = slots.filter((s) => (capturedBy[c.id] ?? []).includes(s.key)).length;
+        const complete = total > 0 && cd >= total;
+        const active = c.id === container.id;
+        return (
+          <button key={c.id} type="button" onClick={() => setActiveId(c.id)}
+            style={{ ...sx.tab, ...(active ? sx.tabActive : {}) }}>
+            {complete ? '✓ ' : ''}{splitPlate(c.containerNo).body}
+            <span style={sx.tabCount}>{cd}/{total}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+
   return (
     <PageShell tone="dark" style={sx.page}>
       {step === 'intro' && (
         <>
           <div style={sx.header}><Brand dark /></div>
-          <div style={sx.breadcrumb}>작업 지시서 · {state.template.route} 적입 검수</div>
+          <div style={sx.breadcrumb}>작업 지시서 · {state.template.route} 적입 검수{multi ? ` · 컨테이너 ${containers.length}대` : ''}</div>
+
+          {tabs}
 
           <div style={sx.plate}>
             <div style={sx.plateLabel}>ISO 6346 · CONTAINER No.</div>
@@ -121,6 +148,8 @@ export function WorkerCapture({ client = getWorkerClient() }: { client?: WorkerC
           </div>
           <div style={sx.progressTrack}><div style={{ ...sx.progressFill, width: total ? `${(done / total) * 100}%` : '0%' }} /></div>
 
+          {multi && <div style={sx.tabsWrap}>{tabs}<div style={sx.activePlate}>{plate.body}{plate.check ? plate.check : ''}</div></div>}
+
           {error && <Card dark style={sx.errorCard}><span style={{ color: C.negative, fontWeight: 600, fontSize: 13, fontFamily: FONT.sans }}>{error}</span></Card>}
 
           {groups.map((g) => {
@@ -151,28 +180,35 @@ export function WorkerCapture({ client = getWorkerClient() }: { client?: WorkerC
 
       {step === 'submit' && (
         <>
-          <div style={sx.captureHead}><span style={sx.captureTitle}>제출 전 확인</span><span style={{ fontSize: 13, color: C.onDarkDim, fontFamily: FONT.sans }}>{done}/{total} 촬영</span></div>
-          {missingSlots.length > 0 ? (
+          <div style={sx.captureHead}><span style={sx.captureTitle}>제출 전 확인</span><span style={{ fontSize: 13, color: C.onDarkDim, fontFamily: FONT.sans }}>{multi ? `${containers.length - incomplete.length}/${containers.length} 컨테이너` : `${done}/${total} 촬영`}</span></div>
+          {incomplete.length > 0 ? (
             <>
               <Card dark style={{ ...sx.warnCard, textAlign: 'center' }}>
                 <div style={{ fontSize: 26, marginBottom: 6 }}>⚠️</div>
-                <div style={{ fontWeight: 800, color: C.onDark, fontFamily: FONT.sans }}>필수 항목 {missingSlots.length}개가 빠졌습니다</div>
+                <div style={{ fontWeight: 800, color: C.onDark, fontFamily: FONT.sans }}>{multi ? `컨테이너 ${incomplete.length}대가 미완료입니다` : `필수 항목 ${missingSlots.length}개가 빠졌습니다`}</div>
                 <div style={{ fontSize: 12, color: C.onDarkDim, marginTop: 6, fontFamily: FONT.sans }}>빠진 항목을 촬영하면 완료됩니다.</div>
               </Card>
-              {missingSlots.map((s) => (
-                <div key={s.key} style={sx.row}>
-                  <div style={{ flex: 1 }}><div style={sx.rowLabel}>{s.label}</div><div style={sx.rowInstr}>{s.instruction}</div></div>
-                  <Badge tone="negative">누락</Badge>
-                </div>
-              ))}
-              <Button onClick={() => setStep('capture')} style={sx.cta}>빠진 항목 촬영하기</Button>
+              {multi
+                ? incomplete.map((c) => (
+                    <div key={c.id} style={sx.row}>
+                      <div style={{ flex: 1 }}><div style={sx.rowLabel}>{splitPlate(c.containerNo).body}</div><div style={sx.rowInstr}>{containerMissing(c).length}개 누락</div></div>
+                      <button type="button" onClick={() => { setActiveId(c.id); setStep('capture'); }} style={sx.shoot}>이동</button>
+                    </div>
+                  ))
+                : missingSlots.map((s) => (
+                    <div key={s.key} style={sx.row}>
+                      <div style={{ flex: 1 }}><div style={sx.rowLabel}>{s.label}</div><div style={sx.rowInstr}>{s.instruction}</div></div>
+                      <Badge tone="negative">누락</Badge>
+                    </div>
+                  ))}
+              <Button onClick={() => { if (multi && incomplete[0]) setActiveId(incomplete[0].id); setStep('capture'); }} style={sx.cta}>빠진 항목 촬영하기</Button>
               <button type="button" onClick={() => setSubmitted(true)} style={sx.textBtn}>이대로 제출</button>
             </>
           ) : (
             <>
               <Card dark style={{ ...sx.infoCard, textAlign: 'center' }}>
                 <div style={{ fontSize: 26, marginBottom: 6 }}>✓</div>
-                <div style={{ fontWeight: 800, color: C.onDark, fontFamily: FONT.sans }}>필수 {total}장 모두 촬영됐습니다</div>
+                <div style={{ fontWeight: 800, color: C.onDark, fontFamily: FONT.sans }}>{multi ? `컨테이너 ${containers.length}대 모두 촬영됐습니다` : `필수 ${total}장 모두 촬영됐습니다`}</div>
               </Card>
               <Button onClick={() => setSubmitted(true)} style={sx.cta}>제출</Button>
             </>
@@ -220,6 +256,12 @@ const sx = {
   page: { padding: 16, maxWidth: 440, margin: '0 auto' } as const,
   header: { paddingBottom: 14, borderBottom: '0.5px solid rgba(159,178,194,0.15)', marginBottom: 14 } as const,
   breadcrumb: { fontFamily: FONT.sans, fontSize: 12, color: C.onDarkDim, marginBottom: 8 } as const,
+  tabs: { display: 'flex', gap: 6, overflowX: 'auto' as const, paddingBottom: 4, marginBottom: 10 } as const,
+  tab: { flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 6, background: '#16242F', border: `1px solid ${C.blue55}`, color: C.onDarkDim, borderRadius: 999, padding: '6px 12px', fontSize: 12, fontWeight: 700, fontFamily: FONT.sans, cursor: 'pointer', letterSpacing: '.03em' } as const,
+  tabActive: { background: C.teal, borderColor: C.teal, color: C.white } as const,
+  tabCount: { fontSize: 10, opacity: 0.8, fontWeight: 600 } as const,
+  tabsWrap: { marginTop: 10 } as const,
+  activePlate: { fontFamily: FONT.sans, fontSize: 13, fontWeight: 800, color: C.tealBright, letterSpacing: '.04em', marginTop: 2 } as const,
   plate: { background: '#16242F', border: `1px solid ${C.blue55}`, borderLeft: `4px solid ${C.teal}`, borderRadius: 12, padding: '12px 16px', marginBottom: 12 } as const,
   plateLabel: { fontFamily: FONT.sans, fontSize: 10, letterSpacing: '.12em', color: C.onDarkDim, marginBottom: 5 } as const,
   plateNo: { fontFamily: FONT.sans, fontWeight: 800, fontSize: 26, letterSpacing: '.06em', color: C.onDark, display: 'flex', alignItems: 'center', gap: 10 } as const,
