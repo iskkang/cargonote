@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
-import { computeStuffing, type CargoLine, type ContainerId } from '../domain/stuffing';
+import { computeStuffing, CONTAINERS, type CargoLine, type ContainerId } from '../domain/stuffing';
+import { expandBoxes, packContainer, rotate } from '../domain/pack';
+import { PackView3D } from './PackView3D';
 import { Button, Badge, inputStyle } from '../ui/kit';
 import { useT } from './i18n';
 import { C, FONT, R } from '../ui/tokens';
@@ -13,6 +15,8 @@ export function LoadCalculator() {
   const [rows, setRows] = useState<Row[]>([blank()]);
   const [utilPct, setUtilPct] = useState(85);
   const [freight, setFreight] = useState<Partial<Record<ContainerId, number>>>({});
+  const [pickId, setPickId] = useState<ContainerId | null>(null);
+  const [rot, setRot] = useState(0);
 
   const set = (key: number, patch: Partial<Row>) => setRows((rs) => rs.map((r) => (r.key === key ? { ...r, ...patch } : r)));
   const num = (v: string) => (v === '' ? 0 : Math.max(0, Number(v) || 0));
@@ -22,6 +26,15 @@ export function LoadCalculator() {
     [rows, utilPct, freight],
   );
   const hasCargo = result.totalQty > 0;
+
+  const selId = pickId ?? result.recommendedId ?? '40ft';
+  const selSpec = CONTAINERS.find((c) => c.id === selId)!;
+  const pack = useMemo(() => {
+    const { boxes, truncated } = expandBoxes(rows);
+    const cont = { L: selSpec.intL * 100, W: selSpec.intW * 100, H: selSpec.intH * 100 };
+    return { ...packContainer(boxes, cont), truncated, cont };
+  }, [rows, selId, selSpec]);
+  const rotated = rotate(pack.placements, pack.cont.L, pack.cont.W, rot);
 
   return (
     <div>
@@ -96,6 +109,26 @@ export function LoadCalculator() {
             })}
           </div>
           <div style={sx.disclaimer}>ⓘ {t.load.disclaimer} ({t.load.util} {utilPct}%)</div>
+
+          <div style={sx.view3d}>
+            <div style={sx.view3dHead}>
+              <span style={sx.view3dTitle}>{t.load.view3d}</span>
+              <div style={sx.view3dCtrl}>
+                {CONTAINERS.map((cc) => (
+                  <button key={cc.id} type="button" onClick={() => setPickId(cc.id)}
+                    style={{ ...sx.seg, ...(selId === cc.id ? sx.segActive : {}) }}>{cc.label}</button>
+                ))}
+                <button type="button" onClick={() => setRot((r) => (r + 1) % 4)} style={sx.rotBtn}>⟳ {t.load.rotate}</button>
+              </div>
+            </div>
+            <div style={sx.stage}>
+              <PackView3D placements={rotated.placements} L={rotated.L} W={rotated.W} H={pack.cont.H} />
+            </div>
+            <div style={sx.view3dFoot}>
+              <b style={{ color: C.navy }}>{selSpec.label}</b> · {t.load.packed} {pack.packed} / {pack.total}
+              {pack.truncated ? ` · ${t.load.cap}` : ''}
+            </div>
+          </div>
         </>
       )}
     </div>
@@ -141,4 +174,14 @@ const sx = {
   freight: { display: 'block', fontFamily: FONT.sans, fontSize: 11, color: C.muted, marginTop: 10 } as const,
   cost: { fontFamily: FONT.sans, fontSize: 13, fontWeight: 800, color: C.tealStrong, marginTop: 6, textAlign: 'right' as const } as const,
   disclaimer: { fontFamily: FONT.sans, fontSize: 12, color: C.muted, marginTop: 16, lineHeight: 1.5 } as const,
+
+  view3d: { marginTop: 18, background: C.white, border: `1px solid ${C.line}`, borderRadius: R.xl, overflow: 'hidden' } as const,
+  view3dHead: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, padding: '12px 14px', borderBottom: `1px solid ${C.line}`, flexWrap: 'wrap' as const } as const,
+  view3dTitle: { fontFamily: FONT.sans, fontWeight: 800, fontSize: 15, color: C.navy } as const,
+  view3dCtrl: { display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' as const } as const,
+  seg: { fontFamily: FONT.sans, fontSize: 12, fontWeight: 700, padding: '6px 11px', borderRadius: 999, border: `1px solid ${C.line}`, background: C.white, color: C.text, cursor: 'pointer' } as const,
+  segActive: { background: C.navy, color: C.white, border: `1px solid ${C.navy}` } as const,
+  rotBtn: { fontFamily: FONT.sans, fontSize: 12, fontWeight: 700, padding: '6px 12px', borderRadius: 999, border: `1px solid ${C.teal}`, background: C.tealTint, color: C.tealStrong, cursor: 'pointer' } as const,
+  stage: { background: `linear-gradient(180deg,#F4F7F9,${C.white})`, padding: 12 } as const,
+  view3dFoot: { fontFamily: FONT.sans, fontSize: 13, color: C.text, padding: '10px 14px', borderTop: `1px solid ${C.line}` } as const,
 };
