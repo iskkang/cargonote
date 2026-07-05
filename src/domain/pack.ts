@@ -14,8 +14,12 @@ export interface MultiPack { containers: PackedContainer[]; leftover: number; to
 
 const EPS = 0.01;
 
-/** Expand cargo lines into individual boxes (capped for perf/rendering). */
-export function expandBoxes(cargo: CargoLine[], cap = 240): { boxes: Box[]; truncated: boolean } {
+/**
+ * Expand cargo lines into individual boxes (capped for perf/rendering).
+ * `gap` (cm) inflates each box footprint (l+gap, w+gap) to reserve dunnage —
+ * airbags or anti-damage plywood between cargo — so it consumes real space.
+ */
+export function expandBoxes(cargo: CargoLine[], cap = 240, gap = 0): { boxes: Box[]; truncated: boolean } {
   const boxes: Box[] = [];
   let truncated = false;
   cargo.forEach((c, i) => {
@@ -26,7 +30,7 @@ export function expandBoxes(cargo: CargoLine[], cap = 240): { boxes: Box[]; trun
     const maxStackHeight = c.maxStackHeight || Infinity;
     for (let k = 0; k < c.qty; k++) {
       if (boxes.length >= cap) { truncated = true; return; }
-      boxes.push({ line: i, l: c.l, w: c.w, h: c.h, stackable: c.stackable, layDown, weight: c.weight, maxStackWeight, maxStackHeight, color });
+      boxes.push({ line: i, l: c.l + gap, w: c.w + gap, h: c.h, stackable: c.stackable, layDown, weight: c.weight, maxStackWeight, maxStackHeight, color });
     }
   });
   return { boxes, truncated };

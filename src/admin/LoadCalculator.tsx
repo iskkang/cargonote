@@ -23,6 +23,7 @@ export function LoadCalculator({ onCreateJob }: { onCreateJob?: (p: LoadPlan) =>
   const [hl, setHl] = useState<number | null>(null);
   const [contIdx, setContIdx] = useState(0);
   const [maxLayers, setMaxLayers] = useState(0);
+  const [gapCm, setGapCm] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const set = (key: number, patch: Partial<Row>) => setRows((rs) => rs.map((r) => (r.key === key ? { ...r, ...patch } : r)));
@@ -48,13 +49,20 @@ export function LoadCalculator({ onCreateJob }: { onCreateJob?: (p: LoadPlan) =>
   const selId = pickId ?? result.recommendedId ?? '40ft';
   const selSpec = CONTAINERS.find((c) => c.id === selId)!;
   const pack = useMemo(() => {
-    const { boxes, truncated } = expandBoxes(rows);
+    const { boxes, truncated } = expandBoxes(rows, 240, gapCm);
     const cont = { L: selSpec.intL * 100, W: selSpec.intW * 100, H: selSpec.intH * 100, cbm: selSpec.cbm };
     const m = packMulti(boxes, cont, 24, { maxLayers });
     return { ...m, truncated: truncated || m.truncated, cont };
-  }, [rows, selId, selSpec, maxLayers]);
+  }, [rows, selId, selSpec, maxLayers, gapCm]);
   const vi = pack.containers.length ? Math.min(contIdx, pack.containers.length - 1) : 0;
   const cur = pack.containers[vi];
+  // Free space between the loaded cargo envelope and the container walls.
+  const clr = cur && cur.placements.length ? (() => {
+    let ux = 0, uy = 0, uz = 0;
+    for (const p of cur.placements) { ux = Math.max(ux, p.x + p.dx); uy = Math.max(uy, p.y + p.dy); uz = Math.max(uz, p.z + p.dz); }
+    return { h: Math.round(pack.cont.H - uz), w: Math.round(pack.cont.W - uy), l: Math.round(pack.cont.L - ux) };
+  })() : null;
+  const clearanceText = clr ? `${t.load.free} · ${t.load.axisH} ${clr.h} · ${t.load.cogW} ${clr.w} · ${t.load.cogL} ${clr.l} cm` : undefined;
   // weight-weighted centre of gravity of the viewed container (offset from the geometric centre)
   const cog = (() => {
     if (!cur || !cur.placements.length) return null;
@@ -137,6 +145,9 @@ export function LoadCalculator({ onCreateJob }: { onCreateJob?: (p: LoadPlan) =>
           <label style={sx.util} title={t.load.maxLayersHint}>{t.load.maxLayers}
             <input type="number" min={0} max={20} value={maxLayers || ''} placeholder="0" onChange={(e) => setMaxLayers(Math.max(0, Math.min(20, Number(e.target.value) || 0)))} style={{ ...inputStyle, width: 64 }} />
           </label>
+          <label style={sx.util} title={t.load.gapHint}>{t.load.gap}
+            <input type="number" min={0} max={50} value={gapCm || ''} placeholder="0" onChange={(e) => setGapCm(Math.max(0, Math.min(50, Number(e.target.value) || 0)))} style={{ ...inputStyle, width: 64 }} />cm
+          </label>
         </div>
       </div>
 
@@ -210,7 +221,7 @@ export function LoadCalculator({ onCreateJob }: { onCreateJob?: (p: LoadPlan) =>
             </div>
             <div style={sx.stage}>
               {cur
-                ? <PackView3DGL placements={cur.placements} L={pack.cont.L} W={pack.cont.W} H={pack.cont.H} highlight={hl} cog={cog ? { x: cog.x, y: cog.y, z: cog.z } : null} />
+                ? <PackView3DGL placements={cur.placements} L={pack.cont.L} W={pack.cont.W} H={pack.cont.H} highlight={hl} cog={cog ? { x: cog.x, y: cog.y, z: cog.z } : null} clearanceText={clearanceText} />
                 : <div style={{ padding: 30, textAlign: 'center', color: C.muted, fontSize: 13, fontFamily: FONT.sans }}>{t.load.notFit}</div>}
             </div>
             {cog && (
@@ -223,6 +234,7 @@ export function LoadCalculator({ onCreateJob }: { onCreateJob?: (p: LoadPlan) =>
             <div style={sx.view3dFoot}>
               {cur ? (
                 <><b style={{ color: C.navy }}>#{vi + 1} / {pack.containers.length}</b> · {t.load.packed} {cur.count} · {Math.round(cur.fillPct)}%
+                  {clr ? ` · ${clearanceText}` : ''}
                   {pack.leftover > 0 ? ` · ${t.load.unplaced} ${pack.leftover}` : ''}{pack.truncated ? ` · ${t.load.cap}` : ''}</>
               ) : t.load.notFit}
             </div>

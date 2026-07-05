@@ -74,6 +74,11 @@ test('maxStackHeight limits how tall a stack on a box may grow', () => {
   expect(packContainer(open.boxes, cont).packed).toBe(2);
 });
 
+test('gap inflates the box footprint (dunnage) but not its height', () => {
+  const { boxes } = expandBoxes([cargo({ qty: 1, l: 100, w: 80, h: 60 })], 240, 10);
+  expect([boxes[0].l, boxes[0].w, boxes[0].h]).toEqual([110, 90, 60]);
+});
+
 test('rotate keeps count and swaps container L/W on odd turns', () => {
   const { boxes } = expandBoxes([cargo()]);
   const res = packContainer(boxes, { L: 200, W: 200, H: 200 });

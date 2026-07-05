@@ -1,10 +1,11 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type CSSProperties } from 'react';
 import type { Placement } from '../domain/pack';
 
 /** Three.js orbit/zoom viewer for a packed container. three is loaded lazily. */
-export function PackView3DGL({ placements, L, W, H, highlight, cog }: {
+export function PackView3DGL({ placements, L, W, H, highlight, cog, clearanceText }: {
   placements: Placement[]; L: number; W: number; H: number; highlight: number | null;
   cog?: { x: number; y: number; z: number } | null;
+  clearanceText?: string;
 }) {
   const mount = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -101,5 +102,16 @@ export function PackView3DGL({ placements, L, W, H, highlight, cog }: {
   useEffect(() => { build(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [placements, L, W, H, cog?.x, cog?.y, cog?.z]);
   useEffect(() => { applyHighlight(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [highlight]);
 
-  return <div ref={mount} style={{ width: '100%', height: 340, cursor: 'grab' }} />;
+  return (
+    <div style={{ position: 'relative' }}>
+      <div ref={mount} style={{ width: '100%', height: 340, cursor: 'grab' }} />
+      {clearanceText && <div style={overlay}>{clearanceText}</div>}
+    </div>
+  );
 }
+
+const overlay: CSSProperties = {
+  position: 'absolute', top: 10, left: 10, background: 'rgba(15,27,38,.82)', color: '#fff',
+  fontFamily: 'system-ui, sans-serif', fontSize: 12, fontWeight: 600, padding: '5px 10px',
+  borderRadius: 8, pointerEvents: 'none', letterSpacing: '.01em',
+};
