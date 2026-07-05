@@ -221,7 +221,7 @@ export function LoadCalculator({ onCreateJob }: { onCreateJob?: (p: LoadPlan) =>
             </div>
             <div style={sx.stage}>
               {cur
-                ? <PackView3DGL placements={cur.placements} L={pack.cont.L} W={pack.cont.W} H={pack.cont.H} highlight={hl} cog={cog ? { x: cog.x, y: cog.y, z: cog.z } : null} clearanceText={clearanceText} />
+                ? <PackView3DGL placements={cur.placements} L={pack.cont.L} W={pack.cont.W} H={pack.cont.H} highlight={hl} cog={cog ? { x: cog.x, y: cog.y, z: cog.z } : null} axisWords={{ h: t.load.axisH, w: t.load.cogW, l: t.load.cogL }} />
                 : <div style={{ padding: 30, textAlign: 'center', color: C.muted, fontSize: 13, fontFamily: FONT.sans }}>{t.load.notFit}</div>}
             </div>
             {cog && (
