@@ -70,6 +70,7 @@ export function createSupabaseAdminRepo(db: DbPort): AdminRepo {
       const [orderRow] = await db.insert('work_orders', {
         customer_id: input.customerId, template_id: input.templateId, work_date: input.workDate,
         status: 'sent', assignee_name: input.assigneeName, assignee_contact: input.assigneeContact, assignee_email: input.assigneeEmail ?? null,
+        planned_container_type: input.plannedContainerType ?? null, planned_container_count: input.plannedContainerCount ?? null,
       });
       if (!orderRow) throw new Error('work_order insert returned no row (check RLS select policy)');
       const order = rowToWorkOrder(orderRow);

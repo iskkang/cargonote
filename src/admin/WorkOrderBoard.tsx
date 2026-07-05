@@ -123,7 +123,10 @@ export function WorkOrderBoard({ repo, onSelect }: { repo: AdminRepo; onSelect?:
           </div>
           {shown.map((s) => edit && edit.id === s.order.id ? editForm(s) : (
             <div key={s.order.id} data-testid="wo-row" className="cn-row" style={sx.row}>
-              <span style={{ ...sx.cCont, ...sx.mono }} onClick={() => onSelect?.(s.order.id)}>{s.containerNo}</span>
+              <span style={sx.cCont} onClick={() => onSelect?.(s.order.id)}>
+                <span style={sx.mono}>{s.containerNo}</span>
+                {s.order.plannedContainerType && <span style={sx.planChip}>{t.board.plan} {s.order.plannedContainerType}×{s.order.plannedContainerCount}</span>}
+              </span>
               <span style={{ ...sx.cCust, ...sx.link }} onClick={() => onSelect?.(s.order.id)}>{s.customerName}</span>
               <span style={sx.cType}>{s.route ?? '—'}</span>
               <span style={sx.cDate}>{s.order.workDate || '—'}</span>
@@ -147,6 +150,7 @@ export function WorkOrderBoard({ repo, onSelect }: { repo: AdminRepo; onSelect?:
               <div style={sx.mcTop} onClick={() => onSelect?.(s.order.id)}>
                 <div style={{ minWidth: 0 }}>
                   <div style={sx.mcCont}>{s.containerNo}</div>
+                  {s.order.plannedContainerType && <span style={{ ...sx.planChip, marginTop: 3 }}>{t.board.plan} {s.order.plannedContainerType}×{s.order.plannedContainerCount}</span>}
                   <div style={sx.mcCust}>{s.customerName}</div>
                 </div>
                 {(() => { const b = boardStatus(s); return <Badge tone={b.tone}>{t.board.status[b.label]}</Badge>; })()}
@@ -184,7 +188,8 @@ const sx = {
   noMatch: { padding: '24px 16px', textAlign: 'center' as const, fontFamily: FONT.sans, fontSize: 13, color: C.muted } as const,
   link: { fontWeight: 600, color: C.navy, cursor: 'pointer', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const } as const,
   mono: { cursor: 'pointer', letterSpacing: '.03em', color: C.navy, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const } as const,
-  cCont: { flex: 1.4, minWidth: 0 } as const,
+  cCont: { flex: 1.4, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3, cursor: 'pointer' } as const,
+  planChip: { display: 'inline-block', alignSelf: 'flex-start', fontFamily: FONT.sans, fontSize: 11, fontWeight: 700, color: C.tealStrong, background: C.tealTint, borderRadius: 6, padding: '1px 7px' } as const,
   cCust: { flex: 1.3, minWidth: 0 } as const,
   cType: { flex: 0.9, color: C.text, fontSize: 13 } as const,
   cDate: { flex: 0.9, color: C.text, fontSize: 13 } as const,

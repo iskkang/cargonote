@@ -26,6 +26,19 @@ test('createWorkOrder adds a sent order and returns a worker token', async () =>
   expect((await repo.listWorkOrders()).length).toBe(before + 1);
 });
 
+test('createWorkOrder persists the load plan (container type + count)', async () => {
+  const repo = createInMemoryAdminRepo();
+  const [cust] = await repo.listCustomers();
+  const [tpl] = await repo.listTemplates();
+  const { order } = await repo.createWorkOrder({
+    customerId: cust.id, templateId: tpl.id, containerNos: ["40' HQ #1", "40' HQ #2"],
+    workDate: null, assigneeName: '홍', assigneeContact: '010',
+    plannedContainerType: "40' HQ", plannedContainerCount: 2,
+  });
+  expect(order.plannedContainerType).toBe("40' HQ");
+  expect(order.plannedContainerCount).toBe(2);
+});
+
 test('createCustomer adds a customer with contact fields', async () => {
   const repo = createInMemoryAdminRepo();
   const before = (await repo.listCustomers()).length;

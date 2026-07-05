@@ -72,7 +72,10 @@ export function CreateWorkOrder({ repo, onCreated, onManageCustomers, onPreviewC
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!canSubmit) return;
-    const { workerToken } = await repo.createWorkOrder({ customerId, templateId, containerNos, workDate: workDate || null, assigneeName, assigneeContact, assigneeEmail: assigneeEmail || null });
+    const { workerToken } = await repo.createWorkOrder({
+      customerId, templateId, containerNos, workDate: workDate || null, assigneeName, assigneeContact, assigneeEmail: assigneeEmail || null,
+      plannedContainerType: plan?.containerLabel ?? null, plannedContainerCount: plan?.containerCount ?? null,
+    });
     const tpl = templates.find((tp) => tp.id === templateId);
     setCreated({
       containerNo: containerNos[0] + (containerNos.length > 1 ? ` 외 ${containerNos.length - 1}` : ''),

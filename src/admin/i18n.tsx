@@ -29,7 +29,7 @@ const ko = {
     noMatch: '조건에 맞는 작업이 없습니다.', hint: '컨테이너·고객사를 누르면 작업 검수 화면으로 이동합니다.',
     editName: '담당자 이름', editContact: '담당자 연락처', editDate: '작업일',
     empty: '아직 작업이 없습니다', emptyHint: "상단 '새 작업'으로 첫 작업 지시를 만드세요.",
-    delTitle: '작업 삭제', delMsg: '이 작업과 사진·링크를 삭제할까요?', delPublished: '발행된 작업입니다. 삭제하면 수신자 링크와 사진도 함께 사라집니다. 삭제할까요?',
+    plan: '계획', delTitle: '작업 삭제', delMsg: '이 작업과 사진·링크를 삭제할까요?', delPublished: '발행된 작업입니다. 삭제하면 수신자 링크와 사진도 함께 사라집니다. 삭제할까요?',
     deleted: '작업을 삭제했습니다.', saved: '저장했습니다.',
   },
   create: {
@@ -85,7 +85,7 @@ const en: typeof ko = {
     noMatch: 'No jobs match the filters.', hint: 'Tap a container or customer to open the review screen.',
     editName: 'Assignee name', editContact: 'Assignee contact', editDate: 'Work date',
     empty: 'No jobs yet', emptyHint: "Use ‘New job’ above to create your first assignment.",
-    delTitle: 'Delete job', delMsg: 'Delete this job with its photos and links?', delPublished: 'This job is published. Deleting it also removes the recipient link and photos. Delete anyway?',
+    plan: 'Plan', delTitle: 'Delete job', delMsg: 'Delete this job with its photos and links?', delPublished: 'This job is published. Deleting it also removes the recipient link and photos. Delete anyway?',
     deleted: 'Job deleted.', saved: 'Saved.',
   },
   create: {
@@ -141,7 +141,7 @@ const zh: typeof ko = {
     noMatch: '没有符合条件的任务。', hint: '点击集装箱或客户可进入审核界面。',
     editName: '负责人姓名', editContact: '负责人联系方式', editDate: '作业日期',
     empty: '暂无任务', emptyHint: '使用上方“新建任务”创建第一个任务。',
-    delTitle: '删除任务', delMsg: '删除此任务及其照片和链接？', delPublished: '该任务已发布。删除后收件人链接与照片也会一并消失。仍要删除吗？',
+    plan: '计划', delTitle: '删除任务', delMsg: '删除此任务及其照片和链接？', delPublished: '该任务已发布。删除后收件人链接与照片也会一并消失。仍要删除吗？',
     deleted: '任务已删除。', saved: '已保存。',
   },
   create: {
@@ -197,7 +197,7 @@ const ru: typeof ko = {
     noMatch: 'Нет задач по фильтрам.', hint: 'Нажмите контейнер или клиента, чтобы открыть проверку.',
     editName: 'Имя исполнителя', editContact: 'Контакт исполнителя', editDate: 'Дата работ',
     empty: 'Пока нет задач', emptyHint: 'Нажмите «Новая задача» выше, чтобы создать первую.',
-    delTitle: 'Удалить задачу', delMsg: 'Удалить задачу вместе с фото и ссылками?', delPublished: 'Задача опубликована. Удаление уберёт и ссылку получателя, и фото. Всё равно удалить?',
+    plan: 'План', delTitle: 'Удалить задачу', delMsg: 'Удалить задачу вместе с фото и ссылками?', delPublished: 'Задача опубликована. Удаление уберёт и ссылку получателя, и фото. Всё равно удалить?',
     deleted: 'Задача удалена.', saved: 'Сохранено.',
   },
   create: {

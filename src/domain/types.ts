@@ -38,6 +38,7 @@ export interface Customer {
 export interface WorkOrder {
   id: string; customerId: string; templateId: string; workDate: string | null;
   status: WorkOrderStatus; assigneeName: string | null; assigneeContact: string | null; assigneeEmail: string | null; shipperLabel: string | null;
+  plannedContainerType: string | null; plannedContainerCount: number | null;
 }
 export interface Container { id: string; workOrderId: string; containerNo: string; sealNo: string | null; workerMemo: string | null; }
 export interface Photo {

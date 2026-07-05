@@ -19,6 +19,8 @@ export function rowToWorkOrder(r: Row): WorkOrder {
     workDate: strOrNull(r.work_date), status: str(r.status) as WorkOrderStatus,
     assigneeName: strOrNull(r.assignee_name), assigneeContact: strOrNull(r.assignee_contact), assigneeEmail: strOrNull(r.assignee_email),
     shipperLabel: strOrNull(r.shipper_label),
+    plannedContainerType: strOrNull(r.planned_container_type),
+    plannedContainerCount: r.planned_container_count == null ? null : Number(r.planned_container_count),
   };
 }
 
