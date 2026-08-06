@@ -1,16 +1,17 @@
 // @vitest-environment node
 import schema from '../../supabase/migrations/0001_core_schema.sql?raw';
 import seed from '../../supabase/migrations/0002_seed_templates.sql?raw';
+import jaText from '../../supabase/migrations/0013_ja_template_text.sql?raw';
 import { freshDb } from './pglite';
 
-async function db() { return freshDb([schema, seed]); }
+async function db() { return freshDb([schema, seed, jaText]); }
 
 test('seeds exactly the TSR and TCR templates', async () => {
   const d = await db();
   const r = await d.query<{ route: string; carrier: string; min_count: number }>(
     'select route, carrier, min_count from work_type_templates order by route;');
   expect(r.rows).toEqual([
-    { route: 'TCR', carrier: '중국세관', min_count: 8 },
+    { route: 'TCR', carrier: '中国税関', min_count: 8 },
     { route: 'TSR', carrier: 'FESCO', min_count: 8 },
   ]);
 });
@@ -32,7 +33,7 @@ test('TSR carries the FESCO rail-rejection warning and bolt-seal rule', async ()
   const r = await d.query<{ warning_text: string; seal_type: string }>(`
     select warning_text, rules->>'seal_type' as seal_type
     from work_type_templates where route='TSR';`);
-  expect(r.rows[0].warning_text).toContain('철도');
+  expect(r.rows[0].warning_text).toContain('鉄道');
   expect(r.rows[0].seal_type).toBe('bolt');
 });
 
@@ -40,5 +41,5 @@ test('TCR carries the customs return-to-Korea warning', async () => {
   const d = await db();
   const r = await d.query<{ warning_text: string }>(
     "select warning_text from work_type_templates where route='TCR';");
-  expect(r.rows[0].warning_text).toContain('반송');
+  expect(r.rows[0].warning_text).toContain('返送');
 });

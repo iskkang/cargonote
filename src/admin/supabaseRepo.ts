@@ -62,7 +62,7 @@ export function createSupabaseAdminRepo(db: DbPort): AdminRepo {
         const mine = photos.filter((p) => cids.has(p.containerId) && p.status === 'uploaded' && p.slotKey);
         const captured = new Set(mine.filter((p) => reqKeys.has(p.slotKey as string)).map((p) => p.slotKey));
         const damageCount = mine.filter((p) => p.slotKey === DAMAGE_SLOT).length;
-        const containerNo = conts.length ? conts[0].containerNo + (conts.length > 1 ? ` 외 ${conts.length - 1}` : '') : '—';
+        const containerNo = conts.length ? conts[0].containerNo + (conts.length > 1 ? ` ほか${conts.length - 1}件` : '') : '—';
         return { order: o, customerName: customers.find((c) => c.id === o.customerId)?.name ?? o.customerId, route: tpl?.route ?? null, containerNo, requiredCount: required, capturedCount: captured.size, damageCount };
       });
     },

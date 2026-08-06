@@ -3,11 +3,11 @@ import type { CargoLine } from '../domain/stuffing';
 const HEAD: Record<string, string[]> = {
   name: ['name', '품명', 'item', '품목', 'description', 'desc', '货物', '品名'],
   qty: ['qty', '수량', 'quantity', 'q', 'count', '数量'],
-  l: ['l', 'length', '길이', 'l(cm)', 'len', '长'],
-  w: ['w', 'width', '너비', '폭', 'w(cm)', '宽'],
-  h: ['h', 'height', '높이', 'h(cm)', '高'],
+  l: ['l', 'length', '길이', 'l(cm)', 'len', '长', '長さ', '長'],
+  w: ['w', 'width', '너비', '폭', 'w(cm)', '宽', '幅'],
+  h: ['h', 'height', '높이', 'h(cm)', '高', '高さ'],
   weight: ['weight', '중량', 'kg', '무게', 'weight(kg)', 'wt', '重量'],
-  stack: ['stack', 'stackable', '적재', '2단', 'stacking', '可堆叠'],
+  stack: ['stack', 'stackable', '적재', '2단', 'stacking', '可堆叠', '段積み', '積み重ね'],
 };
 
 function keyOf(header: string): string | null {
@@ -54,7 +54,7 @@ export async function parseCargoFile(file: File): Promise<CargoLine[]> {
     const nm = String(r[cols.name] ?? '').trim();
     if (l <= 0 && w <= 0 && h <= 0 && !nm) continue;
     const stk = String(r[cols.stack] ?? '').trim().toLowerCase();
-    const stackable = !['n', 'no', '0', 'x', 'false', '불가', '否'].includes(stk);
+    const stackable = !['n', 'no', '0', 'x', 'false', '불가', '否', '不可'].includes(stk);
     out.push({ name: nm || '-', qty: num(r[cols.qty]) || 1, l, w, h, weight: num(r[cols.weight]), stackable });
   }
   return out;

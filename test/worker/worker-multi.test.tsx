@@ -17,7 +17,7 @@ test('multi-container order shows a tab per container and switches active', asyn
     </MemoryRouter>,
   );
 
-  expect(await screen.findByText(/컨테이너 2대/)).toBeInTheDocument();
+  expect(await screen.findByText(/コンテナ 2本/)).toBeInTheDocument();
   // both container plates appear (first is active + its tab; second only as a tab)
   expect(screen.getAllByText(/TCLU 123456/).length).toBeGreaterThan(0);
   const secondTab = screen.getByText(/MSKU 765432/);

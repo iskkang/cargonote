@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell, Brand, Button } from '../ui/kit';
 import { C, R, SH, FONT } from '../ui/tokens';
-import { T, LANGS, type Lang } from './i18n';
+import { T, type Lang } from './i18n';
 import { Shots } from './Shots';
 
 export function Landing() {
   const nav = useNavigate();
-  const [lang, setLang] = useState<Lang>('ko');
+  // 日本語のみ。言語切り替えは廃止した。
+  const lang: Lang = 'ja';
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const t = T[lang];
   const goLogin = () => nav('/admin');
@@ -21,12 +22,6 @@ export function Landing() {
         <nav style={sx.nav}>
           <button type="button" onClick={goHome} aria-label={t.home} style={sx.brandBtn}><Brand /></button>
           <div style={sx.navRight}>
-            <div style={sx.langBar}>
-              {LANGS.map((l) => (
-                <button key={l.code} type="button" onClick={() => setLang(l.code)}
-                  style={{ ...sx.langBtn, ...(lang === l.code ? sx.langActive : {}) }}>{l.label}</button>
-              ))}
-            </div>
             <Button onClick={goLogin} style={sx.navBtn}>{t.login}</Button>
           </div>
         </nav>
@@ -227,9 +222,6 @@ const sx = {
   nav: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, paddingBottom: 14 } as const,
   brandBtn: { border: 0, background: 'transparent', padding: 0, cursor: 'pointer', display: 'inline-flex' } as const,
   navRight: { display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' as const } as const,
-  langBar: { display: 'inline-flex', gap: 3, background: C.white, border: `1px solid ${C.line}`, borderRadius: 999, padding: 3 } as const,
-  langBtn: { fontFamily: FONT.sans, fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 999, border: 0, background: 'transparent', color: C.text, cursor: 'pointer' } as const,
-  langActive: { background: C.navy, color: C.white } as const,
   navBtn: { padding: '9px 14px', whiteSpace: 'nowrap' as const } as const,
 
   // Premium dark hero card

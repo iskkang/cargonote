@@ -64,7 +64,7 @@ export function WorkerCapture({ client = getWorkerClient() }: { client?: WorkerC
 
   if (notFound) return (
     <PageShell tone="dark" style={sx.page}>
-      <p style={{ color: C.caution, fontFamily: FONT.sans }}>잘못된 링크입니다.</p>
+      <p style={{ color: C.caution, fontFamily: FONT.sans }}>リンクが正しくありません。</p>
     </PageShell>
   );
   if (!state) return <PageShell tone="dark" style={sx.page}>{null}</PageShell>;
@@ -123,7 +123,7 @@ export function WorkerCapture({ client = getWorkerClient() }: { client?: WorkerC
         await updatePending();
       } catch {
         console.error('upload failed', e);
-        setError(`업로드 실패 — ${e instanceof Error ? e.message : String(e)}`);
+        setError(`アップロードに失敗しました — ${e instanceof Error ? e.message : String(e)}`);
       }
     }
   }
@@ -150,7 +150,7 @@ export function WorkerCapture({ client = getWorkerClient() }: { client?: WorkerC
       {step === 'intro' && (
         <>
           <div style={sx.header}><Brand dark /></div>
-          <div style={sx.breadcrumb}>작업 지시서 · {state.template.route} 적입 검수{multi ? ` · 컨테이너 ${containers.length}대` : ''}</div>
+          <div style={sx.breadcrumb}>作業指示書 · {state.template.route} バンニング検品{multi ? ` · コンテナ ${containers.length}本` : ''}</div>
 
           {tabs}
 
@@ -160,9 +160,9 @@ export function WorkerCapture({ client = getWorkerClient() }: { client?: WorkerC
           </div>
 
           <Card dark style={sx.infoCard}>
-            <InfoRow label="담당 작업자" value={state.order.assigneeName || '—'} />
-            <InfoRow label="작업일" value={state.order.workDate || '—'} />
-            {state.order.assigneeContact && <InfoRow label="연락처" value={state.order.assigneeContact} />}
+            <InfoRow label="担当作業者" value={state.order.assigneeName || '—'} />
+            <InfoRow label="作業日" value={state.order.workDate || '—'} />
+            {state.order.assigneeContact && <InfoRow label="連絡先" value={state.order.assigneeContact} />}
           </Card>
 
           {state.template.warningText && (
@@ -171,7 +171,7 @@ export function WorkerCapture({ client = getWorkerClient() }: { client?: WorkerC
             </Card>
           )}
 
-          <div style={sx.sectionHead}><span style={sx.sectionTitle}>필요 사진</span><span style={sx.countDim}>{total}장</span></div>
+          <div style={sx.sectionHead}><span style={sx.sectionTitle}>必要な写真</span><span style={sx.countDim}>{total}枚</span></div>
           {groups.map((g) => (
             <div key={g.phase} style={{ marginBottom: 10 }}>
               <div style={sx.groupLabel}>{g.phase}</div>
@@ -179,15 +179,15 @@ export function WorkerCapture({ client = getWorkerClient() }: { client?: WorkerC
             </div>
           ))}
 
-          <Button onClick={() => setStep('capture')} style={sx.cta}>촬영 시작</Button>
-          <div style={sx.footNote}>필요할 때 한 장씩 · 순서는 자유입니다</div>
+          <Button onClick={() => setStep('capture')} style={sx.cta}>撮影を開始</Button>
+          <div style={sx.footNote}>必要なときに1枚ずつ · 順番は自由です</div>
         </>
       )}
 
       {step === 'capture' && (
         <>
           <div style={sx.captureHead}>
-            <span style={sx.captureTitle}>촬영 체크리스트</span>
+            <span style={sx.captureTitle}>撮影チェックリスト</span>
             <span style={{ fontSize: 13, fontFamily: FONT.sans, color: status.complete ? C.positive : C.tealBright }}>{done}/{total}</span>
           </div>
           <div style={sx.progressTrack}><div style={{ ...sx.progressFill, width: total ? `${(done / total) * 100}%` : '0%' }} /></div>
@@ -199,7 +199,7 @@ export function WorkerCapture({ client = getWorkerClient() }: { client?: WorkerC
           {(pending > 0 || !online) && (
             <div style={sx.syncRow}>
               <span style={{ ...sx.syncDot, background: online ? C.caution : C.negative }} />
-              {online ? `전송 대기 ${pending}장 · 자동 전송 중…` : `오프라인 · 전송 대기 ${pending}장 (온라인 시 자동 전송)`}
+              {online ? `送信待ち ${pending}枚 · 自動送信中…` : `オフライン · 送信待ち ${pending}枚(オンライン復帰後に自動送信)`}
             </div>
           )}
 
@@ -215,53 +215,53 @@ export function WorkerCapture({ client = getWorkerClient() }: { client?: WorkerC
 
           <div style={sx.damageBox}>
             <div style={sx.damageHead}>
-              <span style={{ fontWeight: 700, color: C.onDark }}>데미지·추가 사진</span>
-              <span style={{ fontSize: 13, color: damageShots ? C.negative : C.onDarkDim }}>{damageShots}장</span>
+              <span style={{ fontWeight: 700, color: C.onDark }}>損傷・追加の写真</span>
+              <span style={{ fontSize: 13, color: damageShots ? C.negative : C.onDarkDim }}>{damageShots}枚</span>
             </div>
-            <div style={sx.damageHint}>화물 손상이 있으면 사진을 추가로 찍어 보내세요. (여러 장 가능)</div>
-            <label style={sx.damageBtn}>＋ 데미지 사진 추가
+            <div style={sx.damageHint}>貨物に損傷があれば、写真を追加で撮って送ってください。(複数枚可)</div>
+            <label style={sx.damageBtn}>＋ 損傷写真を追加
               <input type="file" accept="image/*" capture="environment" hidden multiple
                 onChange={(e) => { Array.from(e.target.files ?? []).forEach((f) => shoot(DAMAGE_SLOT, f)); e.target.value = ''; }} />
             </label>
           </div>
 
-          <Button onClick={() => setStep('submit')} style={sx.cta}>제출 확인</Button>
+          <Button onClick={() => setStep('submit')} style={sx.cta}>提出前の確認</Button>
         </>
       )}
 
       {step === 'submit' && (
         <>
-          <div style={sx.captureHead}><span style={sx.captureTitle}>제출 전 확인</span><span style={{ fontSize: 13, color: C.onDarkDim, fontFamily: FONT.sans }}>{multi ? `${containers.length - incomplete.length}/${containers.length} 컨테이너` : `${done}/${total} 촬영`}</span></div>
+          <div style={sx.captureHead}><span style={sx.captureTitle}>提出前の確認</span><span style={{ fontSize: 13, color: C.onDarkDim, fontFamily: FONT.sans }}>{multi ? `${containers.length - incomplete.length}/${containers.length} コンテナ` : `${done}/${total} 撮影`}</span></div>
           {incomplete.length > 0 ? (
             <>
               <Card dark style={{ ...sx.warnCard, textAlign: 'center' }}>
                 <div style={{ fontSize: 26, marginBottom: 6 }}>⚠️</div>
-                <div style={{ fontWeight: 800, color: C.onDark, fontFamily: FONT.sans }}>{multi ? `컨테이너 ${incomplete.length}대가 미완료입니다` : `필수 항목 ${missingSlots.length}개가 빠졌습니다`}</div>
-                <div style={{ fontSize: 12, color: C.onDarkDim, marginTop: 6, fontFamily: FONT.sans }}>빠진 항목을 촬영하면 완료됩니다.</div>
+                <div style={{ fontWeight: 800, color: C.onDark, fontFamily: FONT.sans }}>{multi ? `コンテナ ${incomplete.length}本が未完了です` : `必須項目が ${missingSlots.length}件 不足しています`}</div>
+                <div style={{ fontSize: 12, color: C.onDarkDim, marginTop: 6, fontFamily: FONT.sans }}>不足している項目を撮影すると完了します。</div>
               </Card>
               {multi
                 ? incomplete.map((c) => (
                     <div key={c.id} style={sx.row}>
-                      <div style={{ flex: 1 }}><div style={sx.rowLabel}>{splitPlate(c.containerNo).body}</div><div style={sx.rowInstr}>{containerMissing(c).length}개 누락</div></div>
-                      <button type="button" onClick={() => { setActiveId(c.id); setStep('capture'); }} style={sx.shoot}>이동</button>
+                      <div style={{ flex: 1 }}><div style={sx.rowLabel}>{splitPlate(c.containerNo).body}</div><div style={sx.rowInstr}>{containerMissing(c).length}件 不足</div></div>
+                      <button type="button" onClick={() => { setActiveId(c.id); setStep('capture'); }} style={sx.shoot}>移動</button>
                     </div>
                   ))
                 : missingSlots.map((s) => (
                     <div key={s.key} style={sx.row}>
                       <div style={{ flex: 1 }}><div style={sx.rowLabel}>{s.label}</div><div style={sx.rowInstr}>{s.instruction}</div></div>
-                      <Badge tone="negative">누락</Badge>
+                      <Badge tone="negative">不足</Badge>
                     </div>
                   ))}
-              <Button onClick={() => { if (multi && incomplete[0]) setActiveId(incomplete[0].id); setStep('capture'); }} style={sx.cta}>빠진 항목 촬영하기</Button>
-              <button type="button" onClick={() => setSubmitted(true)} style={sx.textBtn}>이대로 제출</button>
+              <Button onClick={() => { if (multi && incomplete[0]) setActiveId(incomplete[0].id); setStep('capture'); }} style={sx.cta}>不足分を撮影する</Button>
+              <button type="button" onClick={() => setSubmitted(true)} style={sx.textBtn}>このまま提出</button>
             </>
           ) : (
             <>
               <Card dark style={{ ...sx.infoCard, textAlign: 'center' }}>
                 <div style={{ fontSize: 26, marginBottom: 6 }}>✓</div>
-                <div style={{ fontWeight: 800, color: C.onDark, fontFamily: FONT.sans }}>{multi ? `컨테이너 ${containers.length}대 모두 촬영됐습니다` : `필수 ${total}장 모두 촬영됐습니다`}</div>
+                <div style={{ fontWeight: 800, color: C.onDark, fontFamily: FONT.sans }}>{multi ? `コンテナ ${containers.length}本すべて撮影しました` : `必須 ${total}枚すべて撮影しました`}</div>
               </Card>
-              <Button onClick={() => setSubmitted(true)} style={sx.cta}>제출</Button>
+              <Button onClick={() => setSubmitted(true)} style={sx.cta}>提出</Button>
             </>
           )}
         </>
@@ -271,9 +271,9 @@ export function WorkerCapture({ client = getWorkerClient() }: { client?: WorkerC
         <div style={sx.overlay} role="dialog" aria-modal="true">
           <div style={sx.modal}>
             <div style={sx.modalCheck}>✓</div>
-            <div style={sx.modalTitle}>전송되었습니다!</div>
-            <div style={sx.modalText}>{closeHint ? '이 탭을 직접 닫아 주세요.' : '촬영이 사무실로 전송됐습니다. 확인을 누르면 창이 닫힙니다.'}</div>
-            <Button onClick={() => { window.close(); setCloseHint(true); }} style={{ width: '100%', marginTop: 16, padding: 11 }}>확인</Button>
+            <div style={sx.modalTitle}>送信しました。</div>
+            <div style={sx.modalText}>{closeHint ? 'このタブを手動で閉じてください。' : '撮影は事務所へ送信されました。確認を押すとウィンドウが閉じます。'}</div>
+            <Button onClick={() => { window.close(); setCloseHint(true); }} style={{ width: '100%', marginTop: 16, padding: 11 }}>確認</Button>
           </div>
         </div>
       )}
@@ -294,8 +294,8 @@ function SlotRow({ slot, done, onShoot }: { slot: RequiredPhotoSlot; done: boole
         <div style={sx.rowLabel}>{slot.label}</div>
         <div style={sx.rowInstr}>{slot.instruction}</div>
       </div>
-      {done && <Badge tone="positive" style={{ marginRight: 8 }}>완료</Badge>}
-      <label style={done ? sx.reshoot : sx.shoot}>{done ? '다시' : '촬영'}
+      {done && <Badge tone="positive" style={{ marginRight: 8 }}>完了</Badge>}
+      <label style={done ? sx.reshoot : sx.shoot}>{done ? '撮り直し' : '撮影'}
         <input type="file" accept="image/*" capture="environment" hidden
           onChange={(e) => { const f = e.target.files?.[0]; if (f) onShoot(f); e.target.value = ''; }} />
       </label>

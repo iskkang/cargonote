@@ -33,9 +33,9 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
           {state.opts.title && <div style={sx.title}>{state.opts.title}</div>}
           <div style={sx.msg}>{state.opts.message}</div>
           <div style={sx.actions}>
-            <button type="button" onClick={() => done(false)} style={sx.btnGhost}>{state.opts.cancelLabel ?? '취소'}</button>
+            <button type="button" onClick={() => done(false)} style={sx.btnGhost}>{state.opts.cancelLabel ?? 'キャンセル'}</button>
             <button type="button" data-testid="confirm-accept" onClick={() => done(true)}
-              style={{ ...sx.btnPrimary, ...(state.opts.danger ? sx.btnDanger : {}) }}>{state.opts.confirmLabel ?? '확인'}</button>
+              style={{ ...sx.btnPrimary, ...(state.opts.danger ? sx.btnDanger : {}) }}>{state.opts.confirmLabel ?? '確認'}</button>
           </div>
         </Modal>
       )}

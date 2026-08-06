@@ -76,9 +76,8 @@ function ViewerShot() {
     <div style={{ padding: 12 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <div style={sx.mBar} />
-        <div style={{ display: 'flex', gap: 3 }}>
-          {['한', 'EN', '中', 'RU'].map((l, i) => <span key={l} style={{ ...sx.langChip, ...(i === 0 ? { background: C.navy, color: C.white } : {}) }}>{l}</span>)}
-        </div>
+        {/* 言語切り替えのモックは外した。多言語対応をやめたので、
+            画面の絵にだけ残すと、無い機能を宣伝することになる。 */}
       </div>
       <div style={sx.tiles2}>
         {Array.from({ length: 4 }).map((_, i) => <div key={i} style={sx.tile2} />)}

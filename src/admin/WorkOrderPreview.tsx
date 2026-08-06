@@ -13,7 +13,7 @@ export interface WorkOrderPreviewData {
 export function WorkOrderPreview({ data }: { data: WorkOrderPreviewData }) {
   const t = useT();
   const firstNo = data.containerNos[0] || 'CONTAINER No.';
-  const extra = data.containerNos.length > 1 ? ` 외 ${data.containerNos.length - 1}` : '';
+  const extra = data.containerNos.length > 1 ? ` ほか${data.containerNos.length - 1}件` : '';
   return (
     <Card dark style={{ padding: 0, overflow: 'hidden' }}>
       <div style={sx.header}>{t.preview.head}</div>

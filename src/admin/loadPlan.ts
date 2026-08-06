@@ -1,4 +1,4 @@
-// Hand-off payload from the load calculator to "새 작업 만들기".
+// Hand-off payload from the load calculator to the new-work-order screen.
 // A plan is display-only context + a container count; it is not persisted.
 export interface LoadPlan {
   containerLabel: string;   // e.g. "40' HQ"

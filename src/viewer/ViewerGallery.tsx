@@ -5,7 +5,7 @@ import { getViewerClient } from '../admin/repoFactory';
 import type { ViewerManifest, ViewerContainer, ViewerPhoto } from '../domain/viewer';
 import { PageShell, Brand, Card, Button, Badge } from '../ui/kit';
 import { C, R, SH, FONT } from '../ui/tokens';
-import { T, LANGS, photoLabel, type Lang } from './i18n';
+import { T, photoLabel, type Lang } from './i18n';
 
 async function downloadOne(url: string, name: string) {
   try {
@@ -26,7 +26,8 @@ export function ViewerGallery({ client = getViewerClient() }: { client?: ViewerC
   const [manifest, setManifest] = useState<ViewerManifest | null>(null);
   const [state, setState] = useState<'loading' | 'ok' | 'invalid'>('loading');
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [lang, setLang] = useState<Lang>('ko');
+  // 日本語のみ。言語切り替えは廃止した。
+  const lang: Lang = 'ja';
   const t = T[lang];
 
   useEffect(() => {
@@ -39,7 +40,7 @@ export function ViewerGallery({ client = getViewerClient() }: { client?: ViewerC
   if (state === 'invalid' || !manifest) {
     return (
       <PageShell style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <p style={{ fontFamily: FONT.sans, fontSize: 16, fontWeight: 600, color: C.caution }}>잘못된 링크입니다. · Invalid link.</p>
+        <p style={{ fontFamily: FONT.sans, fontSize: 16, fontWeight: 600, color: C.caution }}>{T.ja.invalid}</p>
       </PageShell>
     );
   }
@@ -68,12 +69,6 @@ export function ViewerGallery({ client = getViewerClient() }: { client?: ViewerC
         <header style={sx.hero}>
           <Brand />
           <div style={sx.heroRight}>
-            <div style={sx.langBar}>
-              {LANGS.map((l) => (
-                <button key={l.code} type="button" onClick={() => setLang(l.code)}
-                  style={{ ...sx.langBtn, ...(lang === l.code ? sx.langActive : {}) }}>{l.label}</button>
-              ))}
-            </div>
             <div style={sx.heroTitle}>{t.report}</div>
             <div style={sx.subtitle}>{manifest.customer} · {manifest.route}</div>
           </div>
@@ -168,9 +163,6 @@ const sx = {
   inner: { maxWidth: 980, margin: '0 auto', padding: '24px 20px' } as const,
   hero: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 18, flexWrap: 'wrap' as const, gap: 12 } as const,
   heroRight: { textAlign: 'right' as const } as const,
-  langBar: { display: 'inline-flex', gap: 4, marginBottom: 8, background: C.white, border: `1px solid ${C.line}`, borderRadius: 999, padding: 3 } as const,
-  langBtn: { fontFamily: FONT.sans, fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 999, border: 0, background: 'transparent', color: C.text, cursor: 'pointer' } as const,
-  langActive: { background: C.navy, color: C.white } as const,
   heroTitle: { fontFamily: FONT.sans, fontWeight: 800, fontSize: 18, color: C.navy } as const,
   subtitle: { fontFamily: FONT.sans, fontSize: 13, color: C.text, marginTop: 4 } as const,
   exportBar: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, background: C.white, border: `1px solid ${C.line}`, borderRadius: R.lg, padding: '10px 14px', marginBottom: 18, flexWrap: 'wrap' as const } as const,

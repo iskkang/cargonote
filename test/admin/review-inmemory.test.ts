@@ -14,7 +14,7 @@ test('getWorkOrderReview returns containers with latest-per-slot photos + custom
   const r = await repo.getWorkOrderReview('wo-2');
   expect(r).not.toBeNull();
   expect(r!.template.route).toBe('TCR');
-  expect(r!.customer?.name).toContain('칭다오');
+  expect(r!.customer?.name).toContain('青島');
   expect(r!.containers).toHaveLength(1);
   const photos = r!.containers[0].photos;
   // seal deduped to the latest (h2), plus empty (h3)
@@ -28,7 +28,7 @@ test('getWorkOrderReview returns null for an unknown id', async () => {
 
 test('publish sets status=published and returns a viewer token, reused on re-publish', async () => {
   const repo = await seeded();
-  const manifest = { route: 'TCR', customer: '칭다오 파트너', date: '2026-07-02', containers: [] };
+  const manifest = { route: 'TCR', customer: '青島パートナー', date: '2026-07-02', containers: [] };
   const { viewerToken } = await repo.publish('wo-2', manifest);
   expect(viewerToken).toMatch(/^[A-Za-z0-9]+$/);
   const order = (await repo.listWorkOrders()).find((o) => o.id === 'wo-2');

@@ -3,7 +3,7 @@ import type { AuthDeps } from './session';
 import { PageShell, Brand, Card, Button, Field, inputStyle } from '../ui/kit';
 import { C, FONT } from '../ui/tokens';
 
-const FEATURES = ['무설치 촬영', '발행본 고정', '다국어 열람'];
+const FEATURES = ['インストール不要の撮影', '発行版を固定', '受取側は登録不要'];
 
 export function Login({ deps }: { deps: AuthDeps }) {
   const [email, setEmail] = useState('');
@@ -15,7 +15,7 @@ export function Login({ deps }: { deps: AuthDeps }) {
     e.preventDefault();
     setError(null); setBusy(true);
     try { await deps.signIn(email, password); }
-    catch { setError('로그인 실패 — 이메일/비밀번호를 확인하세요.'); }
+    catch { setError('ログインできません — メールアドレスとパスワードをご確認ください。'); }
     finally { setBusy(false); }
   }
 
@@ -23,23 +23,23 @@ export function Login({ deps }: { deps: AuthDeps }) {
     <PageShell>
       <div style={sx.top}>
         <Brand />
-        <a href="/" style={sx.back}>← 소개 보기</a>
+        <a href="/" style={sx.back}>← サービス紹介へ</a>
       </div>
 
       <div style={sx.center}>
         <Card style={{ width: '100%', maxWidth: 380, padding: 28 }}>
-          <div style={sx.title}>관리자 로그인</div>
-          <div style={sx.sub}>사무실 계정으로 로그인하세요.</div>
+          <div style={sx.title}>管理者ログイン</div>
+          <div style={sx.sub}>事務所のアカウントでログインしてください。</div>
           <form onSubmit={submit}>
-            <Field label="이메일">
+            <Field label="メールアドレス">
               <input type="email" style={inputStyle} value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="username" />
             </Field>
-            <Field label="비밀번호">
+            <Field label="パスワード">
               <input type="password" style={inputStyle} value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />
             </Field>
             {error && <div style={sx.error}>{error}</div>}
             <Button type="submit" disabled={busy} style={{ width: '100%', marginTop: 4 }}>
-              {busy ? '로그인 중…' : '로그인'}
+              {busy ? 'ログイン中…' : 'ログイン'}
             </Button>
           </form>
         </Card>

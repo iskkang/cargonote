@@ -13,26 +13,26 @@ function renderAt(token: string) {
 test('intro step shows container plate, a required slot, and the warning', async () => {
   renderAt('demotoken123');
   expect(await screen.findByText(/FBLU 420481/)).toBeInTheDocument();  // plate (ISO check digit split)
-  expect(screen.getByText(/빈 컨테이너/)).toBeInTheDocument();          // a required slot label
-  expect(screen.getByText(/반송/)).toBeInTheDocument();                 // TCR warning
+  expect(screen.getByText(/空コンテナ/)).toBeInTheDocument();          // a required slot label
+  expect(screen.getByText(/返送/)).toBeInTheDocument();                 // TCR warning
 });
 
-test('촬영 시작 opens the grouped checklist', async () => {
+test('the start-capture button opens the grouped checklist', async () => {
   renderAt('demotoken123');
-  fireEvent.click(await screen.findByRole('button', { name: /촬영 시작/ }));
-  expect(await screen.findByText(/촬영 체크리스트/)).toBeInTheDocument();
-  expect(screen.getByText(/반입/)).toBeInTheDocument();                 // phase group header
+  fireEvent.click(await screen.findByRole('button', { name: /撮影を開始/ }));
+  expect(await screen.findByText(/撮影チェックリスト/)).toBeInTheDocument();
+  expect(screen.getByText(/搬入/)).toBeInTheDocument();                 // phase group header
 });
 
-test('checklist → submit-check → 제출 shows the completion dialog', async () => {
+test('checklist → submit-check → submit shows the completion dialog', async () => {
   renderAt('demotoken123');
-  fireEvent.click(await screen.findByRole('button', { name: /촬영 시작/ }));
-  fireEvent.click(await screen.findByRole('button', { name: /제출 확인/ }));
-  fireEvent.click(await screen.findByRole('button', { name: /제출/ }));   // "이대로 제출" (nothing captured)
-  expect(await screen.findByText(/전송되었습니다/)).toBeInTheDocument();
+  fireEvent.click(await screen.findByRole('button', { name: /撮影を開始/ }));
+  fireEvent.click(await screen.findByRole('button', { name: /提出前の確認/ }));
+  fireEvent.click(await screen.findByRole('button', { name: /提出/ }));   // "このまま提出" (nothing captured)
+  expect(await screen.findByText(/送信しました/)).toBeInTheDocument();
 });
 
 test('shows an error for an unknown token', async () => {
   renderAt('bad');
-  expect(await screen.findByText(/잘못된 링크/)).toBeInTheDocument();
+  expect(await screen.findByText(/リンクが正しくありません/)).toBeInTheDocument();
 });

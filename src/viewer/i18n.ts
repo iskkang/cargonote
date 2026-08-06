@@ -1,11 +1,10 @@
-export type Lang = 'ko' | 'en' | 'zh' | 'ru';
+// 日本市場向けに日本語のみを扱う。ko/en/zh/ru は廃止した。
+// Lang 型と LANGS を残してあるのは、言語切り替えの呼び出し側を一度に
+// 書き換えずに済ませるためではなく、将来また複数言語に戻すときの
+// 差し込み口を明示しておくためである。今は 'ja' しか存在しない。
+export type Lang = 'ja';
 
-export const LANGS: { code: Lang; label: string }[] = [
-  { code: 'ko', label: '한국어' },
-  { code: 'en', label: 'EN' },
-  { code: 'zh', label: '中文' },
-  { code: 'ru', label: 'RU' },
-];
+export const LANGS: { code: Lang; label: string }[] = [{ code: 'ja', label: '日本語' }];
 
 interface Strings {
   report: string; selectAll: string; download: string; wechatHint: string;
@@ -14,26 +13,37 @@ interface Strings {
 }
 
 export const T: Record<Lang, Strings> = {
-  ko: { report: '증빙 리포트', selectAll: '전체 선택', download: '선택 사진 다운로드', wechatHint: '위챗에서 스캔해 여세요', date: '작업일', customer: '거래처', route: '루트', photos: '사진', unit: '장', documents: '서류', noDocs: '첨부 없음', invalid: '잘못된 링크입니다.' },
-  en: { report: 'Inspection Report', selectAll: 'Select all', download: 'Download selected', wechatHint: 'Scan in WeChat', date: 'Date', customer: 'Client', route: 'Route', photos: 'Photos', unit: '', documents: 'Documents', noDocs: 'No documents', invalid: 'Invalid link.' },
-  zh: { report: '查验报告', selectAll: '全选', download: '下载所选照片', wechatHint: '在微信中扫描', date: '作业日期', customer: '客户', route: '路线', photos: '照片', unit: '张', documents: '文件', noDocs: '无附件', invalid: '链接无效。' },
-  ru: { report: 'Отчёт о проверке', selectAll: 'Выбрать все', download: 'Скачать выбранные', wechatHint: 'Отсканируйте в WeChat', date: 'Дата', customer: 'Клиент', route: 'Маршрут', photos: 'Фото', unit: '', documents: 'Документы', noDocs: 'Нет вложений', invalid: 'Недействительная ссылка.' },
+  ja: {
+    report: '作業証跡レポート',
+    selectAll: 'すべて選択',
+    download: '選択した写真をダウンロード',
+    // 日本の現場は WeChat を使わない。共有リンクをそのまま開く案内に置き換える。
+    wechatHint: 'リンクをそのまま開いてご覧いただけます',
+    date: '作業日',
+    customer: '取引先',
+    route: '航路',
+    photos: '写真',
+    unit: '枚',
+    documents: '書類',
+    noDocs: '添付なし',
+    invalid: 'リンクが正しくありません。',
+  },
 };
 
-// Required-photo slot labels (matches TSR/TCR templates) + damage.
+// 必須撮影スロットの表示名(TSR/TCR テンプレートに対応)+ 損傷。
 export const SLOT_LABELS: Record<string, Partial<Record<Lang, string>>> = {
-  empty: { ko: '빈 컨테이너', en: 'Empty container', zh: '空箱', ru: 'Пустой контейнер' },
-  half: { ko: '절반 적재', en: 'Half loaded', zh: '半载', ru: 'Половина загрузки' },
-  full: { ko: '만재', en: 'Fully loaded', zh: '满载', ru: 'Полная загрузка' },
-  shoring: { ko: '쇼링·고박 후', en: 'After shoring/lashing', zh: '固定后', ru: 'После крепления' },
-  one_door: { ko: '한쪽 문 닫힘', en: 'One door closed', zh: '单门关闭', ru: 'Одна дверь закрыта' },
-  sealed: { ko: '봉인 완료', en: 'Sealed', zh: '铅封完成', ru: 'Опломбировано' },
-  seal: { ko: '씰 근접', en: 'Seal close-up', zh: '铅封特写', ru: 'Пломба крупным планом' },
-  csc: { ko: 'CSC 명판', en: 'CSC plate', zh: 'CSC 铭牌', ru: 'Табличка CSC' },
-  damage: { ko: '데미지', en: 'Damage', zh: '损坏', ru: 'Повреждение' },
+  empty: { ja: '空コンテナ' },
+  half: { ja: '半積み' },
+  full: { ja: '満載' },
+  shoring: { ja: 'ショアリング・固縛後' },
+  one_door: { ja: '片扉閉鎖' },
+  sealed: { ja: '封印完了' },
+  seal: { ja: 'シール接写' },
+  csc: { ja: 'CSC プレート' },
+  damage: { ja: '損傷' },
 };
 
-/** Translated slot label, falling back to the manifest's stored (Korean) label. */
+/** 訳語があればそれを、無ければマニフェストに保存された表示名をそのまま返す。 */
 export function photoLabel(slotKey: string | null, fallback: string, lang: Lang): string {
   const t = slotKey ? SLOT_LABELS[slotKey]?.[lang] : undefined;
   return t ?? fallback;

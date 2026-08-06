@@ -2,18 +2,18 @@ import type { RequiredPhotoSlot } from './types';
 
 /** Capture phases for grouping the required-photo checklist. Client-side mapping
  * (carrier-spec templates stay untouched); move to template data when formalized. */
-export type Phase = '반입' | '적입' | '봉인' | '기타';
+export type Phase = '搬入' | 'バンニング' | '封印' | 'その他';
 
 const SLOT_PHASE: Record<string, Phase> = {
-  empty: '반입',
-  half: '적입', full: '적입', shoring: '적입',
-  one_door: '봉인', sealed: '봉인', seal: '봉인', csc: '봉인',
+  empty: '搬入',
+  half: 'バンニング', full: 'バンニング', shoring: 'バンニング',
+  one_door: '封印', sealed: '封印', seal: '封印', csc: '封印',
 };
 
-const ORDER: Phase[] = ['반입', '적입', '봉인', '기타'];
+const ORDER: Phase[] = ['搬入', 'バンニング', '封印', 'その他'];
 
 export function slotPhase(key: string | null | undefined): Phase {
-  return (key && SLOT_PHASE[key]) || '기타';
+  return (key && SLOT_PHASE[key]) || 'その他';
 }
 
 export interface PhaseGroup { phase: Phase; slots: RequiredPhotoSlot[] }

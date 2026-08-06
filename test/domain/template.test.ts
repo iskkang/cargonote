@@ -1,12 +1,12 @@
 import { parseTemplate, requiredSlots } from '../../src/domain/template';
 
 const raw = {
-  id: 'x', name: '컨테이너 적입 — TSR (FESCO)', carrier: 'FESCO', route: 'TSR',
+  id: 'x', name: 'コンテナ・バンニング — TSR (FESCO)', carrier: 'FESCO', route: 'TSR',
   anchor_type: 'container_no', min_count: 8, warning_text: 'w',
   rules: { container_no_visible: true, seal_type: 'bolt' },
   required_photos: [
-    { key: 'empty', label: '빈 컨테이너', instruction: '번호 보이게', required: true },
-    { key: 'csc', label: 'CSC 명판', instruction: '번호 규칙 예외', required: false },
+    { key: 'empty', label: '空コンテナ', instruction: '番号が見えるように', required: true },
+    { key: 'csc', label: 'CSC プレート', instruction: '番号規則の例外', required: false },
   ],
 };
 
@@ -14,7 +14,7 @@ test('parses a raw template row into typed slots and rules', () => {
   const t = parseTemplate(raw as any);
   expect(t.route).toBe('TSR');
   expect(t.requiredPhotos).toHaveLength(2);
-  expect(t.requiredPhotos[0]).toEqual({ key: 'empty', label: '빈 컨테이너', instruction: '번호 보이게', required: true });
+  expect(t.requiredPhotos[0]).toEqual({ key: 'empty', label: '空コンテナ', instruction: '番号が見えるように', required: true });
   expect(t.rules.seal_type).toBe('bolt');
 });
 

@@ -1,7 +1,7 @@
 import { createInMemoryAdminRepo } from '../../src/admin/repo';
 import type { ViewerManifest } from '../../src/domain/viewer';
 
-const manifest: ViewerManifest = { route: 'TCR', customer: '칭다오 파트너', date: '2026-07-02', containers: [] };
+const manifest: ViewerManifest = { route: 'TCR', customer: '青島パートナー', date: '2026-07-02', containers: [] };
 
 test('revoke invalidates the viewer link; republish restores it', async () => {
   const repo = createInMemoryAdminRepo();

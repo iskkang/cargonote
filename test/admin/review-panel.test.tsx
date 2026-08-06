@@ -10,8 +10,8 @@ test('shows container + checklist and publishes to a viewer link', async () => {
   await repo.insertPhoto({ containerId: 'ctn-1', slotKey: 'seal', displayPath: 'd.webp', thumbPath: 't.webp', fileHash: 'h', byteSize: 1, capturedAt: '2026-07-02T01:00:00Z' });
   render(<ReviewPanel workOrderId="wo-2" repo={repo} onBack={() => {}} thumbUrls={stubThumbs} signViewer={stubSign} />);
   expect(await screen.findByText(/FBLU4204812/)).toBeInTheDocument();
-  expect(screen.getByText(/씰 번호/)).toBeInTheDocument();
-  fireEvent.click(screen.getByRole('button', { name: /발행/ }));
+  expect(screen.getByText(/シール番号/)).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: /発行/ }));
   const link = await screen.findByTestId('viewer-link');
   expect(link.textContent).toMatch(/\/v\/[A-Za-z0-9]+/);
 });
@@ -20,6 +20,6 @@ test('back button calls onBack', async () => {
   const repo = createInMemoryAdminRepo();
   let backed = false;
   render(<ReviewPanel workOrderId="wo-2" repo={repo} onBack={() => { backed = true; }} thumbUrls={stubThumbs} signViewer={stubSign} />);
-  fireEvent.click(await screen.findByRole('button', { name: /작업 현황/ }));
+  fireEvent.click(await screen.findByRole('button', { name: /作業状況/ }));
   expect(backed).toBe(true);
 });

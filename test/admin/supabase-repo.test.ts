@@ -28,8 +28,8 @@ function memPort(seed: Record<string, Row[]> = {}): DbPort {
 }
 
 const tplRow: Row = {
-  id: 'tpl-tcr', name: 'TCR', carrier: '중국세관', route: 'TCR', anchor_type: 'container_no',
-  min_count: 8, warning_text: '반송 주의', rules: {}, required_photos: [{ key: 'seal', label: '씰', instruction: '', required: true }],
+  id: 'tpl-tcr', name: 'TCR', carrier: '中国税関', route: 'TCR', anchor_type: 'container_no',
+  min_count: 8, warning_text: '返送注意', rules: {}, required_photos: [{ key: 'seal', label: 'シール', instruction: '', required: true }],
 };
 
 test('list methods map rows to domain', async () => {
@@ -49,7 +49,7 @@ test('createWorkOrder inserts order + containers + worker share_link, token reso
   const repo = createSupabaseAdminRepo(db);
   const { order, workerToken } = await repo.createWorkOrder({
     customerId: 'c1', templateId: 'tpl-tcr', containerNos: ['ABCD1234567'],
-    workDate: null, assigneeName: '박', assigneeContact: '010',
+    workDate: null, assigneeName: '鈴木', assigneeContact: '010',
   });
   expect(order.status).toBe('sent');
   expect(workerToken).toMatch(/^[A-Za-z0-9]+$/);
@@ -81,8 +81,8 @@ test('insertPhoto then listPhotos round-trips through the port', async () => {
 test('updateWorkOrder maps camel to snake and returns domain', async () => {
   const db = memPort({ work_orders: [{ id: 'wo1', customer_id: 'c1', template_id: 't', work_date: null, status: 'sent', assignee_name: 'A', assignee_contact: 'B', shipper_label: null }] });
   const repo = createSupabaseAdminRepo(db);
-  const u = await repo.updateWorkOrder('wo1', { assigneeName: '새담당', assigneeContact: '010', workDate: '2026-08-01' });
-  expect(u.assigneeName).toBe('새담당');
+  const u = await repo.updateWorkOrder('wo1', { assigneeName: '佐藤', assigneeContact: '010', workDate: '2026-08-01' });
+  expect(u.assigneeName).toBe('佐藤');
   expect(u.workDate).toBe('2026-08-01');
 });
 
@@ -96,16 +96,16 @@ test('deleteWorkOrder deletes the row via the port', async () => {
 test('createCustomer inserts and maps contact fields', async () => {
   const db = memPort();
   const repo = createSupabaseAdminRepo(db);
-  const c = await repo.createCustomer({ name: '동방', contactName: '박', phone: '010', email: 'd@x.com' });
-  expect(c.name).toBe('동방');
-  expect(c.contactName).toBe('박');
+  const c = await repo.createCustomer({ name: '東邦', contactName: '鈴木', phone: '010', email: 'd@x.com' });
+  expect(c.name).toBe('東邦');
+  expect(c.contactName).toBe('鈴木');
   expect((await repo.listCustomers()).length).toBe(1);
 });
 
 test('updateCustomer updates and deleteCustomer removes', async () => {
   const db = memPort({ customers: [{ id: 'c1', name: 'A', contact_name: null, phone: null, email: null, contact: null, notes: null }] });
   const repo = createSupabaseAdminRepo(db);
-  const u = await repo.updateCustomer('c1', { name: 'B', contactName: '이', phone: '02', email: 'b@x.com' });
+  const u = await repo.updateCustomer('c1', { name: 'B', contactName: '伊藤', phone: '02', email: 'b@x.com' });
   expect(u.name).toBe('B');
   await repo.deleteCustomer('c1');
   expect((await repo.listCustomers()).length).toBe(0);

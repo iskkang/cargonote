@@ -3,39 +3,31 @@ import { AdminConsole } from '../../src/admin/AdminConsole';
 
 test('defaults to the dashboard overview', async () => {
   render(<AdminConsole />);
-  expect(await screen.findByRole('heading', { name: '대시보드' })).toBeInTheDocument();
-  expect(screen.getByText(/확인 필요/)).toBeInTheDocument();
+  expect(await screen.findByRole('heading', { name: 'ダッシュボード' })).toBeInTheDocument();
+  expect(screen.getByText(/要確認/)).toBeInTheDocument();
 });
 
-test('새 작업 nav shows the create form + link preview', async () => {
+test('新規作業 nav shows the create form + link preview', async () => {
   render(<AdminConsole />);
-  fireEvent.click(screen.getByRole('button', { name: /^새 작업$/ }));
-  expect(await screen.findByRole('button', { name: /발급하기/ })).toBeInTheDocument();
-  expect(screen.getByText(/작업자에게 전달될 링크 미리보기/)).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: /^新規作業$/ }));
+  expect(await screen.findByRole('button', { name: /発行/ })).toBeInTheDocument();
+  expect(screen.getByText(/作業者に渡されるリンクのプレビュー/)).toBeInTheDocument();
 });
 
-test('작업 현황 nav shows the board', async () => {
+test('作業状況 nav shows the board', async () => {
   render(<AdminConsole />);
-  fireEvent.click(screen.getByRole('button', { name: /작업 현황/ }));
-  expect(await screen.findByText(/MTL 지사/)).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: /作業状況/ }));
+  expect(await screen.findByText(/MTL ウラジオストク支店/)).toBeInTheDocument();
 });
 
-test('거래처 nav switches to the customer manager view', async () => {
+test('取引先 nav switches to the customer manager view', async () => {
   render(<AdminConsole />);
-  fireEvent.click(screen.getByRole('button', { name: /^거래처$/ }));
-  expect(await screen.findByText(/칭다오 파트너/)).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: /^取引先$/ }));
+  expect(await screen.findByText(/青島パートナー/)).toBeInTheDocument();
 });
 
-test('리포트 nav shows the published-reports list', async () => {
+test('レポート nav shows the published-reports list', async () => {
   render(<AdminConsole />);
-  fireEvent.click(screen.getByRole('button', { name: /리포트/ }));
-  expect(await screen.findByText(/발행된 리포트가 없습니다/)).toBeInTheDocument(); // seed has none published
-});
-
-test('language switch translates the console', async () => {
-  render(<AdminConsole />);
-  expect(await screen.findByRole('heading', { name: '대시보드' })).toBeInTheDocument();
-  fireEvent.click(screen.getByRole('button', { name: 'EN' }));
-  expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeInTheDocument();
-  expect(screen.getByText(/Needs check/)).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: /レポート/ }));
+  expect(await screen.findByText(/発行されたレポートがありません/)).toBeInTheDocument(); // seed has none published
 });

@@ -16,7 +16,7 @@ export interface AiReview {
   model?: string;
 }
 
-/** Runs the AI 자동 검수 pass (Claude vision) over a container's photos via the Edge Function. */
+/** Runs the AI auto-inspection pass (Claude vision) over a container's photos via the Edge Function. */
 export async function analyzeReview(input: {
   images: { label: string; imageUrl: string }[]; expectedContainerNo?: string;
 }): Promise<AiReview> {

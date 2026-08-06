@@ -15,7 +15,7 @@ export function AppRoutes() {
       <Route path="/spike" element={<App />} />
       <Route path="/c/:token" element={<WorkerCapture />} />
       <Route path="/v/:token" element={<ViewerGallery />} />
-      <Route path="*" element={<Placeholder title="페이지 없음" />} />
+      <Route path="*" element={<Placeholder title="ページが見つかりません" />} />
     </Routes>
   );
 }

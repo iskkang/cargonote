@@ -22,11 +22,11 @@ function memPort(seed: Record<string, Row[]> = {}): DbPort {
   };
 }
 
-const tpl: Row = { id: 'tpl-tcr', name: 'TCR', carrier: '중국세관', route: 'TCR', anchor_type: 'container_no', min_count: 8, warning_text: null, rules: {}, required_photos: [{ key: 'seal', label: '씰', instruction: '', required: true }] };
+const tpl: Row = { id: 'tpl-tcr', name: 'TCR', carrier: '中国税関', route: 'TCR', anchor_type: 'container_no', min_count: 8, warning_text: null, rules: {}, required_photos: [{ key: 'seal', label: 'シール', instruction: '', required: true }] };
 
 function baseSeed(): Record<string, Row[]> {
   return {
-    customers: [{ id: 'c1', name: '칭다오 파트너', contact: null, notes: null }],
+    customers: [{ id: 'c1', name: '青島パートナー', contact: null, notes: null }],
     work_type_templates: [tpl],
     work_orders: [{ id: 'wo1', customer_id: 'c1', template_id: 'tpl-tcr', work_date: null, status: 'submitted', assignee_name: null, assignee_contact: null, shipper_label: null }],
     containers: [{ id: 'k1', work_order_id: 'wo1', container_no: 'ABCD1234567', seal_no: null, worker_memo: null }],
@@ -40,7 +40,7 @@ function baseSeed(): Record<string, Row[]> {
 test('getWorkOrderReview assembles order/template/customer/containers with latest-per-slot', async () => {
   const repo = createSupabaseAdminRepo(memPort(baseSeed()));
   const r = await repo.getWorkOrderReview('wo1');
-  expect(r!.customer?.name).toContain('칭다오');
+  expect(r!.customer?.name).toContain('青島');
   expect(r!.template.route).toBe('TCR');
   expect(r!.containers[0].photos.map((p) => p.fileHash)).toEqual(['new']); // latest seal only
 });
@@ -48,7 +48,7 @@ test('getWorkOrderReview assembles order/template/customer/containers with lates
 test('publish inserts a publication + viewer share_link, sets status, reuses token', async () => {
   const port = memPort(baseSeed());
   const repo = createSupabaseAdminRepo(port);
-  const manifest = { route: 'TCR', customer: '칭다오 파트너', date: '2026-07-02', containers: [] };
+  const manifest = { route: 'TCR', customer: '青島パートナー', date: '2026-07-02', containers: [] };
   const { viewerToken } = await repo.publish('wo1', manifest);
   expect(viewerToken).toMatch(/^[A-Za-z0-9]+$/);
   const wo = (await port.select('work_orders', { col: 'id', val: 'wo1' }))[0];

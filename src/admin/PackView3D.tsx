@@ -38,7 +38,7 @@ export function PackView3D({ placements, L, W, H }: { placements: Placement[]; L
   const ordered = [...placements].sort((a, b) => (a.x + a.y + a.z) - (b.x + b.y + b.z));
 
   return (
-    <svg viewBox={`0 0 ${vw} ${vh}`} width="100%" style={{ height: 'auto', display: 'block' }} role="img" aria-label="3D 적재도">
+    <svg viewBox={`0 0 ${vw} ${vh}`} width="100%" style={{ height: 'auto', display: 'block' }} role="img" aria-label="3D 積付図">
       {edges.map((e, i) => { const l = line(e[0], e[1]); return <line key={`e${i}`} {...l} stroke={C.line} strokeWidth={1} />; })}
       {ordered.map((p, i) => {
         const { x, y, z, dx, dy, dz, color } = p;

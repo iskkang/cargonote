@@ -20,7 +20,7 @@ export function CameraCapture({ mode, onCapture }: { mode: 'input' | 'stream'; o
   if (mode === 'input') {
     return (
       <label style={{ display: 'inline-block', background: '#01888F', color: '#fff', padding: '12px 18px', borderRadius: 10, fontWeight: 600 }}>
-        사진 촬영
+        写真を撮影
         <input ref={inputRef} type="file" accept="image/*" capture="environment" hidden multiple
           onChange={(e) => { Array.from(e.target.files ?? []).forEach(onCapture); e.target.value = ''; }} />
       </label>
@@ -30,8 +30,8 @@ export function CameraCapture({ mode, onCapture }: { mode: 'input' | 'stream'; o
     <div>
       <video ref={videoRef} playsInline style={{ width: '100%', maxWidth: 360, borderRadius: 12, background: '#000' }} />
       {!streaming
-        ? <button aria-label="카메라 시작" onClick={startStream}>카메라 시작</button>
-        : <button aria-label="사진 촬영" onClick={shootFromStream}>촬영</button>}
+        ? <button aria-label="カメラを起動" onClick={startStream}>カメラを起動</button>
+        : <button aria-label="写真を撮影" onClick={shootFromStream}>撮影</button>}
     </div>
   );
 }

@@ -78,7 +78,7 @@ export function CreateWorkOrder({ repo, onCreated, onManageCustomers, onPreviewC
     });
     const tpl = templates.find((tp) => tp.id === templateId);
     setCreated({
-      containerNo: containerNos[0] + (containerNos.length > 1 ? ` 외 ${containerNos.length - 1}` : ''),
+      containerNo: containerNos[0] + (containerNos.length > 1 ? ` ほか${containerNos.length - 1}件` : ''),
       customer: customers.find((c) => c.id === customerId)?.name ?? '',
       route: tpl?.route ?? null,
       requiredCount: tpl ? (tpl.requiredPhotos.filter((s) => s.required).length || tpl.minCount) : 0,
@@ -107,7 +107,7 @@ export function CreateWorkOrder({ repo, onCreated, onManageCustomers, onPreviewC
               <div style={crd.plateNo}>{created.containerNo}</div>
             </div>
             <div style={{ fontSize: 12, color: C.text, marginBottom: 4 }}>{t.create.sendWorker}</div>
-            <ShareLinkBar url={created.link} title="적입 검수 촬영 링크" testId="worker-link" />
+            <ShareLinkBar url={created.link} title="バンニング検品 撮影リンク" testId="worker-link" />
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8, marginTop: 18, justifyContent: 'flex-end' }}>

@@ -5,7 +5,7 @@ import type { Placement } from '../domain/pack';
 export function PackView3DGL({ placements, L, W, H, highlight, cog, axisWords }: {
   placements: Placement[]; L: number; W: number; H: number; highlight: number | null;
   cog?: { x: number; y: number; z: number } | null;
-  axisWords?: { h: string; w: string; l: string }; // localized 높이/폭/길이 for the in-3D free-space labels
+  axisWords?: { h: string; w: string; l: string }; // localized height/width/length for the in-3D free-space labels
 }) {
   const mount = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

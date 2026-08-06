@@ -45,30 +45,30 @@ export interface AdminRepo {
 }
 
 function tpl(id: string, route: string, carrier: string, minCount: number): WorkTypeTemplate {
-  return { id, name: `컨테이너 적입 — ${route}`, carrier, route, anchorType: 'container_no', minCount, warningText: null, rules: {}, requiredPhotos: [] };
+  return { id, name: `コンテナ・バンニング — ${route}`, carrier, route, anchorType: 'container_no', minCount, warningText: null, rules: {}, requiredPhotos: [] };
 }
 
 export function createInMemoryAdminRepo(): AdminRepo {
   const customers: Customer[] = [
-    { id: 'cust-mtl', name: 'MTL 지사(블라디보스토크)', contactName: null, phone: null, email: 'vlad@example.com', contact: 'vlad@example.com', notes: null },
-    { id: 'cust-cn', name: '칭다오 파트너', contactName: null, phone: null, email: 'qd@example.com', contact: 'qd@example.com', notes: null },
+    { id: 'cust-mtl', name: 'MTL ウラジオストク支店', contactName: null, phone: null, email: 'vlad@example.com', contact: 'vlad@example.com', notes: null },
+    { id: 'cust-cn', name: '青島パートナー', contactName: null, phone: null, email: 'qd@example.com', contact: 'qd@example.com', notes: null },
   ];
   let cseq = 0;
   const templates: WorkTypeTemplate[] = [
     tpl('tpl-tsr', 'TSR', 'FESCO', 8),
     {
-      ...tpl('tpl-tcr', 'TCR', '중국세관', 8),
-      warningText: '반송 주의: TCR 반송 규정에 따라 문서 확인 필수',
+      ...tpl('tpl-tcr', 'TCR', '中国税関', 8),
+      warningText: '返送注意: TCR の返送規定により書類の確認が必須です',
       requiredPhotos: [
-        { key: 'empty', label: '빈 컨테이너', instruction: '컨테이너 번호가 보이도록 촬영', required: true },
-        { key: 'seal', label: '씰 번호', instruction: '씰 번호 판독 가능하게', required: true },
-        { key: 'csc', label: 'CSC 판넬', instruction: 'CSC 예외 확인', required: true },
+        { key: 'empty', label: '空コンテナ', instruction: 'コンテナ番号が見えるように撮影', required: true },
+        { key: 'seal', label: 'シール番号', instruction: 'シール番号が読み取れるように', required: true },
+        { key: 'csc', label: 'CSC プレート', instruction: 'CSC の例外を確認', required: true },
       ],
     },
   ];
   const orders: WorkOrder[] = [
-    { id: 'wo-1', customerId: 'cust-mtl', templateId: 'tpl-tsr', workDate: '2026-07-01', status: 'submitted', assigneeName: '김작업', assigneeContact: '010-1111', assigneeEmail: null, shipperLabel: null, plannedContainerType: null, plannedContainerCount: null },
-    { id: 'wo-2', customerId: 'cust-cn', templateId: 'tpl-tcr', workDate: '2026-07-02', status: 'sent', assigneeName: '이현장', assigneeContact: '010-2222', assigneeEmail: null, shipperLabel: null, plannedContainerType: null, plannedContainerCount: null },
+    { id: 'wo-1', customerId: 'cust-mtl', templateId: 'tpl-tsr', workDate: '2026-07-01', status: 'submitted', assigneeName: '山田', assigneeContact: '010-1111', assigneeEmail: null, shipperLabel: null, plannedContainerType: null, plannedContainerCount: null },
+    { id: 'wo-2', customerId: 'cust-cn', templateId: 'tpl-tcr', workDate: '2026-07-02', status: 'sent', assigneeName: '佐藤', assigneeContact: '010-2222', assigneeEmail: null, shipperLabel: null, plannedContainerType: null, plannedContainerCount: null },
   ];
   const containers: Container[] = [
     { id: 'ctn-1', workOrderId: 'wo-2', containerNo: 'FBLU4204812', sealNo: null, workerMemo: null },
@@ -110,7 +110,7 @@ export function createInMemoryAdminRepo(): AdminRepo {
         const mine = photos.filter((p) => cids.has(p.containerId) && p.status === 'uploaded' && p.slotKey);
         const captured = new Set(mine.filter((p) => reqKeys.has(p.slotKey as string)).map((p) => p.slotKey));
         const damageCount = mine.filter((p) => p.slotKey === DAMAGE_SLOT).length;
-        const containerNo = cs.length ? cs[0].containerNo + (cs.length > 1 ? ` 외 ${cs.length - 1}` : '') : '—';
+        const containerNo = cs.length ? cs[0].containerNo + (cs.length > 1 ? ` ほか${cs.length - 1}件` : '') : '—';
         return { order: o, customerName: customers.find((c) => c.id === o.customerId)?.name ?? o.customerId, route: tpl?.route ?? null, containerNo, requiredCount: required, capturedCount: captured.size, damageCount };
       });
     },

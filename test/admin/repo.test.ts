@@ -19,7 +19,7 @@ test('createWorkOrder adds a sent order and returns a worker token', async () =>
   const before = (await repo.listWorkOrders()).length;
   const { order, workerToken } = await repo.createWorkOrder({
     customerId: cust.id, templateId: tpl.id, containerNos: ['TCLU1234567'],
-    workDate: '2026-07-02', assigneeName: '홍길동', assigneeContact: '010',
+    workDate: '2026-07-02', assigneeName: '田中', assigneeContact: '010',
   });
   expect(order.status).toBe('sent');
   expect(workerToken).toMatch(/^[A-Za-z0-9]+$/);
@@ -32,7 +32,7 @@ test('createWorkOrder persists the load plan (container type + count)', async ()
   const [tpl] = await repo.listTemplates();
   const { order } = await repo.createWorkOrder({
     customerId: cust.id, templateId: tpl.id, containerNos: ["40' HQ #1", "40' HQ #2"],
-    workDate: null, assigneeName: '홍', assigneeContact: '010',
+    workDate: null, assigneeName: '田中', assigneeContact: '010',
     plannedContainerType: "40' HQ", plannedContainerCount: 2,
   });
   expect(order.plannedContainerType).toBe("40' HQ");
@@ -42,18 +42,18 @@ test('createWorkOrder persists the load plan (container type + count)', async ()
 test('createCustomer adds a customer with contact fields', async () => {
   const repo = createInMemoryAdminRepo();
   const before = (await repo.listCustomers()).length;
-  const c = await repo.createCustomer({ name: '동방물류', contactName: '박담당', phone: '010-9', email: 'db@x.com' });
-  expect(c.name).toBe('동방물류');
-  expect(c.contactName).toBe('박담당');
+  const c = await repo.createCustomer({ name: '東邦物流', contactName: '鈴木', phone: '010-9', email: 'db@x.com' });
+  expect(c.name).toBe('東邦物流');
+  expect(c.contactName).toBe('鈴木');
   expect((await repo.listCustomers()).length).toBe(before + 1);
 });
 
 test('updateCustomer changes fields in place', async () => {
   const repo = createInMemoryAdminRepo();
   const c = await repo.createCustomer({ name: 'A', contactName: null, phone: null, email: null });
-  const u = await repo.updateCustomer(c.id, { name: 'B', contactName: '이', phone: '02', email: 'b@x.com' });
+  const u = await repo.updateCustomer(c.id, { name: 'B', contactName: '伊藤', phone: '02', email: 'b@x.com' });
   expect(u.name).toBe('B');
-  expect((await repo.listCustomers()).find((x) => x.id === c.id)!.contactName).toBe('이');
+  expect((await repo.listCustomers()).find((x) => x.id === c.id)!.contactName).toBe('伊藤');
 });
 
 test('deleteCustomer removes an unreferenced customer', async () => {
@@ -76,7 +76,7 @@ test('listWorkOrderSummaries returns route, customer, required + captured + dama
   await repo.insertPhoto({ containerId: 'ctn-1', slotKey: 'damage', displayPath: 'd3.webp', thumbPath: 't3.webp', fileHash: 'h3', byteSize: 1, capturedAt: '2026-07-02T03:00:00Z' });
   const summaries = await repo.listWorkOrderSummaries();
   const wo2 = summaries.find((s) => s.order.id === 'wo-2')!;
-  expect(wo2.customerName).toContain('칭다오');
+  expect(wo2.customerName).toContain('青島');
   expect(wo2.route).toBe('TCR');
   expect(wo2.requiredCount).toBeGreaterThan(0);
   expect(wo2.capturedCount).toBe(1);   // damage does not inflate required capture count
@@ -94,7 +94,7 @@ test('deleteWorkOrder removes the order (and its containers)', async () => {
 
 test('updateWorkOrder changes assignee and work date', async () => {
   const repo = createInMemoryAdminRepo();
-  const u = await repo.updateWorkOrder('wo-2', { assigneeName: '새담당', assigneeContact: '010-9', workDate: '2026-08-01' });
-  expect(u.assigneeName).toBe('새담당');
+  const u = await repo.updateWorkOrder('wo-2', { assigneeName: '佐藤', assigneeContact: '010-9', workDate: '2026-08-01' });
+  expect(u.assigneeName).toBe('佐藤');
   expect((await repo.listWorkOrders()).find((o) => o.id === 'wo-2')!.workDate).toBe('2026-08-01');
 });

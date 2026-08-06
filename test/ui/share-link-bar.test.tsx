@@ -2,11 +2,21 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { vi } from 'vitest';
 import { ShareLinkBar } from '../../src/ui/ShareLinkBar';
 
-test('telegram link points to t.me share with the encoded url', () => {
-  render(<ShareLinkBar url="https://x.test/c/TOK" title="촬영 요청" />);
-  const tg = screen.getByTestId('share-telegram');
-  expect(tg.getAttribute('href')).toContain('t.me/share/url');
-  expect(tg.getAttribute('href')).toContain(encodeURIComponent('https://x.test/c/TOK'));
+// 送信手段は日本の現場に合わせて LINE・メール・QR に絞っている。
+// Telegram・カカオトーク・WeChat は日本の倉庫で使われないため外した。
+test('LINE link carries the title and url in the message body', () => {
+  render(<ShareLinkBar url="https://x.test/c/TOK" title="撮影のお願い" />);
+  const href = screen.getByTestId('share-line').getAttribute('href') ?? '';
+  expect(href).toContain('line.me/R/msg/text/');
+  expect(decodeURIComponent(href)).toContain('https://x.test/c/TOK');
+  expect(decodeURIComponent(href)).toContain('撮影のお願い');
+});
+
+test('mail link puts the url in the body', () => {
+  render(<ShareLinkBar url="https://x.test/c/TOK" title="撮影のお願い" />);
+  const href = screen.getByTestId('share-mail').getAttribute('href') ?? '';
+  expect(href.startsWith('mailto:')).toBe(true);
+  expect(decodeURIComponent(href)).toContain('https://x.test/c/TOK');
 });
 
 test('copy button writes the url to clipboard', () => {
@@ -17,9 +27,9 @@ test('copy button writes the url to clipboard', () => {
   expect(writeText).toHaveBeenCalledWith('https://x.test/c/TOK');
 });
 
-test('wechat button toggles a QR code', () => {
+test('QR button toggles the code', () => {
   render(<ShareLinkBar url="https://x.test/c/TOK" />);
-  expect(screen.queryByTestId('wechat-qr')).toBeNull();
-  fireEvent.click(screen.getByTestId('share-wechat'));
-  expect(screen.getByTestId('wechat-qr')).toBeInTheDocument();
+  expect(screen.queryByTestId('share-qr-code')).toBeNull();
+  fireEvent.click(screen.getByTestId('share-qr'));
+  expect(screen.getByTestId('share-qr-code')).toBeInTheDocument();
 });

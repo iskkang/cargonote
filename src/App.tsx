@@ -59,13 +59,13 @@ export default function App() {
 
   return (
     <main style={{ padding: 16, maxWidth: 420, margin: '0 auto' }}>
-      <h1 style={{ color: '#E7ECF1' }}>CargoLink 캡처 스파이크</h1>
+      <h1 style={{ color: '#E7ECF1' }}>CargoLink キャプチャ スパイク</h1>
       <div style={{ margin: '12px 0', display: 'flex', gap: 8 }}>
         <button aria-pressed={mode === 'input'} onClick={() => setMode('input')}>input capture</button>
         <button aria-pressed={mode === 'stream'} onClick={() => setMode('stream')}>getUserMedia</button>
       </div>
       <CameraCapture mode={mode} onCapture={onCapture} />
-      <button onClick={sync} style={{ marginLeft: 8 }}>지금 업로드</button>
+      <button onClick={sync} style={{ marginLeft: 8 }}>今すぐアップロード</button>
       <QueueStatus pending={pending} uploaded={uploaded} online={online} errors={captureErrors} />
     </main>
   );

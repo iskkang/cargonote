@@ -15,29 +15,22 @@ function renderLanding() {
 
 test('shows the product intro and the three roles', () => {
   renderLanding();
-  expect(screen.getByText(/한 링크로 끝낸다/)).toBeInTheDocument();
-  expect(screen.getByText(/작업자 · 현장/)).toBeInTheDocument();
-  expect(screen.getByText(/관리자 · 사무실/)).toBeInTheDocument();
-  expect(screen.getByText(/수신자 · 해외/)).toBeInTheDocument();
+  expect(screen.getByText(/リンク一つで完結/)).toBeInTheDocument();
+  expect(screen.getByText(/作業者 · 現場/)).toBeInTheDocument();
+  expect(screen.getByText(/管理者 · 事務所/)).toBeInTheDocument();
+  expect(screen.getByText(/受取側 · 荷主/)).toBeInTheDocument();
 });
 
 test('login button navigates to /admin', () => {
   renderLanding();
-  fireEvent.click(screen.getAllByRole('button', { name: /관리자 로그인/ })[0]);
+  fireEvent.click(screen.getAllByRole('button', { name: /管理者ログイン/ })[0]);
   expect(screen.getByText('ADMIN CONSOLE')).toBeInTheDocument();
-});
-
-test('language toggle switches the copy', () => {
-  renderLanding();
-  fireEvent.click(screen.getByRole('button', { name: 'EN' }));
-  expect(screen.getByText(/done in one link/)).toBeInTheDocument();
-  expect(screen.getByText(/Worker · Field/)).toBeInTheDocument();
 });
 
 test('shows product screens, a home logo, and a toggling FAQ', () => {
   renderLanding();
-  expect(screen.getByText(/관리자 대시보드/)).toBeInTheDocument();
-  expect(screen.getByRole('button', { name: '홈으로' })).toBeInTheDocument();
-  fireEvent.click(screen.getByRole('button', { name: /수신자도 로그인이 필요한가요/ }));
-  expect(screen.getByText(/발행된 링크 하나로/)).toBeInTheDocument();
+  expect(screen.getByText(/管理ダッシュボード/)).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'ホームへ' })).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: /受取側にもログインが必要ですか/ }));
+  expect(screen.getByText(/発行されたリンク一つで/)).toBeInTheDocument();
 });

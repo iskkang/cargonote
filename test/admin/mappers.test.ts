@@ -3,12 +3,12 @@ import { rowToContainer, rowToCustomer, rowToPhoto, rowToWorkOrder } from '../..
 test('rowToWorkOrder maps snake_case columns to camelCase domain', () => {
   const wo = rowToWorkOrder({
     id: 'wo1', customer_id: 'c1', template_id: 't1', work_date: '2026-07-02',
-    status: 'sent', assignee_name: '김', assignee_contact: '010', assignee_email: 'a@b.c', shipper_label: null,
+    status: 'sent', assignee_name: '山田', assignee_contact: '010', assignee_email: 'a@b.c', shipper_label: null,
     planned_container_type: "40' HQ", planned_container_count: 2,
   });
   expect(wo).toEqual({
     id: 'wo1', customerId: 'c1', templateId: 't1', workDate: '2026-07-02',
-    status: 'sent', assigneeName: '김', assigneeContact: '010', assigneeEmail: 'a@b.c', shipperLabel: null,
+    status: 'sent', assigneeName: '山田', assigneeContact: '010', assigneeEmail: 'a@b.c', shipperLabel: null,
     plannedContainerType: "40' HQ", plannedContainerCount: 2,
   });
 });
@@ -16,8 +16,8 @@ test('rowToWorkOrder maps snake_case columns to camelCase domain', () => {
 test('rowToContainer and rowToCustomer map nullable fields', () => {
   expect(rowToContainer({ id: 'k1', work_order_id: 'wo1', container_no: 'ABCD1234567', seal_no: null, worker_memo: null }))
     .toEqual({ id: 'k1', workOrderId: 'wo1', containerNo: 'ABCD1234567', sealNo: null, workerMemo: null });
-  expect(rowToCustomer({ id: 'c1', name: 'MTL', contact_name: '김담당', phone: '010-1', email: 'a@b.c', contact: null, notes: null }))
-    .toEqual({ id: 'c1', name: 'MTL', contactName: '김담당', phone: '010-1', email: 'a@b.c', contact: null, notes: null });
+  expect(rowToCustomer({ id: 'c1', name: 'MTL', contact_name: '山田', phone: '010-1', email: 'a@b.c', contact: null, notes: null }))
+    .toEqual({ id: 'c1', name: 'MTL', contactName: '山田', phone: '010-1', email: 'a@b.c', contact: null, notes: null });
 });
 
 test('rowToPhoto maps paths, hash, byte size, status', () => {
