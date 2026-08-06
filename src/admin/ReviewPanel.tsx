@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { slotLabel } from '../domain/slotText';
 import type { AdminRepo } from './repo';
 import type { WorkOrderReview } from '../domain/review';
 import { requiredSlots } from '../domain/template';
@@ -116,7 +117,7 @@ export function ReviewPanel({
       .filter((p) => p.displayPath && urls[p.displayPath])
       .map((p) => ({
         label: p.slotKey === DAMAGE_SLOT ? t.review.damageT
-          : review!.template.requiredPhotos.find((s) => s.key === p.slotKey)?.label ?? (p.slotKey ?? ''),
+          : slotLabel(p.slotKey, review!.template.requiredPhotos.find((s) => s.key === p.slotKey)?.label ?? (p.slotKey ?? '')),
         imageUrl: urls[p.displayPath!] as string,
       }));
     if (images.length === 0) { setAi((a) => ({ ...a, [containerId]: 'error' })); return; }
@@ -207,11 +208,11 @@ export function ReviewPanel({
                     <div key={slot.key} style={sx.pcard}>
                       <div style={{ position: 'relative' }}>
                         {url
-                          ? <img src={url} alt={slot.label} style={{ ...sx.pthumb, cursor: 'zoom-in' }} onClick={() => large && setLightbox(large)} />
+                          ? <img src={url} alt={slotLabel(slot.key, slot.label)} style={{ ...sx.pthumb, cursor: 'zoom-in' }} onClick={() => large && setLightbox(large)} />
                           : <div style={{ ...sx.pthumb, ...sx.pmiss }}>{t.review.notCaptured}</div>}
                         <span style={sx.pnum}>{String(i + 1).padStart(2, '0')}</span>
                       </div>
-                      <div style={sx.plabel}>{slot.label}</div>
+                      <div style={sx.plabel}>{slotLabel(slot.key, slot.label)}</div>
                       <Badge tone={done ? 'positive' : 'negative'}>{done ? t.review.captured2 : t.review.missing2}</Badge>
                     </div>
                   );

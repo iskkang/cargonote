@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { slotLabel, slotInstruction } from '../domain/slotText';
 import { useParams } from 'react-router-dom';
 import type { WorkerClient } from './workerClient';
 import { getWorkerClient } from '../admin/repoFactory';
@@ -175,7 +176,7 @@ export function WorkerCapture({ client = getWorkerClient() }: { client?: WorkerC
           {groups.map((g) => (
             <div key={g.phase} style={{ marginBottom: 10 }}>
               <div style={sx.groupLabel}>{g.phase}</div>
-              {g.slots.map((s) => <div key={s.key} style={sx.previewRow}>· {s.label}</div>)}
+              {g.slots.map((s) => <div key={s.key} style={sx.previewRow}>· {slotLabel(s.key, s.label)}</div>)}
             </div>
           ))}
 
@@ -248,7 +249,7 @@ export function WorkerCapture({ client = getWorkerClient() }: { client?: WorkerC
                   ))
                 : missingSlots.map((s) => (
                     <div key={s.key} style={sx.row}>
-                      <div style={{ flex: 1 }}><div style={sx.rowLabel}>{s.label}</div><div style={sx.rowInstr}>{s.instruction}</div></div>
+                      <div style={{ flex: 1 }}><div style={sx.rowLabel}>{slotLabel(s.key, s.label)}</div><div style={sx.rowInstr}>{slotInstruction(s.key, s.instruction)}</div></div>
                       <Badge tone="negative">不足</Badge>
                     </div>
                   ))}

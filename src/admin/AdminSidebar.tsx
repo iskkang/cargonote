@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Brand, Button } from '../ui/kit';
 import { C, FONT } from '../ui/tokens';
-import { useT, useLang, ADMIN_LANGS } from './i18n';
+import { useT } from './i18n';
 
 export type AdminView = 'home' | 'new' | 'board' | 'load' | 'customers' | 'reports';
 
@@ -32,7 +32,6 @@ export function AdminSidebar({
   view: AdminView; onSelect: (v: AdminView) => void; email?: string | null; onSignOut: () => void; open?: boolean; onClose?: () => void;
 }) {
   const t = useT();
-  const { lang, setLang } = useLang();
   return (
     <aside className={`cn-sidebar${open ? ' cn-open' : ''}`} style={sx.aside}>
       <div style={{ padding: '18px 16px 8px' }}>
@@ -51,12 +50,6 @@ export function AdminSidebar({
         })}
       </nav>
       <div style={sx.footer}>
-        <div style={sx.langBar}>
-          {ADMIN_LANGS.map((l) => (
-            <button key={l.code} type="button" onClick={() => setLang(l.code)}
-              style={{ ...sx.langBtn, ...(lang === l.code ? sx.langActive : {}) }}>{l.label}</button>
-          ))}
-        </div>
         {email && (
           <div style={sx.profile}>
             <span style={sx.avatar}>{email[0]?.toUpperCase() ?? '?'}</span>
@@ -76,9 +69,6 @@ const sx = {
   aside: { width: 232, flexShrink: 0, minHeight: '100vh', background: C.navy, color: C.onDark, display: 'flex', flexDirection: 'column', fontFamily: FONT.sans } as const,
   item: { width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: 0, borderRadius: 10, padding: '11px 14px', marginBottom: 4, fontFamily: FONT.sans, fontWeight: 600, fontSize: 14, textAlign: 'left' as const } as const,
   footer: { padding: '14px 16px', borderTop: '1px solid rgba(159,178,194,.18)' } as const,
-  langBar: { display: 'flex', gap: 3, background: 'rgba(255,255,255,.06)', borderRadius: 999, padding: 3, marginBottom: 14 } as const,
-  langBtn: { flex: 1, fontFamily: FONT.sans, fontSize: 11, fontWeight: 700, padding: '5px 0', borderRadius: 999, border: 0, background: 'transparent', color: C.onDarkDim, cursor: 'pointer' } as const,
-  langActive: { background: C.teal, color: C.white } as const,
   profile: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 } as const,
   avatar: { width: 34, height: 34, borderRadius: 999, background: C.teal, color: C.white, fontWeight: 800, fontSize: 15, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 } as const,
   profileEmail: { fontSize: 12, color: C.onDark, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const } as const,

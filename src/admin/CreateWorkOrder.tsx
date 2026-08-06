@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { slotLabel } from '../domain/slotText';
 import { QRCodeSVG } from 'qrcode.react';
 import type { AdminRepo } from './repo';
 import type { LoadPlan } from './loadPlan';
@@ -160,7 +161,7 @@ export function CreateWorkOrder({ repo, onCreated, onManageCustomers, onPreviewC
         <div style={{ marginBottom: 14 }}>
           <div style={crd.miniLabel}>{t.create.needPhotos} · {requiredSlots.length}{t.create.unit}</div>
           <div style={crd.chips}>
-            {requiredSlots.map((s) => <span key={s.key} style={crd.photoChip}>{s.label}</span>)}
+            {requiredSlots.map((s) => <span key={s.key} style={crd.photoChip}>{slotLabel(s.key, s.label)}</span>)}
           </div>
         </div>
       )}

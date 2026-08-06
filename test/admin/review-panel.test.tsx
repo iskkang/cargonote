@@ -10,7 +10,8 @@ test('shows container + checklist and publishes to a viewer link', async () => {
   await repo.insertPhoto({ containerId: 'ctn-1', slotKey: 'seal', displayPath: 'd.webp', thumbPath: 't.webp', fileHash: 'h', byteSize: 1, capturedAt: '2026-07-02T01:00:00Z' });
   render(<ReviewPanel workOrderId="wo-2" repo={repo} onBack={() => {}} thumbUrls={stubThumbs} signViewer={stubSign} />);
   expect(await screen.findByText(/FBLU4204812/)).toBeInTheDocument();
-  expect(screen.getByText(/シール番号/)).toBeInTheDocument();
+  // 表示は key から引くので、保存された label ではなく slotText の訳語が出る。
+  expect(screen.getByText(/シール接写/)).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: /発行/ }));
   const link = await screen.findByTestId('viewer-link');
   expect(link.textContent).toMatch(/\/v\/[A-Za-z0-9]+/);
